@@ -234,7 +234,7 @@ function boot(){
   M.syncNative && M.syncNative();
   M.maybeOnboard && M.maybeOnboard();
   try{ M.autoBackup && M.autoBackup(); M.myDuaReminder && setTimeout(M.myDuaReminder, 1500); if(M.cfg.startRandom && M.openRandom) setTimeout(M.openRandom, 400); }catch(e){}
-  if('serviceWorker' in navigator && location.protocol.startsWith('http') && !window.Android){ try{ navigator.serviceWorker.register('sw.js'); }catch(e){} }
+  if('serviceWorker' in navigator && location.protocol.startsWith('http') && !window.Android){ try{ navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).then(function(r){ try{ r.update(); }catch(e){} }).catch(function(){}); var hadSW = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener('controllerchange', function(){ try{ if(hadSW && !sessionStorage.getItem('swReloaded')){ sessionStorage.setItem('swReloaded','1'); location.reload(); } }catch(e){} }); }catch(e){} }
   // let the native splash know we're ready
   try{ window.Android && window.Android.ready && window.Android.ready(); }catch(e){}
 }

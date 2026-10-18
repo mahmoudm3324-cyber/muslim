@@ -1,4 +1,4 @@
-const V='muslim-2.3.1-1018';
+const V='muslim-2.3.1-1019';
 // install: keep the page and everything it loads (read from index.html itself, so the list never goes stale) for offline use
 self.addEventListener('install',e=>{e.waitUntil((async()=>{
   try{
@@ -34,6 +34,8 @@ self.addEventListener('fetch',e=>{
   e.respondWith(caches.open(V).then(async c=>{
     const hit=await c.match(e.request);
     const net=fetch(e.request).then(r=>{if(r.status===200&&r.type==='basic')c.put(e.request,r.clone()).catch(()=>{});return r;}).catch(()=>hit||Response.error());
+    /* code and pages: the fresh copy wins (so an update shows up on the next launch); heavy files (audio, fonts, images, data) come from the cache first */
+    if(/\.(?:js|css|html|webmanifest)$/.test(u.pathname)||u.pathname.endsWith('/'))return net.then(r=>r&&r.ok?r:(hit||r),()=>hit||Response.error());
     return hit||net;
   }));
 });
