@@ -1,0 +1,31 @@
+.hj-banner{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.hj-b-t{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.hj-b-t>svg{width:22px;height:22px;flex:none;color:var(--p)}
+.hj-b-t .small{line-height:1.6}
+.hj-cty{display:flex;align-items:center;gap:10px}
+.hj-lbl{display:flex;justify-content:space-between;padding:0 8px}
+.hj-prev{margin-top:12px;padding:12px;border-radius:14px;background:color-mix(in srgb,var(--p) 10%,transparent);text-align:center}
+.hj-pv{font-size:1.1rem;margin-top:2px}
+.hj-note{line-height:1.9;margin-top:16px}
+.hj-list{max-height:55vh;overflow:auto}
+.hj-list .item{width:100%;text-align:start}
+.hj-mov{margin-top:12px;text-align:center}
+.hj-mov .small{line-height:1.8;margin-top:4px}
+.hj-banner .btn{flex:none}
+
+/* ---- Hijri-by-country picker: title fixed (sheet-h), search sticky, equal rows ---- */
+.hjc-sheet{max-height:88%}
+.hjc-sheet .sheet-h{flex:none;padding:6px 20px 8px;line-height:1.4}
+.hjc-sheet .sheet-b{padding:0 12px calc(12px + var(--sab,0px));overscroll-behavior:contain;min-height:0}
+.hjc-q{position:sticky;top:0;z-index:2;padding:4px 4px 8px;background:var(--sheet-bg,var(--surface))}
+.hjc-q .field{width:100%}
+.hjc-list{display:flex;flex-direction:column;padding:0 4px}
+.hjc-row{display:flex;align-items:center;gap:10px;min-height:52px;padding:8px 10px;width:100%;text-align:start;border-radius:14px;content-visibility:visible!important;contain:none!important;flex:none}
+.hjc-row + .hjc-row{border-top:1px solid color-mix(in srgb,var(--outline-v) 55%,transparent);border-radius:0}
+.hjc-row:active{background:color-mix(in srgb,var(--p) 8%,transparent)}
+.hjc-row.on{background:color-mix(in srgb,var(--p) 10%,transparent);border-radius:14px}
+.hjc-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.hjc-n{font-weight:700;line-height:1.45;overflow-wrap:anywhere}
+.hjc-s{font-size:.78rem;line-height:1.35;color:var(--on-sv)}
+.hjc-ck{flex:none;width:24px;height:24px;display:grid;place-items:center;color:var(--p)}
+.hjc-ck svg{width:22px;height:22px}

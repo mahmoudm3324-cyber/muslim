@@ -1,0 +1,32 @@
+/* adhkar2 — «حصن المسلم الموسّع» */
+.ad2-search{margin-bottom:6px}
+.ad2-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.ad2-cat{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 12px;text-align:start;min-width:0;min-height:96px;color:var(--on-s);transition:transform .2s var(--spring,ease)}
+.ad2-cat:active{transform:scale(.97)}
+.ad2-ci{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--pc,color-mix(in oklab,var(--p) 16%,transparent));color:var(--on-pc,var(--p))}
+.ad2-ci .ic{width:22px;height:22px}
+.ad2-ct{font-weight:700;font-size:.92rem;line-height:1.45;overflow-wrap:anywhere}
+.ad2-cn{margin-top:auto}
+.ad2-card{display:flex;flex-direction:column;gap:10px;padding:16px;margin-bottom:12px;min-width:0}
+.ad2-card.done{box-shadow:inset 0 0 0 1.5px color-mix(in oklab,var(--ok) 55%,transparent)}
+.ad2-lbl{font-size:.95rem;color:var(--p);line-height:1.7}
+.ad2-text{font-size:1.28rem;line-height:2.2;text-align:center;overflow-wrap:anywhere;word-break:normal}
+.ad2-meta{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.ad2-fadl{line-height:1.9;color:var(--on-sv);padding:8px 12px;border-radius:12px;background:color-mix(in oklab,var(--gold) 10%,transparent)}
+.ad2-fadl b{color:color-mix(in oklab,var(--gold) 80%,var(--on-s))}
+.ad2-actions{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.ad2-actions .grow{flex:1}
+.ad2-heart.on{color:var(--danger,#e53935)}
+.ad2-heart.on .ic{fill:currentColor}
+.ad2-count{min-width:76px;height:46px;border-radius:23px;background:var(--p);color:var(--on-p,#fff);font-weight:800;font-size:1.05rem;padding:0 18px;transition:transform .2s var(--spring,ease),background .3s}
+.ad2-count:active{transform:scale(.9)}
+.ad2-card.done .ad2-count{background:var(--ok)}
+.ad2-catlink{align-self:flex-start;font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--pc);color:var(--on-pc)}
+.ad2-why{display:flex;align-items:center;gap:6px;margin-bottom:8px;color:var(--on-sv)}
+.ad2-why .ic{width:18px;height:18px;color:var(--gold)}
+.ad2-empty{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:26px 16px}
+.ad2-empty .ic{width:34px;height:34px;color:var(--on-sv)}
+.ad2-foot{text-align:center;line-height:1.8;margin:6px 0 16px}
+.ad2-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.ad2-fl{margin-inline-end:.5em}
+.ad2-fl::after{content:"·";margin-inline-start:.5em}

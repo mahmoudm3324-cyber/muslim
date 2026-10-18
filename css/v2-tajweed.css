@@ -1,0 +1,80 @@
+/* ===== Tajweed course (tj-) ===== */
+.tj{--tj-gap:12px;display:flex;flex-direction:column;gap:var(--tj-gap);padding-bottom:24px}
+.tj-body{display:flex;flex-direction:column;gap:var(--tj-gap)}
+.tj-c-madd{--c:#d4493e}.tj-c-ghunna{--c:#2e9d62}.tj-c-ikhfa{--c:#e0841f}.tj-c-idgham{--c:#8d63d2}.tj-c-izhar{--c:#2f7fd0}
+.tj-c-iqlab{--c:#c9449a}.tj-c-qalq{--c:#0f9fa8}.tj-c-tafkh{--c:#a2701f}.tj-c-tarq{--c:#6b8e23}.tj-c-waqf{--c:#7b8794}.tj-c-base{--c:var(--p)}
+.tj-top{display:flex;align-items:center;gap:8px}
+.tj-top .badge{flex:none}
+.tj-hero{padding:16px;display:flex;flex-direction:column;gap:10px}
+.tj-hero-t{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tj-hero-h{font-size:1.4rem;line-height:1.4}
+.tj-big{text-align:center;flex:none}.tj-big b{display:block;font-size:2.1rem;line-height:1}.tj-big small{font-size:.74rem;opacity:.9}
+.tj-bar{background:color-mix(in oklab,currentColor 20%,transparent)}.tj-bar i{background:var(--gold,#e8cf8a)}
+.tj-legend{padding:12px 16px}
+.tj-legend summary{cursor:pointer;font-weight:700;list-style:none;display:flex;align-items:center;justify-content:space-between}
+.tj-legend summary::-webkit-details-marker{display:none}
+.tj-legend summary::after{content:"+";font-size:1.3em;color:var(--on-sv)}
+.tj-legend[open] summary::after{content:"−"}
+.tj-lg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:12px 0 8px}
+.tj-lgi{display:flex;align-items:center;gap:8px;font-size:.85rem;min-width:0}
+.tj-dot{flex:none;width:12px;height:12px;border-radius:50%;background:var(--c,var(--p));display:inline-block;box-shadow:0 0 0 3px color-mix(in oklab,var(--c,var(--p)) 20%,transparent)}
+.tj-list{display:flex;flex-direction:column;gap:8px}
+.tj-list .card+.card{margin-top:0}
+.tj-lesson{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;text-align:start;color:inherit}
+.tj-lesson:active{transform:scale(.985)}
+.tj-num{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-weight:800;background:var(--pc);color:var(--on-pc)}
+.tj-lt{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.5}
+.tj-lt small{font-size:.78rem}
+.tj-stars{flex:none;display:inline-flex;gap:1px;direction:ltr;font-size:1rem;line-height:1}
+.tj-stars i{font-style:normal;color:color-mix(in oklab,var(--on-sv) 35%,transparent)}
+.tj-stars i.on{color:var(--gold)}
+.tj-stars.big{font-size:1.6rem;gap:3px}
+.tj-foot{text-align:center;padding:4px 8px}
+.tj-h{margin:4px 0 0;font-size:1.35rem;line-height:1.5}
+.tj-intro{line-height:1.9;font-size:.95rem}
+.tj-lesson-body{display:flex;flex-direction:column;gap:12px}
+.tj-lesson-body .card+.card{margin-top:0}
+.tj-rule{border-inline-start:4px solid var(--c)}
+.tj-rh{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.tj-rh .badge{margin-inline-start:auto}
+.tj-d{margin:4px 0 8px;line-height:1.85;font-size:.94rem}
+.tj-letters{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.tj-l{min-width:36px;height:36px;padding:0 6px;border-radius:11px;display:inline-grid;place-items:center;font-size:1.35rem;line-height:1;color:color-mix(in oklab,var(--c,var(--p)) 75%,var(--on-s));background:color-mix(in oklab,var(--c,var(--p)) 14%,transparent);box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--c,var(--p)) 30%,transparent)}
+.tj-how{margin:6px 0 8px;padding-inline-start:20px;display:flex;flex-direction:column;gap:6px;line-height:1.85;font-size:.92rem}
+.tj-how li::marker{color:var(--c,var(--p))}
+.tj-exh{margin:10px 0 6px;color:var(--on-sv)}
+.tj-ex{margin-top:8px;padding:10px 12px;border-radius:16px;background:color-mix(in oklab,var(--on-s) 5%,transparent);box-shadow:inset 0 0 0 1px var(--outline-v)}
+.tj-ay{font-size:1.45rem;line-height:2.3;text-align:start;word-spacing:.05em}
+.tj-hl{background:linear-gradient(to bottom,transparent 16%,color-mix(in oklab,var(--c,var(--p)) 22%,transparent) 16%,color-mix(in oklab,var(--c,var(--p)) 22%,transparent) 84%,transparent 84%);color:color-mix(in oklab,var(--c,var(--p)) 82%,var(--on-s));border-radius:8px;padding:0 3px;box-decoration-break:clone;-webkit-box-decoration-break:clone;font-weight:inherit}
+.tj-exf{display:flex;align-items:center;gap:4px;margin-top:2px}
+.tj-ib{width:36px;height:36px}
+.tj-marks{display:flex;flex-direction:column;gap:8px;margin:6px 0 10px}
+.tj-mk{display:grid;grid-template-columns:48px 44px minmax(0,1fr);align-items:center;gap:8px;padding:6px 8px;border-radius:12px;background:color-mix(in oklab,var(--on-s) 5%,transparent)}
+.tj-mg{font-size:2.4rem;text-align:center;color:var(--p);line-height:1.4;overflow:hidden}
+.tj-mn{font-weight:800;text-align:center}
+.tj-md{font-size:.86rem;line-height:1.6}
+.tj-quiz{background:var(--card-bg);border-style:dashed}
+.tj-qh{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+.tj-qbar{height:6px}
+.tj-q{font-size:1.05rem;font-weight:700;line-height:1.8;margin:8px 0}
+.tj-opts{display:flex;flex-direction:column;gap:8px}
+.tj-opt{min-height:48px;padding:10px 14px;border-radius:16px;text-align:start;font-weight:600;background:var(--chip-bg);box-shadow:inset 0 0 0 1px var(--outline-v);line-height:1.6;transition:background .2s,box-shadow .2s}
+.tj-opt:active{transform:scale(.985)}
+.tj-opt.ok{background:color-mix(in oklab,var(--ok) 22%,transparent);box-shadow:inset 0 0 0 2px var(--ok)}
+.tj-opt.bad{background:color-mix(in oklab,var(--danger) 18%,transparent);box-shadow:inset 0 0 0 2px var(--danger)}
+.tj-opt[disabled]{opacity:1}
+.tj-fb{margin-top:10px;line-height:1.8;font-size:.92rem}
+.tj-fb:empty{display:none}
+.tj-fb.ok b{color:var(--ok)}.tj-fb.bad b{color:var(--danger)}
+.tj-reg .tj-mkr{padding:8px 0;border-top:1px solid var(--outline-v)}
+.tj-reg .tj-rh+.tj-mkr,.tj-reg .tj-d+.tj-mkr{border-top:0}
+.tj-mkn{font-weight:700;line-height:1.7;font-size:.92rem}
+.tj-sub{gap:var(--tj-gap)}
+.tj-row{display:flex;align-items:flex-start;gap:12px;padding:10px 14px}
+.tj-bl{flex:none;width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:1.9rem;line-height:1;background:var(--pc);color:var(--on-pc)}
+.tj-rr{flex:1;min-width:0}
+.tj-chs{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.tj-ch{padding:1px 9px;border-radius:999px;font-size:.76rem;line-height:1.7;background:color-mix(in oklab,var(--on-s) 8%,transparent);box-shadow:inset 0 0 0 1px var(--outline-v)}
+.tj-ch.x{background:color-mix(in oklab,var(--gold) 20%,transparent);box-shadow:none}
+.tj-g .tj-d{margin:2px 0 0}
+html[dir=ltr] .tj-top .chip svg{transform:none}

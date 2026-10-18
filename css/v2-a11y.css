@@ -1,0 +1,64 @@
+/* ===== Accessibility: «إلغاء الشفافية» (html[data-solid]) and «تباين عالٍ» (html[data-contrast]) =====
+   Colour tokens for the contrast mode (text, accent, outlines) are set by M.applyTheme in js/theme.js; this file covers surfaces.
+   Selectors carry [data-skin][data-theme] so they beat both skins in light, dark and amoled. */
+
+/* ---------- 1) solid: every surface becomes opaque, no backdrop blur ---------- */
+html[data-solid][data-skin][data-theme]{
+  --card-bg:var(--s2);--card-border:var(--outline-v);--card-shadow:0 1px 2px rgba(0,0,0,.12);--card-blur:none;
+  --chip-bg:var(--s3);--seg-bg:var(--s3);--field-bg:var(--s1);--icon-bg:var(--s3);
+  --sheet-bg:var(--s1);--sheet-blur:none;--view-bg:var(--s0);--head-bg:var(--s0);--head-blur:none;
+  --toast-bg:var(--on-s);--toast-fg:var(--s0);
+  --nb-bar-a:1;--nb-bub-op:1;--nb-np-op:1;
+}
+html[data-solid] *,html[data-solid] *::before,html[data-solid] *::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html[data-solid][data-skin][data-theme] #app{background:var(--s0)}
+html[data-solid][data-skin][data-theme] .view{background:var(--s0)}
+html[data-solid][data-skin][data-theme] .card:not(.accent),html[data-solid][data-skin][data-theme] .tile,html[data-solid][data-skin][data-theme] .trk-wrap,html[data-solid][data-skin][data-theme] .tb-btn{background:var(--s2)}
+html[data-solid][data-skin][data-theme] .view-head,html[data-solid][data-skin][data-theme] .sec-sticky,html[data-solid][data-skin][data-theme] .st-search,html[data-solid][data-skin][data-theme] .wgc-tabs{background:var(--s0)}
+html[data-solid][data-skin][data-theme] .sheet,html[data-solid][data-skin][data-theme] .dialog .box,html[data-solid][data-skin][data-theme] .rd-bar,html[data-solid][data-skin][data-theme] .hjc-q{background:var(--s1)}
+html[data-solid][data-skin][data-theme] .nb-grid{background:var(--s0)}
+html[data-solid][data-skin][data-theme] .btn.tonal:not(.on),html[data-solid][data-skin][data-theme] .chip:not(.on),html[data-solid][data-skin][data-theme] .icon-btn.tonal:not(.on){background:var(--s3)}
+html[data-solid][data-skin][data-theme] .card.accent{background:var(--p);color:var(--on-p)}
+html[data-solid][data-skin][data-theme] .card.accent .muted{color:var(--on-p);opacity:.88}
+/* bottom bar, floating bubble, now-playing pill */
+html[data-solid][data-skin][data-theme] #tabbar .bar{background:var(--s1)!important;border:1px solid var(--outline-v)}
+html[data-solid][data-skin][data-theme] #tabbar .bar::after{display:none}
+html[data-solid][data-skin][data-theme] .nowplaying,html[data-solid][data-skin][data-theme] .miniplayer{background:var(--s1)!important;border:1px solid var(--outline-v)}
+html[data-solid] .nb-btn,html[data-solid] .nb-bub .nb-btn,html[data-solid] .nb-bub.dim .nb-btn,html[data-solid] .nb-bub.away .nb-btn{opacity:1!important}
+html[data-solid] .nbnp,html[data-solid] .nbnp *{opacity:1}
+html[data-solid][data-skin=glass] .tile .ti{background:var(--pc);color:var(--on-pc);box-shadow:none}
+html[data-solid] .scrim.in{background:rgba(0,0,0,.55)}
+
+/* ---------- 2) contrast: stronger borders, opaque-enough surfaces even while transparency is on ---------- */
+html[data-contrast][data-skin][data-theme]{--card-border:var(--outline)}
+html[data-contrast] .card,html[data-contrast] .tile,html[data-contrast] .skin-card{border-width:1.5px;border-style:solid;border-color:var(--outline)}
+html[data-contrast] .card.accent{border-color:transparent}
+html[data-contrast] .field{box-shadow:inset 0 0 0 1.5px var(--outline)}
+html[data-contrast] .btn.tonal,html[data-contrast] .chip,html[data-contrast] .icon-btn.tonal{box-shadow:inset 0 0 0 1.5px var(--outline)}
+html[data-contrast] .btn.ghost{box-shadow:inset 0 0 0 1.5px var(--outline)}
+html[data-contrast] .item + .item::before{height:1.5px;opacity:1;background:var(--outline-v)}
+html[data-contrast] .sheet{border-top:1.5px solid var(--outline)}
+html[data-contrast] .view-head{border-bottom:1.5px solid var(--outline-v)}
+html[data-contrast] .muted,html[data-contrast] .tiny.muted,html[data-contrast] .small.muted{color:var(--on-sv);opacity:1}
+html[data-contrast] .badge{box-shadow:inset 0 0 0 1px currentColor}
+/* opacity floors for translucent surfaces (only matters while «إلغاء الشفافية» is off) */
+html[data-contrast]:not([data-solid])[data-skin=glass][data-theme=light]{
+  --card-bg:linear-gradient(160deg,rgba(255,255,255,.94),rgba(255,255,255,.88));
+  --sheet-bg:rgba(250,253,252,.97);--chip-bg:rgba(255,255,255,.8);--field-bg:rgba(255,255,255,.92);--icon-bg:rgba(255,255,255,.85);
+  --head-bg:linear-gradient(var(--s0) 70%,transparent);--toast-bg:rgba(8,14,12,.94);
+}
+html[data-contrast]:not([data-solid])[data-skin=glass]:is([data-theme=dark],[data-theme=amoled]){
+  --card-bg:linear-gradient(160deg,rgba(44,56,52,.94),rgba(30,40,37,.9));
+  --sheet-bg:rgba(18,25,23,.97);--chip-bg:rgba(60,74,70,.85);--field-bg:rgba(48,60,56,.9);--icon-bg:rgba(60,74,70,.85);
+  --head-bg:linear-gradient(var(--s0) 70%,transparent);--toast-bg:rgba(250,252,251,.95);--toast-fg:#050807;
+}
+html[data-contrast]:not([data-solid])[data-skin=glass][data-theme=light] #tabbar .bar{background:rgba(255,255,255,.97)!important}
+html[data-contrast]:not([data-solid])[data-skin=glass]:is([data-theme=dark],[data-theme=amoled]) #tabbar .bar{background:rgba(24,32,30,.97)!important}
+html[data-contrast]:not([data-solid])[data-skin=material] #tabbar .bar{background:color-mix(in oklab,var(--s0) 94%,var(--p) 6%)!important}
+html[data-contrast]:not([data-solid])[data-skin=glass][data-theme=light] .nowplaying,html[data-contrast]:not([data-solid])[data-skin=glass][data-theme=light] .miniplayer{background:rgba(255,255,255,.96)}
+html[data-contrast]:not([data-solid])[data-skin=glass]:is([data-theme=dark],[data-theme=amoled]) .nowplaying,html[data-contrast]:not([data-solid])[data-skin=glass]:is([data-theme=dark],[data-theme=amoled]) .miniplayer{background:rgba(24,32,30,.96)}
+html[data-contrast]:not([data-solid]) .sec-sticky,html[data-contrast]:not([data-solid]) .st-search{background:color-mix(in oklab,var(--s0) 97%,transparent)}
+html[data-contrast]:not([data-solid]) .nb-grid{background:color-mix(in oklab,var(--s0) 98%,transparent)}
+html[data-contrast]:not([data-solid]) .nb-btn{opacity:max(var(--nb-bub-op,1),.92)}
+html[data-contrast]:not([data-solid]) .nb-bub.dim .nb-btn,html[data-contrast]:not([data-solid]) .nb-bub.away .nb-btn{opacity:.8}
+html[data-contrast][data-skin=glass] .tile .ti{box-shadow:inset 0 0 0 1px var(--outline)}

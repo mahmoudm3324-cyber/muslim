@@ -1,0 +1,190 @@
+/* ===== v2 navbar: floating/docked tab bar, global bubble, now-playing circle, customiser ===== */
+:root{
+  --nb-pill:color-mix(in oklab,var(--p) 17%,rgba(20,40,32,.08));
+  --nb-pill-rim:color-mix(in oklab,var(--p) 16%,transparent);
+}
+html[data-theme=dark],html[data-theme=amoled]{
+  --nb-pill:color-mix(in oklab,var(--p) 30%,rgba(0,0,0,.42));
+  --nb-pill-rim:color-mix(in oklab,var(--p) 28%,transparent);
+}
+.fab{display:none!important}
+
+/* ---------- tab bar ---------- */
+#tabbar{padding-bottom:var(--sab)}
+html[data-skin] #tabbar .bar{margin:0 14px 12px;padding:6px;width:min(460px,calc(100% - 28px));border-radius:36px;gap:0}
+@media (max-width:360px){html[data-skin] #tabbar .bar{margin-inline:10px;width:calc(100% - 20px)}}
+html[data-skin] #tabbar .tab{flex:1 1 0;min-width:0;height:58px;padding:0 1px;gap:3px;border-radius:30px;justify-content:center;color:var(--on-sv)}
+html[data-skin] #tabbar .tab.on{color:var(--p)}
+html[data-skin][data-theme=dark] #tabbar .tab.on,html[data-skin][data-theme=amoled] #tabbar .tab.on{color:color-mix(in oklab,var(--p) 50%,#fff)}
+/* the active tab's label: the accent darkened enough to read on the light pill (WCAG 4.5:1); its icon keeps the accent */
+html[data-skin]:not([data-theme=dark]):not([data-theme=amoled]) #tabbar .tab.on .lb{color:color-mix(in oklab,var(--p) 70%,#000)}
+#tabbar .tab .ind{flex:none}
+#tabbar .tab .lb{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:calc(.68rem * var(--nb-k,1));line-height:1.3;font-weight:600;padding:0 1px}
+#tabbar[data-nbd=icons] .tab:not(.on) .lb{display:none}
+#tabbar[data-nbd=icons] .tab.on{flex-grow:2.4}
+html[data-skin] #tabbar .lens{top:6px;bottom:auto;height:58px;border-radius:30px;background:var(--nb-pill);box-shadow:inset 0 0 0 1px var(--nb-pill-rim);transition:transform .28s cubic-bezier(.2,.8,.2,1),width .28s cubic-bezier(.2,.8,.2,1),opacity .2s;animation:none!important}
+html[data-skin] #tabbar .lens.none{opacity:0}
+html[data-skin=material] #tabbar .bar{box-shadow:0 8px 24px rgba(10,30,24,.18),0 1px 3px rgba(10,30,24,.1)}
+/* docked: full width, attached to the bottom edge */
+html[data-nbmode=dock][data-skin] #tabbar{padding-bottom:0}
+html[data-nbmode=dock][data-skin] #tabbar .bar{margin:0;width:100%;border-radius:26px 26px 0 0;padding:6px 8px calc(6px + var(--sab));box-shadow:0 -6px 26px rgba(10,30,24,.14)}
+html[data-nbmode=dock][data-skin][data-theme=dark] #tabbar .bar,html[data-nbmode=dock][data-skin][data-theme=amoled] #tabbar .bar{box-shadow:0 -8px 28px rgba(0,0,0,.45)}
+html[data-nbmode=dock][data-skin] #tabbar .bar::after{border-radius:26px 26px 0 0}
+
+/* ---------- the global bubble ---------- */
+.nb-layer{position:absolute;inset:0;z-index:19;pointer-events:none;display:none}
+.nb-layer.on{display:block}
+.nb-scrim{position:absolute;inset:0;background:rgba(6,14,12,0);transition:background .25s;pointer-events:auto}
+.nb-layer.go .nb-scrim{background:rgba(6,14,12,.52)}
+/* dark themes: a deeper, slightly blurred scrim so the labels never compete with the page text below */
+html[data-theme=dark] .nb-layer.go .nb-scrim,html[data-theme=amoled] .nb-layer.go .nb-scrim{background:rgba(0,0,0,.66);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.nb-bub{position:absolute;left:0;top:0;width:52px;height:52px;z-index:20;touch-action:none;will-change:transform;--d:1}
+.nb-bub[data-side=l]{--d:-1}
+.nb-bub.nb-anim{transition:transform .38s var(--sp)}
+.nb-bub.nb-off{display:none}
+.nb-btn{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;border:0;padding:0;color:#fff;touch-action:none;cursor:pointer;
+  background:linear-gradient(145deg,color-mix(in oklab,var(--p) 78%,#fff),var(--p));
+  box-shadow:0 8px 20px -6px rgba(0,0,0,.5),inset 0 1.5px 0 rgba(255,255,255,.4);transition:opacity .45s,transform .4s var(--sp)}
+html[data-skin=material] .nb-btn{background:var(--pc);color:var(--on-pc);box-shadow:0 6px 16px -4px rgba(0,0,0,.4)}
+.nb-glyph{display:grid;place-items:center;transition:transform .35s var(--sp)}
+.nb-glyph{position:relative;width:28px;height:28px}
+.nb-ico{display:grid;place-items:center;width:28px;height:28px;transition:opacity .2s,transform .3s var(--sp)}
+.nb-x{position:absolute;inset:0;display:grid;place-items:center;opacity:0;transform:rotate(-90deg) scale(.6);transition:opacity .2s,transform .3s var(--sp)}
+.nb-x svg{width:24px;height:24px}
+.nb-bub.open .nb-ico{opacity:0;transform:scale(.6)}
+.nb-bub.open .nb-x{opacity:1;transform:none}
+.nb-bub.dim .nb-btn{opacity:.5;transform:translateX(calc(var(--d) * 14px)) scale(.88)}
+.nb-bub.drag .nb-btn{transform:scale(1.1);opacity:1}
+.nb-bub.away .nb-btn{opacity:.35}
+.nb-fi{position:absolute;width:72px;margin:-22px 0 0 -36px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0;border:0;background:none;color:#fff;pointer-events:auto;opacity:0;
+  transform:translate(var(--fx,0),var(--fy,0)) scale(.2);transition:transform .4s var(--sp),opacity .22s}
+.nb-layer.go .nb-fi{opacity:1;transform:none}
+.nb-fc{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--s0);color:var(--p);box-shadow:0 6px 16px rgba(0,0,0,.35)}
+html[data-theme=dark] .nb-fc,html[data-theme=amoled] .nb-fc{color:color-mix(in oklab,var(--p) 55%,#fff);background:color-mix(in oklab,var(--p) 18%,#262e31);box-shadow:0 6px 16px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.08)}
+.nb-fc svg{width:22px;height:22px}
+.nb-fi:active .nb-fc{transform:scale(.92)}
+.nb-fi.edit .nb-fc{background:transparent;color:#fff;box-shadow:inset 0 0 0 2px rgba(255,255,255,.7)}
+.nb-fl{font-size:.6rem;line-height:1.25;font-weight:600;text-align:center;max-width:72px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.nb-grid{position:absolute;inset-inline:16px;top:50%;transform:translateY(-50%);display:grid;grid-template-columns:repeat(4,1fr);gap:10px;pointer-events:auto;padding:14px;border-radius:24px;background:color-mix(in oklab,var(--s0) 92%,transparent)}
+.nb-fi.flat{position:static;margin:0;width:auto;opacity:1;transform:none;color:var(--on-s)}
+.nb-fi.flat .nb-fl{text-shadow:none}
+.nb-fi.flat .nb-fc{background:var(--pc);color:var(--on-pc);box-shadow:none}
+html.nb-fan-open .nbnp{z-index:18}
+
+/* ---------- now-playing circle ---------- */
+.nbnp{position:absolute;left:0;top:0;width:56px;height:56px;z-index:22;border-radius:50%;touch-action:none;will-change:transform;--dy:0px}
+.nbnp.hide{display:none}
+.nbnp.nb-anim{transition:transform .38s var(--sp)}
+.nbnp-bg{position:absolute;inset:0;border-radius:50%;background:color-mix(in oklab,var(--s0) 80%,transparent);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);box-shadow:0 8px 22px -6px rgba(0,0,0,.45),inset 0 0 0 1px color-mix(in oklab,#fff 30%,transparent)}
+html[data-skin=material] .nbnp-bg{background:var(--s3);-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-fx=low] .nbnp-bg,html[data-fx=low] .nbnp-panel{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--s0)}
+.nbnp-rw{position:absolute;inset:0;display:block;pointer-events:none}
+.nbnp-ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);overflow:visible;pointer-events:none}
+.nbnp-ring circle{fill:none;stroke-width:3}
+.nbnp-trk{stroke:color-mix(in oklab,var(--on-s) 16%,transparent)}
+.nbnp-prog{stroke:var(--p);stroke-linecap:round;stroke-dasharray:166.5;stroke-dashoffset:166.5;transition:stroke-dashoffset .3s linear}
+html[data-theme=dark] .nbnp-prog,html[data-theme=amoled] .nbnp-prog{stroke:color-mix(in oklab,var(--p) 60%,#fff)}
+.nbnp.ind .nbnp-prog{stroke-dasharray:44 122.5;stroke-dashoffset:0;transform-box:fill-box;transform-origin:50% 50%}
+.nbnp.ind.playing .nbnp-prog{animation:nbSpin 1.6s linear infinite}
+@keyframes nbSpin{to{transform:rotate(360deg)}}
+.nbnp-disc{position:absolute;inset:6px;border-radius:50%;border:0;padding:0;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;touch-action:none;
+  background:linear-gradient(145deg,color-mix(in oklab,var(--p) 78%,#fff),var(--p));box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.nbnp-disc:active{transform:scale(.94)}
+.nbnp.drag .nbnp-disc{transform:scale(1.08)}
+.nbnp-gl svg{width:17px;height:17px;display:block}
+.nbnp-eq{display:flex;align-items:flex-end;gap:2px;height:9px}
+.nbnp-eq i{display:block;width:2.5px;height:100%;border-radius:2px;background:#fff;transform-origin:bottom;transform:scaleY(.25)}
+.nbnp.playing .nbnp-eq i{animation:nbEq .9s ease-in-out infinite}
+.nbnp.playing .nbnp-eq i:nth-child(2){animation-duration:.7s;animation-delay:-.25s}
+.nbnp.playing .nbnp-eq i:nth-child(3){animation-duration:1.1s;animation-delay:-.5s}
+.nbnp.playing .nbnp-eq i:nth-child(4){animation-duration:.8s;animation-delay:-.1s}
+@keyframes nbEq{0%,100%{transform:scaleY(.2)}50%{transform:scaleY(1)}}
+@media (prefers-reduced-motion:reduce){.nbnp.playing .nbnp-eq i{animation-duration:2.2s}.nbnp.ind.playing .nbnp-prog{animation-duration:4s}}
+.nbnp-panel{position:absolute;top:50%;width:var(--nbnp-pw,240px);display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:24px;background:var(--s3);
+  box-shadow:0 12px 32px -8px rgba(0,0,0,.45),inset 0 0 0 1px color-mix(in oklab,#fff 25%,transparent);
+  transform:translateY(calc(-50% + var(--dy,0px))) scale(.85);opacity:0;visibility:hidden;transition:transform .3s var(--sp),opacity .2s,visibility 0s .3s}
+html[data-skin=glass] .nbnp-panel{background:color-mix(in oklab,var(--s0) 80%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6)}
+.nbnp[data-side=l] .nbnp-panel{left:calc(100% + 8px);transform-origin:left center}
+.nbnp[data-side=r] .nbnp-panel{right:calc(100% + 8px);transform-origin:right center}
+.nbnp.open .nbnp-panel{transform:translateY(calc(-50% + var(--dy,0px)));opacity:1;visibility:visible;transition:transform .3s var(--sp),opacity .2s,visibility 0s}
+.nbnp-t{font-weight:700;font-size:.88rem;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nbnp-s{font-size:.74rem;color:var(--on-sv);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nbnp-ctl{display:flex;align-items:center;justify-content:space-between;gap:2px}
+.nbnp-ctl .icon-btn{width:38px;height:38px}
+.nbnp-pp{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--p);color:var(--on-p,#fff);box-shadow:0 4px 12px -4px var(--p);border:0;padding:0}
+.nbnp-pp svg{width:22px;height:22px}.nbnp-pp:active{transform:scale(.92)}
+.nbnp-ctl .hide{display:none}
+.nbnp-x{color:var(--on-sv)}
+[dir=rtl] .nbnp .np-prev svg,[dir=rtl] .nbnp .np-next svg{transform:scaleX(-1)}
+
+/* ---------- customiser ---------- */
+.nbc{margin-top:8px}
+.nbc-pv{display:flex;gap:2px;padding:6px;border-radius:30px;background:var(--card-bg);box-shadow:var(--card-shadow);border:1px solid var(--card-border)}
+.nbc-pi{flex:1 1 0;min-width:0;height:52px;border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--on-sv);font-size:.6rem;font-weight:600}
+.nbc-pi.on{background:var(--nb-pill);color:var(--p)}
+.nbc-pi .lb{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 1px;line-height:1.3}
+.nbc-pi svg{width:1.5em;height:1.5em}
+.nbc-row{position:relative;transition:transform .18s var(--ease)}
+.nbc-row .icon-btn{width:34px;height:34px;flex:none}
+.nbc-row .icon-btn[disabled]{opacity:.3}
+.nbc-row.drag{z-index:3;transition:none;background:var(--s0);box-shadow:0 8px 24px rgba(0,0,0,.28);border-radius:16px}
+.nbc-grip{flex:none;width:32px;height:38px;display:grid;place-items:center;border:0;background:none;color:var(--on-sv);touch-action:none;cursor:grab;margin-inline-start:-6px}
+.nbc-pick.on{background:color-mix(in oklab,var(--p) 9%,transparent)}
+.nbc-chk{color:var(--p);display:grid}
+.nbc-chk svg{width:22px;height:22px}
+.nbc-chips{display:flex;flex-wrap:wrap;gap:8px}
+.nbc-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px 5px 9px;border-radius:99px;background:var(--pc);color:var(--on-pc);font-size:.8rem;font-weight:600}
+.nbc-chip svg{width:1.2em;height:1.2em}
+
+/* ---------- bar surfaces (opaque enough to read over any page; --nb-bar-a = user opacity) ---------- */
+html[data-skin=glass] #tabbar .bar{background:linear-gradient(160deg,color-mix(in srgb,rgba(255,255,255,.88) calc(var(--nb-bar-a,1) * 100%),transparent),color-mix(in srgb,rgba(255,255,255,.76) calc(var(--nb-bar-a,1) * 100%),transparent))}
+html[data-skin=glass][data-theme=dark] #tabbar .bar,html[data-skin=glass][data-theme=amoled] #tabbar .bar{background:linear-gradient(160deg,color-mix(in srgb,rgba(54,66,62,.88) calc(var(--nb-bar-a,1) * 100%),transparent),color-mix(in srgb,rgba(26,34,32,.86) calc(var(--nb-bar-a,1) * 100%),transparent))}
+html[data-skin=material] #tabbar .bar{background:color-mix(in oklab,color-mix(in oklab,var(--s0) 92%,var(--p) 8%) calc(var(--nb-bar-a,1) * 100%),transparent)}
+html[data-skin=material][data-theme=dark] #tabbar .bar,html[data-skin=material][data-theme=amoled] #tabbar .bar{background:color-mix(in oklab,color-mix(in oklab,var(--s0) 86%,#fff 14%) calc(var(--nb-bar-a,1) * 100%),transparent)}
+
+/* classic expanded now-playing pill: second row for the auto-stop control */
+.nowplaying{flex-wrap:wrap;row-gap:2px;border-radius:30px}
+.nowplaying .np-tmr{flex:0 0 100%;display:flex;align-items:center;gap:6px;padding:0 6px 0;min-width:0}
+.np-chip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:99px;border:0;font-size:.74rem;font-weight:600;color:var(--on-sv);background:color-mix(in oklab,var(--on-s) 8%,transparent);min-width:0;max-width:100%}
+.np-chip svg{width:1.2em;height:1.2em;flex:none}
+.np-chip-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.np-tmr.on .np-chip{background:color-mix(in oklab,var(--p) 16%,transparent);color:var(--p)}
+html[data-theme=dark] .np-tmr.on .np-chip,html[data-theme=amoled] .np-tmr.on .np-chip{color:color-mix(in oklab,var(--p) 50%,#fff)}
+.np-chip-x{width:28px;height:28px;border-radius:50%;border:0;padding:0;display:grid;place-items:center;background:color-mix(in oklab,var(--on-s) 8%,transparent);color:var(--on-sv)}
+.np-chip-x svg{width:14px;height:14px}.np-chip-x.hide{display:none}
+.nbnp.open{display:none}
+
+/* lens + label colour move together, no overshoot */
+html[data-skin] #tabbar .tab{transition:color .28s cubic-bezier(.2,.8,.2,1),transform .2s}
+html[data-skin] #tabbar .tab svg,html[data-skin] #tabbar .tab.on svg{transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+html[data-skin] #tabbar .tab.on svg{transform:none}
+/* separate opacity per floating thing */
+.nb-btn{opacity:var(--nb-bub-op,1)}
+.nb-bub.dim .nb-btn{opacity:calc(var(--nb-bub-op,1) * .5)}
+.nb-bub.drag .nb-btn{opacity:var(--nb-bub-op,1)}
+.nb-bub.away .nb-btn{opacity:calc(var(--nb-bub-op,1) * .35)}
+.nbnp{opacity:var(--nb-np-op,1);transition:opacity .4s}
+.nbnp.nb-anim{transition:transform .38s var(--sp),opacity .4s}
+.nbnp.dim{opacity:calc(var(--nb-np-op,1) * .5)}
+.nbnp.drag{opacity:var(--nb-np-op,1)}
+.nbc-val{font-weight:700;color:var(--p)}
+.nbc-range{width:100%;accent-color:var(--p);margin:4px 0}
+.nbnp-demo{position:relative;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;color:#fff;opacity:var(--nb-np-op,1);background:linear-gradient(145deg,color-mix(in oklab,var(--p) 78%,#fff),var(--p));box-shadow:0 6px 16px -6px rgba(0,0,0,.4)}
+.nbnp-demo i{position:absolute;inset:-3px;border-radius:50%;border:3px solid color-mix(in oklab,var(--p) 40%,transparent)}
+.nbnp-demo svg{width:22px;height:22px}
+.nbc-pv{background:color-mix(in srgb,var(--card-bg) calc(var(--nb-bar-a,1) * 100%),transparent)}
+/* customiser rows: label never breaks letter by letter, controls stay compact (large font sizes) */
+.nbc-row{gap:6px}
+.nbc-row .grow.t{flex:1 1 auto;min-width:4.2em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nbc-row .icon-btn{width:32px;height:32px}
+.nbc-row .lead{flex:none}
+
+/* disc: play/pause symbol, centred absolutely (no eq bars) */
+.nbnp-disc{display:block!important}
+.nbnp-gl{position:absolute;inset:0;display:grid;place-items:center}
+.nbnp-gl svg{width:24px;height:24px;display:block;fill:currentColor}
+.nbnp-eq{display:none!important}
+.nbnp.playing .nbnp-disc{animation:nbPulse 2.4s ease-in-out infinite}
+@keyframes nbPulse{0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 0 0 0 color-mix(in oklab,var(--p) 45%,transparent)}50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 0 0 6px color-mix(in oklab,var(--p) 0%,transparent)}}
+@media (prefers-reduced-motion:reduce){.nbnp.playing .nbnp-disc{animation:none}}
+.nbnp-disc .np-eq{display:none!important}

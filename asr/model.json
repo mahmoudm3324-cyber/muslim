@@ -1,0 +1,1 @@
+{"v": 3, "enc": "enc.onnx", "dec": "dec.onnx", "vocab": "vocab.json", "model": "tarteel-ai/whisper-tiny-ar-quran (int8, Arabic vocabulary)", "license": "Apache-2.0", "spec": true}

@@ -1,0 +1,86 @@
+/* ===== Sound library (js/v2-library.js) ===== */
+/* what each prayer plays: the bridge to the notifications centre */
+.lib-plays{background:linear-gradient(160deg,color-mix(in oklab,var(--pc) 70%,var(--s1)),var(--s1));border:1px solid var(--outline-v);border-radius:24px;padding:14px 14px 12px;margin-bottom:14px}
+.lib-plays-h{display:flex;align-items:center;justify-content:space-between;font-weight:700;margin-bottom:10px}
+.lib-link{display:inline-flex;align-items:center;gap:2px;color:var(--p);font-size:.82rem;font-weight:700;padding:4px 6px;border-radius:10px}
+.lib-link svg.ic{width:1.1em;height:1.1em}
+.lib-pgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.lib-p{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px 8px;border-radius:16px;background:color-mix(in oklab,var(--s0) 55%,transparent);text-align:center;min-height:88px;position:relative;transition:transform .15s var(--ease)}
+.lib-p:active{transform:scale(.96)}
+.lib-p-ic{width:30px;height:30px;display:grid;place-items:center;color:var(--p)}
+.lib-p-ic .ic{width:26px;height:26px}
+.lib-p-n{font-weight:700;font-size:.82rem}
+.lib-p-s{font-size:.66rem;line-height:1.35;min-height:2.7em;color:var(--on-sv);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lib-p.own{box-shadow:inset 0 0 0 1.5px color-mix(in oklab,var(--gold) 70%,transparent)}
+.lib-p.own .lib-p-s{color:var(--gold)}
+.lib-p.off{opacity:.62}
+.lib-p-off{font-size:.58rem;font-weight:700;color:var(--on-sv);padding:1px 7px;border-radius:999px;background:var(--s3)}
+.lib-off-note{display:flex;align-items:center;gap:8px;width:100%;margin-top:10px;padding:8px 12px;min-height:40px;border-radius:14px;background:color-mix(in oklab,var(--s0) 55%,transparent);font-size:.74rem;color:var(--on-sv);text-align:start}
+.lib-off-note .ic{width:18px;height:18px;color:var(--gold);flex:none}
+.lib-off-note b{color:var(--p);font-size:.8rem;flex:none}
+.lib-plays-f{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.lib-plays-f .btn{flex:1;min-width:130px}
+
+/* the other audio sections */
+.lib-secs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.lib-sec{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:18px;background:var(--s1);border:1px solid var(--outline-v);text-align:center}
+.lib-sec:active{transform:scale(.96)}
+.lib-sec-ic{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;color:#fff;background:linear-gradient(180deg,hsl(var(--h) 62% 72%),hsl(var(--h) 52% 44%))}
+.lib-sec-ic .ic{width:22px;height:22px}
+.lib-sec-t{font-weight:700;font-size:.78rem}
+.lib-sec-s{font-size:.62rem;color:var(--on-sv);line-height:1.3}
+
+/* pick mode banner */
+.lib-pick{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:12px 14px;border-radius:20px;background:var(--pc);color:var(--on-pc);margin-bottom:12px}
+.lib-pick-t{flex-basis:100%}
+.lib-pick .small{flex:1}
+
+.lib-q{position:relative;margin:12px 0 4px}
+.lib-q input{padding-inline-start:40px}
+.lib-q-i{position:absolute;inset-inline-start:12px;top:50%;transform:translateY(-50%);color:var(--on-sv);display:grid}
+.lib-q-i .ic{width:20px;height:20px}
+
+/* sound cards */
+.lib-body .section-h{display:flex;align-items:center;gap:8px}
+.lib-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 12px 12px 14px;border-radius:20px;background:var(--s1);border:1px solid var(--outline-v);margin-bottom:8px;position:relative}
+.lib-card.used{border-color:color-mix(in oklab,var(--p) 55%,var(--outline-v));background:color-mix(in oklab,var(--pc) 22%,var(--s1))}
+.lib-av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:1.15rem;font-family:var(--font-title);background:linear-gradient(160deg,hsl(var(--h) 58% 62%),hsl(var(--h) 52% 36%))}
+.lib-av .ic{width:24px;height:24px}
+.lib-mid{min-width:0}
+.lib-n{font-weight:700;font-size:.92rem;line-height:1.45;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.lib-m{font-size:.72rem;color:var(--on-sv)}
+.lib-foot{display:flex;align-items:center;gap:8px;margin-top:8px;min-height:34px}
+.lib-tags{display:flex;flex-wrap:wrap;gap:4px;flex:1;min-width:0}
+.lib-foot > :last-child{flex:none}
+.lib-tag{font-size:.64rem;font-weight:700;padding:2px 8px;border-radius:999px;background:color-mix(in oklab,var(--p) 18%,transparent);color:var(--p)}
+.lib-tag.all{background:var(--p);color:var(--on-p)}
+.lib-tag.fajr{background:color-mix(in oklab,var(--gold) 22%,transparent);color:var(--gold)}
+.lib-tag.alarm,.lib-tag.nf{background:var(--s3);color:var(--on-s)}
+.lib-prog{height:4px;border-radius:2px;background:color-mix(in oklab,var(--p) 18%,transparent);margin-top:6px;overflow:hidden}
+.lib-prog i{display:block;height:100%;background:var(--p);transition:width .3s}
+/* play button with its progress drawn around it */
+.lib-play{--pp:0;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:var(--on-pc);
+  background:radial-gradient(closest-side,var(--pc) 84%,transparent 86% 100%),conic-gradient(var(--p) calc(var(--pp) * 1%),color-mix(in oklab,var(--p) 18%,transparent) 0)}
+.lib-play.on{color:var(--p)}
+.lib-play .ic{width:20px;height:20px}
+.lib-act{display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:6px 16px;border-radius:999px;background:var(--s3);font-weight:700;font-size:.8rem;white-space:nowrap}
+.lib-act.pick{background:var(--p);color:var(--on-p)}
+.lib-act.pick.on{background:transparent;color:var(--p);box-shadow:inset 0 0 0 1.5px var(--p)}
+.lib-act.dl{background:transparent;box-shadow:inset 0 0 0 1.5px var(--outline-v);color:var(--p)}
+.lib-act .ic{width:18px;height:18px}
+.lib-busy{font-size:.75rem;font-weight:700;color:var(--p);min-width:38px;text-align:center;padding:0 8px}
+.lib-del{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--on-sv);background:transparent;box-shadow:inset 0 0 0 1.5px var(--outline-v)}
+.lib-del .ic{width:17px;height:17px}
+.lib-foot .lib-del{flex:none}
+.lib-src{margin:8px 4px 4px;line-height:1.8}
+.lib-use.on .nf-radio{box-shadow:inset 0 0 0 6px var(--p)}
+
+/* now playing */
+.lib-now{position:sticky;bottom:10px;display:none;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:20px;background:var(--pc);color:var(--on-pc);box-shadow:0 8px 24px rgba(0,0,0,.28);z-index:3}
+.lib-now.in{display:flex;animation:rise .3s var(--ease)}
+.lib-now-x{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--p);color:var(--on-p)}
+.lib-now-t{font-weight:700;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-now-b{height:4px;border-radius:2px;background:color-mix(in oklab,var(--on-pc) 20%,transparent);margin-top:6px;overflow:hidden}
+.lib-now-b i{display:block;height:100%;background:var(--p)}
+.lib-now-d{font-size:.72rem;opacity:.85}
+@media (max-width:370px){.lib-pgrid{gap:4px}.lib-p-s{font-size:.6rem}.lib-secs{gap:6px}}

@@ -1,0 +1,37 @@
+/* ===== v2 mushaf: page curl, editions screen, tajweed legend (all selectors prefixed mf-/mfc-) ===== */
+/* --- page curl layers --- */
+.pg-track .mfc-fw{position:absolute;left:0;top:0;transform-origin:0 0;z-index:4;pointer-events:none;will-change:transform;filter:drop-shadow(0 0 10px rgba(0,0,0,.38))}
+.mfc-fi{position:absolute;left:0;top:0;overflow:hidden;background:color-mix(in oklab,var(--rt-bg,#fcf9f1) 90%,#8a7a5a)}
+.mfc-fc{position:absolute;inset:0;opacity:.2;direction:rtl}
+.mfc-fc .mpage{pointer-events:none}
+.mfc-fo{position:absolute;inset:0}
+.pg-track .mfc-sh{position:absolute;inset:0;z-index:2;pointer-events:none}
+.pg-slide .mfc-ov{position:absolute;inset:0;z-index:30;pointer-events:none}
+
+/* --- editions screen --- */
+.mf{display:flex;flex-direction:column;gap:12px;padding-bottom:20px}
+.mf-intro{line-height:1.8}
+.mf-c{display:flex;gap:14px;align-items:stretch;padding:14px}
+.mf-c.cur{box-shadow:inset 0 0 0 2px var(--p)}
+.mf-th{flex:none;width:92px;height:132px;border-radius:14px;padding:6px;background:linear-gradient(160deg,var(--c1),var(--c2));box-shadow:0 8px 18px -10px rgba(0,0,0,.55);display:flex}
+.mf-pg{flex:1;border-radius:8px;background:#fbf6e8;color:#1f261f;box-shadow:inset 0 0 0 2px var(--rg);display:flex;flex-direction:column;justify-content:center;gap:1px;padding:6px 4px;overflow:hidden;direction:rtl}
+.mf-orn{display:grid;place-items:center;margin:auto;color:var(--c1)}.mf-orn svg{width:34px;height:34px}
+.mf-ln{display:flex;justify-content:space-between;white-space:nowrap;line-height:1.55}
+.mf-tx{font-size:.6rem;line-height:1.9;text-align:center;margin:auto}
+.mf-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.mf-n{font-weight:800;font-size:1rem;line-height:1.4}
+.mf-d{font-size:.8rem;color:var(--on-sv);line-height:1.7}
+.mf-m{display:flex;flex-wrap:wrap;gap:6px}
+.mf-m .chip{font-size:.7rem;padding:3px 9px;min-height:0;pointer-events:none}
+.mf-m .mf-on{background:var(--p);color:var(--on-p,#fff)}
+.mf-st{min-height:1.2em}
+.mf-a{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.mf-b .dl-bar{height:5px}
+@media (max-width:380px){.mf-th{width:74px;height:110px}.mf-c{gap:10px;padding:10px}}
+
+/* --- tajweed legend --- */
+.mf-lg{display:flex;flex-direction:column;gap:10px}
+.mf-lr{display:flex;gap:12px;align-items:flex-start}
+.mf-lr i{flex:none;width:26px;height:26px;border-radius:50%;margin-top:2px;box-shadow:inset 0 0 0 1px rgba(127,127,127,.4)}
+.mf-lr b{font-size:.92rem}
+html[data-fx=low] .mfc-fw{filter:none}

@@ -1,0 +1,56 @@
+/* المساجد القريبة: map on top, a draggable-looking sheet of results below */
+.view.mq-v .view-body{padding:0}
+.mq-body{display:flex;flex-direction:column;height:100%;min-height:0;padding:0!important;overflow:hidden!important;position:relative}
+.mq-stage{position:relative;flex:none;height:46%;min-height:250px;background:var(--surface-2,#e8eef0)}
+.mq-map{position:absolute;inset:0}
+.mq-map.off{display:grid;place-items:center}
+.mq-nomap{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--on-sv)}
+.mq-nomap svg{width:36px;height:36px;opacity:.6}
+.mq-over{position:absolute;top:12px;inset-inline:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;z-index:500;pointer-events:none}
+.mq-over>*{pointer-events:auto}
+.mq-chips{display:flex;gap:6px;background:color-mix(in oklab,var(--card-bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:5px;border-radius:999px;box-shadow:0 4px 16px rgba(0,0,0,.18)}
+.mq-chip{border:0;background:transparent;color:var(--on-s);padding:7px 14px;border-radius:999px;font-weight:700;font-size:.86rem}
+.mq-chip.on{background:var(--p);color:var(--on-p)}
+.mq-loc{width:44px;height:44px;border-radius:50%;border:0;display:grid;place-items:center;background:color-mix(in oklab,var(--card-bg) 92%,transparent);color:var(--p);box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.mq-loc svg{width:22px;height:22px;fill:currentColor}
+.mq-pin{background:none!important;border:0!important}
+.mq-pin svg{display:block;filter:none}
+.mq-mep{background:none!important;border:0!important}
+.mq-me{display:block;width:22px;height:22px;border-radius:50%;background:rgba(42,127,255,.25);position:relative}
+.mq-me i{position:absolute;inset:5px;border-radius:50%;background:#2a7fff;border:2.5px solid #fff;box-sizing:border-box;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+/* selected place */
+.mq-sel{position:absolute;inset-inline:12px;bottom:14px;z-index:600;display:none;background:var(--card-bg);border:1px solid var(--card-border);border-radius:24px;box-shadow:0 14px 36px rgba(0,0,0,.28);overflow:hidden}
+.mq-sel.on{display:flex;flex-direction:column;animation:mqup .28s var(--ease,ease)}
+@keyframes mqup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.mq-ph{width:100%;height:96px;object-fit:cover;display:block}
+.mq-sc{padding:14px 16px 14px;display:flex;flex-direction:column;gap:6px}
+.mq-st{display:flex;align-items:flex-start;gap:8px}
+.mq-sn{flex:1;font-weight:800;font-size:1.08rem;line-height:1.5;min-width:0;overflow-wrap:anywhere}
+.mq-x{flex:none;width:32px;height:32px;border-radius:50%;border:0;background:var(--chip-bg);color:var(--on-sv);display:grid;place-items:center}
+.mq-x svg{width:16px;height:16px}
+.mq-sm{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;font-size:.88rem;color:var(--on-sv)}
+.mq-sm .dot{width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.5}
+.mq-stars{display:inline-flex;gap:1px;color:#c9ccd1;letter-spacing:0;direction:ltr}
+.mq-stars i{font-style:normal}.mq-stars i.f{color:#f3b43f}.mq-stars i.h{color:#f3b43f;opacity:.55}
+.mq-sa{font-size:.84rem;color:var(--on-sv);line-height:1.6;display:flex;gap:6px;align-items:center}
+.mq-sa svg{width:15px;height:15px;flex:none}
+.mq-sb{display:flex;gap:8px;margin-top:6px}
+.mq-sb .btn{min-width:0;padding-inline:10px}
+/* results */
+.mq-sheet{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--bg);border-radius:26px 26px 0 0;margin-top:-18px;position:relative;z-index:700;box-shadow:0 -10px 26px rgba(0,0,0,.14);padding:8px 16px 0}
+.mq-grab{width:42px;height:5px;border-radius:3px;background:var(--outline-v,#c4c9cc);margin:0 auto 8px;flex:none}
+.mq-h{display:flex;justify-content:space-between;align-items:center;margin:2px 0 10px;flex:none}
+.mq-gm{display:inline-flex;align-items:center;gap:6px;border:0;background:var(--chip-bg);color:var(--p);font-weight:700;font-size:.82rem;padding:7px 12px;border-radius:999px}
+.mq-gm svg{width:15px;height:15px}
+.mq-list{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-bottom:calc(var(--sab,0px) + 80px);-webkit-overflow-scrolling:touch}
+.mq-it{display:flex;align-items:center;gap:12px;width:100%;text-align:start;background:var(--card-bg);border:1px solid var(--card-border);border-radius:20px;padding:11px 12px;color:inherit;flex:none}
+.mq-it.on{border-color:var(--p);box-shadow:0 0 0 2px color-mix(in oklab,var(--p) 25%,transparent)}
+.mq-ic{width:42px;height:42px;border-radius:14px;background:var(--pc);color:var(--on-pc);display:grid;place-items:center;flex:none}
+.mq-ic svg{width:24px;height:24px;fill:currentColor}
+.mq-tx{min-width:0}.mq-nm{overflow-wrap:anywhere;line-height:1.45}
+.mq-mt{margin-top:2px}
+.mq-go{color:var(--on-sv);flex:none}.mq-go svg{width:18px;height:18px}
+.mq-info{padding:0 4px 8px;text-align:start;line-height:1.6;flex:none}
+.mq-load{display:flex;flex-direction:column;align-items:center;gap:10px;padding:26px 0;color:var(--on-sv)}
+.mq-err{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.mq-body>.rel{display:none!important}

@@ -1,0 +1,150 @@
+/* ===== Skin: Liquid Glass =====
+   Principles: blur only on a few large, fixed layers (tab bar, headers, sheets, toast) — cards are
+   pre-composited translucent gradients, so scrolling stays smooth on Android WebView.
+   Depth comes from a specular rim (mask-composite border), inner highlights and spring motion. */
+html[data-skin=glass]{
+  --card-r:26px;--btn-r:999px;--chip-r:999px;--sheet-r:36px;
+  --card-bg:linear-gradient(160deg,rgba(255,255,255,.66),rgba(255,255,255,.38));
+  --card-border:rgba(255,255,255,.55);
+  --card-shadow:0 10px 30px rgba(18,44,36,.10),0 1px 2px rgba(18,44,36,.06);
+  --card-blur:none;
+  --chip-bg:rgba(255,255,255,.46);--seg-bg:rgba(110,130,125,.16);--field-bg:rgba(255,255,255,.55);--icon-bg:rgba(255,255,255,.55);
+  --sheet-bg:rgba(248,252,251,.78);--sheet-blur:blur(40px) saturate(1.8);
+  --view-bg:radial-gradient(120% 80% at 90% -10%,color-mix(in oklab,var(--p) 30%,transparent),transparent 60%),radial-gradient(90% 70% at 0% 100%,color-mix(in oklab,var(--gold) 20%,transparent),transparent 62%),var(--s0);
+  --head-bg:linear-gradient(var(--s0) 40%,transparent);--head-blur:none;
+  --toast-bg:rgba(24,34,31,.78);--toast-fg:#fff;--seg-on:var(--p);
+  --rim:linear-gradient(135deg,rgba(255,255,255,.95),rgba(255,255,255,.18) 38%,rgba(255,255,255,.08) 62%,rgba(255,255,255,.7));
+}
+html[data-skin=glass][data-theme=dark],html[data-skin=glass][data-theme=amoled]{
+  --card-bg:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,.05));
+  --card-border:rgba(255,255,255,.10);
+  --card-shadow:0 14px 36px rgba(0,0,0,.34);
+  --chip-bg:rgba(255,255,255,.09);--seg-bg:rgba(255,255,255,.1);--field-bg:rgba(255,255,255,.08);--icon-bg:rgba(255,255,255,.1);
+  --sheet-bg:rgba(22,30,28,.72);--toast-bg:rgba(255,255,255,.18);
+  --rim:linear-gradient(135deg,rgba(255,255,255,.5),rgba(255,255,255,.05) 40%,rgba(255,255,255,.02) 62%,rgba(255,255,255,.28));
+}
+html[data-skin=glass][data-theme=amoled]{--view-bg:radial-gradient(120% 80% at 90% -10%,color-mix(in oklab,var(--p) 22%,transparent),transparent 60%),#000}
+html[data-skin=glass] body{font-family:var(--font)}
+html[data-skin=glass] #app{background:
+  radial-gradient(120% 80% at 90% -10%,color-mix(in oklab,var(--p) 40%,transparent),transparent 60%),
+  radial-gradient(90% 70% at 0% 100%,color-mix(in oklab,var(--gold) 28%,transparent),transparent 62%),var(--s0)}
+
+/* ---- surfaces: specular rim + sheen + press glow (all static paint, no filters) ---- */
+html[data-skin=glass] .card,html[data-skin=glass] .tile,html[data-skin=glass] .btn.tonal,html[data-skin=glass] .chip,html[data-skin=glass] .icon-btn.tonal{isolation:isolate}
+html[data-skin=glass] .card::after,html[data-skin=glass] .btn.tonal::after,html[data-skin=glass] .chip::after,html[data-skin=glass] .icon-btn.tonal::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;padding:1.2px;background:var(--rim);pointer-events:none;z-index:2;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+html[data-skin=glass] .card::before{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;pointer-events:none;
+  background:radial-gradient(120px 90px at var(--px,50%) var(--py,0%),rgba(255,255,255,calc(.55*var(--glow))),transparent 70%),linear-gradient(170deg,rgba(255,255,255,.35),transparent 36%);
+  transition:--glow .5s var(--ease)}
+html[data-skin=glass][data-theme=dark] .card::before,html[data-skin=glass][data-theme=amoled] .card::before{background:radial-gradient(140px 100px at var(--px,50%) var(--py,0%),rgba(255,255,255,calc(.22*var(--glow))),transparent 70%),linear-gradient(170deg,rgba(255,255,255,.08),transparent 36%)}
+html[data-skin=glass] .card.pressing::before,html[data-skin=glass] .tile.pressing::before{--glow:1;transition:--glow .12s}
+html[data-skin=glass] .tile{position:relative;background:var(--card-bg);border:1px solid var(--card-border);box-shadow:var(--card-shadow)}
+html[data-skin=glass] .card.list,html[data-skin=glass] .list.card{overflow:hidden}
+html[data-skin=glass] .card.accent{background:linear-gradient(150deg,color-mix(in oklab,var(--p) 86%,#fff),color-mix(in oklab,var(--p) 60%,#000));border-color:transparent;
+  box-shadow:0 16px 38px color-mix(in oklab,var(--p) 38%,transparent),inset 0 -2px 10px rgba(0,0,0,.16)}
+html[data-skin=glass] .card.accent::before{background:radial-gradient(140px 100px at var(--px,70%) var(--py,0%),rgba(255,255,255,calc(.4*var(--glow))),transparent 70%),linear-gradient(165deg,rgba(255,255,255,.3),transparent 45%)}
+html[data-skin=glass] .btn{background:linear-gradient(180deg,color-mix(in oklab,var(--p) 78%,#fff),var(--p));box-shadow:0 8px 20px color-mix(in oklab,var(--p) 34%,transparent),inset 0 1.5px 0 rgba(255,255,255,.5)}
+html[data-skin=glass] .btn.tonal{position:relative;background:var(--card-bg);color:var(--on-s);box-shadow:0 2px 8px rgba(0,0,0,.05)}
+html[data-skin=glass] .btn.ghost{box-shadow:inset 0 0 0 1.5px var(--card-border)}
+html[data-skin=glass] .icon-btn.tonal{box-shadow:0 2px 8px rgba(0,0,0,.05)}
+html[data-skin=glass] .chip{position:relative;box-shadow:none}
+html[data-skin] .chip.on{background:linear-gradient(180deg,color-mix(in oklab,var(--p) 78%,#fff),var(--p));color:var(--on-p)}
+html[data-skin=glass] .chip.on::after{opacity:.5}
+html[data-skin=glass] .tile .ti{background:linear-gradient(160deg,color-mix(in oklab,var(--p) 16%,#fff),color-mix(in oklab,var(--p) 26%,transparent));color:var(--p);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.75)}
+html[data-skin=glass][data-theme=dark] .tile .ti,html[data-skin=glass][data-theme=amoled] .tile .ti{background:rgba(255,255,255,.1);color:color-mix(in oklab,var(--p) 70%,#fff);box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+html[data-skin=glass] .item .lead{background:rgba(255,255,255,.5);color:var(--p);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+html[data-skin=glass][data-theme=dark] .item .lead,html[data-skin=glass][data-theme=amoled] .item .lead{background:rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
+html[data-skin] .seg{box-shadow:inset 0 1px 3px rgba(0,0,0,.08)}
+html[data-skin] .seg button.on{background:linear-gradient(180deg,color-mix(in oklab,var(--p) 78%,#fff),var(--p));box-shadow:0 3px 10px color-mix(in oklab,var(--p) 30%,transparent),inset 0 1px 0 rgba(255,255,255,.5)}
+html[data-skin=glass] .badge{background:rgba(255,255,255,.6);color:var(--p);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+/* Apple-style switch: wide, translucent track, thumb stretches while pressed */
+html[data-skin=glass] .switch{width:51px;height:31px}
+html[data-skin=glass] .switch::after{top:2px;inset-inline-start:2px;width:27px;height:27px;box-shadow:0 3px 8px rgba(0,0,0,.28),0 0 0 .5px rgba(0,0,0,.04);transition:transform .4s var(--sp),width .25s var(--ease)}
+html[data-skin=glass] .switch:active::after{width:34px}
+html[data-skin=glass] .switch.on::after,html[data-skin=glass][dir=rtl] .switch.on::after{transform:translateX(-20px)}
+html[data-skin=glass] .switch.on:active::after{transform:translateX(-27px)}
+html[data-skin=glass] .switch.on{background:var(--ok)}
+
+/* ---- press feedback (spring, release overshoots) ---- */
+html[data-skin=glass] .btn,html[data-skin=glass] .tile,html[data-skin=glass] .chip,html[data-skin=glass] .icon-btn,html[data-skin=glass] button.card,html[data-skin=glass] .item{transition:transform .55s var(--sp),background .2s,box-shadow .3s}
+html[data-skin=glass] .btn:active,html[data-skin=glass] .chip:active{transform:scale(.94);transition-duration:.12s}
+html[data-skin=glass] .tile:active,html[data-skin=glass] button.card:active{transform:scale(.965);transition-duration:.12s}
+html[data-skin=glass] .icon-btn:active{transform:scale(.86);transition-duration:.12s}
+
+/* ---- floating liquid tab bar ---- */
+html[data-skin] #tabbar .bar{margin:0 14px 10px;padding:6px;border-radius:38px;background:linear-gradient(160deg,rgba(255,255,255,.82),rgba(255,255,255,.66));border:0;
+  -webkit-backdrop-filter:blur(28px) saturate(2);backdrop-filter:blur(28px) saturate(2);
+  box-shadow:0 16px 40px rgba(10,30,24,.2),0 1px 3px rgba(10,30,24,.1);width:min(460px,calc(100% - 28px));overflow:visible}
+html[data-skin] #tabbar .bar::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.2px;background:var(--rim);pointer-events:none;z-index:3;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+html[data-skin][data-theme=dark] #tabbar .bar,html[data-skin][data-theme=amoled] #tabbar .bar{background:linear-gradient(160deg,rgba(60,74,70,.82),rgba(30,40,38,.78));box-shadow:0 18px 44px rgba(0,0,0,.5)}
+html[data-skin] .tab{flex:1;height:58px;border-radius:30px}
+html[data-skin] .tab.on{color:var(--p)}
+html[data-skin][data-theme=dark] .tab.on,html[data-skin][data-theme=amoled] .tab.on{color:color-mix(in oklab,var(--p) 55%,#fff)}
+html[data-skin] .lens{position:absolute;top:6px;bottom:6px;left:0;width:var(--lens-w,60px);border-radius:30px;z-index:0;transform:translateX(var(--lens-x,0));transform-origin:center;
+  transition:transform .6s var(--sp),width .6s var(--sp);
+  background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.42));
+  box-shadow:0 6px 16px rgba(10,40,30,.16),inset 0 1.5px 0 rgba(255,255,255,1),inset 0 -2px 6px rgba(255,255,255,.5)}
+html[data-skin][data-theme=dark] .lens,html[data-skin][data-theme=amoled] .lens{background:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.1));box-shadow:0 6px 16px rgba(0,0,0,.4),inset 0 1.5px 0 rgba(255,255,255,.4)}
+html[data-skin] .lens.moving{animation:lensStretch .6s var(--ease)}
+@keyframes lensStretch{0%{scale:1 1}30%{scale:1.14 .9}100%{scale:1 1}}
+html[data-skin] .tab .ind{display:grid;place-items:center}
+html[data-skin] .tab .lb{font-size:.68rem}
+html[data-skin] .tab.on svg{transform:translateY(-1px) scale(1.1)}
+
+/* ---- navigation: push views from the inline-start edge, parent recedes (iOS-style) ---- */
+html[data-skin=glass] .view{background:var(--view-bg);box-shadow:-18px 0 50px rgba(0,0,0,.14);animation:glassPush .55s var(--sp) both;will-change:transform}
+html[data-skin=glass] .view.leaving{animation:glassPop .34s cubic-bezier(.4,0,.2,1) both}
+@keyframes glassPush{from{transform:translateX(calc(var(--dx,-1)*100%))}to{transform:none}}
+@keyframes glassPop{to{transform:translateX(calc(var(--dx,-1)*100%))}}
+html[data-skin=glass] #screens,html[data-skin=glass] #tabbar{transition:transform .55s var(--sp),opacity .4s,filter .4s}
+html[data-skin=glass][data-views] #screens{transform:scale(.94) translateX(calc(var(--dx,-1)*-4%));opacity:.55}
+html[data-skin=glass][data-views] #tabbar{transform:translateY(130%);opacity:0}
+html[data-skin=glass] .screen.active{animation:fadeIn .4s var(--ease) both}
+html[data-skin=glass] .view-head{background:var(--head-bg)}
+/* status-bar scrim so scrolled content never collides with the clock / island */
+html[data-skin=glass] #app::before{content:"";position:absolute;z-index:5;inset:0 0 auto 0;height:calc(var(--sat) + 6px);pointer-events:none;background:linear-gradient(var(--s0),transparent);opacity:.9}
+
+/* ---- sheets & dialogs: spring in, frosted ---- */
+html[data-skin=glass] .sheet{transition:transform .6s var(--sp);-webkit-backdrop-filter:var(--sheet-blur);backdrop-filter:var(--sheet-blur);box-shadow:0 -12px 50px rgba(0,0,0,.2),inset 0 1.5px 0 rgba(255,255,255,.7)}
+html[data-skin=glass] .scrim{background:rgba(10,20,18,.34)}
+html[data-skin=glass] .dialog .box{-webkit-backdrop-filter:var(--sheet-blur);backdrop-filter:var(--sheet-blur);box-shadow:0 24px 70px rgba(0,0,0,.3),inset 0 1.5px 0 rgba(255,255,255,.7)}
+
+/* ---- low-power mode: no backdrop blur anywhere, flat translucency ---- */
+html[data-fx=low][data-skin=glass] #tabbar .bar,html[data-fx=low][data-skin=glass] .sheet,html[data-fx=low][data-skin=glass] .dialog .box,html[data-fx=low] .nowplaying,html[data-fx=low] .toast{-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-fx=low][data-skin=glass] #tabbar .bar{background:color-mix(in oklab,var(--s0) 88%,transparent)}
+html[data-fx=low][data-skin=glass] .sheet{background:color-mix(in oklab,var(--s0) 96%,transparent)}
+html[data-fx=low][data-skin=glass] .view{animation-duration:.3s}
+html[data-fx=high][data-skin=glass] .card{-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6)}
+@media (prefers-reduced-motion:reduce){html[data-skin=glass] .view,html[data-skin=glass] .view.leaving{animation-duration:.01s}html[data-skin=glass] #screens{transition:none}}
+html.in-reader[data-views][data-skin=glass] #screens{transform:none;opacity:1}
+
+html[data-skin=glass] .nowplaying{background:color-mix(in oklab,var(--s0) 58%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);border:1px solid color-mix(in oklab,#fff 38%,transparent)}
+
+/* ---- performance: blur only where it is cheap (few big surfaces); never one blur per card ---- */
+html[data-skin=glass]:not([data-fx=high]){--card-blur:none}
+html[data-skin=glass]:not([data-fx=high]) .card,html[data-skin=glass]:not([data-fx=high]) .trk-wrap,html[data-skin=glass]:not([data-fx=high]) .tb-btn{-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-fx=low] .blob{display:none}
+html[data-fx=low] .card,html[data-fx=low] .trk-wrap{box-shadow:0 1px 3px rgba(0,0,0,.08)}
+html[data-fx=low] .view,html[data-fx=low] .sheet{will-change:auto}
+html[data-fx=low] *{scroll-behavior:auto}
+html[data-fx=low] .nowplaying,html[data-fx=low] .view-head{-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-fx=low] .screen.active>*,html[data-fx=low] .screen.active .card{animation:none!important}
+
+/* ---- smoothness: the Android-style bar is solid (no live blur); long lists skip off-screen rows; less work in low-power mode ---- */
+html[data-skin=material] #tabbar .bar{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in oklab,var(--s0) 94%,var(--p) 6%)}
+html[data-skin=material][data-theme=dark] #tabbar .bar,html[data-skin=material][data-theme=amoled] #tabbar .bar{background:color-mix(in oklab,var(--s0) 90%,#fff 10%)}
+html[data-fx=low] #tabbar .bar{-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 6px 18px rgba(10,30,24,.16)}
+html[data-fx=low][data-skin=glass] #tabbar .bar{background:color-mix(in oklab,var(--s0) 92%,transparent)}
+html[data-fx=low] .view-head,html[data-fx=low] .rd-bar,html[data-fx=low] .miniplayer{-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-fx=low] .hero-photo-b{display:none}
+.list>.item:nth-child(n+14),.list>button.item:nth-child(n+14){content-visibility:auto;contain-intrinsic-size:auto 64px}
+.screen,.view-body{-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
+.view,.sheet{backface-visibility:hidden}
+/* 90/120 Hz screens: the same travel in a little less time feels crisper */
+html[data-hz="90"] .view,html[data-hz="120"] .view{animation-duration:.34s}
+html[data-hz="120"] .btn,html[data-hz="120"] .chip,html[data-hz="120"] .tile,html[data-hz="120"] .icon-btn{transition-duration:.4s,.16s,.24s}
+
+/* the same pill selection in the Android-style skin */
+html[data-skin=material] .seg{background:var(--seg-bg,color-mix(in oklab,var(--on-s) 9%,transparent))}

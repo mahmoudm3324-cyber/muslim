@@ -1,0 +1,42 @@
+/* zakat2 — «حاسبة الزكاة المتقدمة» */
+.zk2-tabs{display:flex;gap:8px;overflow-x:auto;margin:0 -2px 12px;padding:2px 2px 4px;scrollbar-width:none}
+.zk2-tabs::-webkit-scrollbar{display:none}
+.zk2-tabs .chip{flex:none;white-space:nowrap}
+.zk2-intro{line-height:1.9;color:var(--on-sv);margin-bottom:6px}
+.zk2-mini{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px;margin:4px 0 6px;border-radius:16px;background:color-mix(in oklab,var(--p) 14%,var(--s0,transparent));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px var(--outline-v)}
+.zk2-mini b{font-size:1.1rem;color:var(--p)}
+.zk2-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 10px}
+.zk2-f{display:flex;flex-direction:column;justify-content:flex-end;gap:4px;min-width:0}
+.zk2-l{font-size:.8rem;color:var(--on-sv);line-height:1.5}
+.zk2-in{text-align:center;font-weight:700}
+input[type=date].zk2-in{text-align:start}
+.zk2-note{display:flex;gap:8px;align-items:flex-start;padding:10px 12px;border-radius:14px;line-height:1.9;color:var(--on-sv);background:color-mix(in oklab,var(--gold) 10%,transparent)}
+.zk2-note .ic{flex:none;width:18px;height:18px;margin-top:5px;color:var(--gold)}
+.zk2-det{border-radius:14px;background:color-mix(in oklab,var(--p) 8%,transparent);padding:2px 12px}
+.zk2-det summary{cursor:pointer;padding:10px 0;font-weight:700;font-size:.9rem;color:var(--p);list-style-position:inside}
+.zk2-detb{padding:0 0 10px;line-height:1.9;font-size:.86rem;color:var(--on-sv)}
+.zk2-detb p{margin:0 0 8px}
+.zk2-sw{display:flex;align-items:center;gap:12px;min-height:44px;font-size:.92rem}
+.zk2-sw .grow{flex:1;line-height:1.6}
+.zk2-res{margin-bottom:10px}
+.zk2-big{font-size:1.9rem;font-weight:800;line-height:1.4;overflow-wrap:anywhere}
+.zk2-cap{opacity:.85;line-height:1.7}
+.zk2-rows{margin:8px 0;padding:8px 0;border-block:1px solid color-mix(in oklab,currentColor 16%,transparent)}
+.zk2-row{display:flex;justify-content:space-between;gap:10px;font-size:.88rem;padding:3px 0}
+.zk2-row span{min-width:0}
+.zk2-fin{margin-top:10px}
+.zk2-warn{font-size:.8rem;padding:6px 10px;border-radius:10px;background:color-mix(in oklab,#e8590c 18%,transparent);margin-bottom:8px;line-height:1.7}
+.zk2-st{font-size:.88rem;line-height:1.8;padding:8px 12px;border-radius:12px;background:color-mix(in oklab,var(--p) 10%,transparent)}
+.zk2-st.ok{background:color-mix(in oklab,var(--ok) 18%,transparent)}
+.zk2-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.zk2-btns .btn{flex:none}
+.zk2-step{display:flex;align-items:center;gap:10px}
+.zk2-step .zk2-in{flex:1;font-size:1.3rem}
+.zk2-step .icon-btn{flex:none;background:var(--sc);border-radius:50%;width:46px;height:46px}
+.zk2-foot{text-align:center;line-height:1.9;margin:14px 0 18px}
+.zk2-empty{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:28px 16px}
+.zk2-empty .ic{width:34px;height:34px;color:var(--on-sv)}
+.zk2-h{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.zk2-ha{font-size:1.1rem;color:var(--p);white-space:nowrap}
+.zk2-ls{display:flex;flex-direction:column;gap:12px}
+.zk2-btns .btn.danger,.zk2-h .btn.danger{background:color-mix(in oklab,var(--danger) 16%,var(--s0,transparent));color:var(--danger);background-image:none;box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--danger) 40%,transparent)}

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-skin="glass" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; media-src 'self' blob: data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: blob: data:; worker-src 'self' blob:; frame-src https://www.youtube-nocookie.com https://www.youtube.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="origin">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no,interactive-widget=resizes-content">
+<meta name="theme-color" content="#0c1512">
+<meta name="color-scheme" content="light dark">
+<title>المسلم</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="img/icon-192.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="المسلم">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/glass.css">
+<link rel="stylesheet" href="css/material.css">
+<link rel="stylesheet" href="css/screens.css">
+<link rel="stylesheet" href="css/reader.css">
+<link rel="stylesheet" href="css/v2-sunnah.css">
+<link rel="stylesheet" href="css/v2-prophets.css">
+<link rel="stylesheet" href="css/v2-tajweed.css">
+<link rel="stylesheet" href="css/v2-adhkar2.css">
+<link rel="stylesheet" href="css/v2-zakat.css">
+<link rel="stylesheet" href="css/v2-moon.css">
+<link rel="stylesheet" href="css/v2-occasions.css">
+<link rel="stylesheet" href="css/v2-mosques.css">
+<link rel="stylesheet" href="css/v2-cards.css">
+<link rel="stylesheet" href="css/v2-hifz.css">
+<link rel="stylesheet" href="css/v2-ruqya2.css">
+<link rel="stylesheet" href="css/v2-qibla.css">
+<link rel="stylesheet" href="css/v2-qplayer.css">
+<link rel="stylesheet" href="css/v2-navbar.css">
+<link rel="stylesheet" href="css/v2-mushaf.css">
+<link rel="stylesheet" href="css/v2-onboard.css">
+<link rel="stylesheet" href="css/v2-extras.css">
+<link rel="stylesheet" href="css/v2-cal.css">
+<link rel="stylesheet" href="css/v2-system.css">
+<link rel="stylesheet" href="css/v2-library.css">
+<link rel="stylesheet" href="css/v2-a11y.css">
+</head>
+<body>
+<div id="app">
+  <div id="bg"><i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><div id="bg-img"></div><div id="bg-dim"></div></div>
+  <main id="screens"></main>
+  <nav id="tabbar" aria-label="التنقل الرئيسي"></nav>
+  <div id="views"></div>
+  <div id="sheet-root"></div>
+  <div id="toast-root"></div>
+</div>
+<script src="js/errlog.js"></script>
+<script src="js/vendor/adhan.min.js"></script>
+<script src="js/core.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/share.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/icons-huge.js"></script>
+<script src="js/data.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/adhkar-data.js"></script>
+<script src="js/content-data.js"></script>
+<script src="js/quran.js"></script>
+<script src="js/qcf.js"></script>
+<script src="js/reader.js"></script>
+<script src="js/downloads.js"></script>
+<script src="js/prayer.js"></script>
+<script src="js/adhkar.js"></script>
+<script src="js/tasbih.js"></script>
+<script src="js/tracker.js"></script>
+<script src="js/calendar.js"></script>
+<script src="js/more.js"></script>
+<script src="js/ramadan.js"></script>
+<script src="js/kids.js"></script>
+<script src="js/extras.js"></script>
+<script src="js/sounds.js"></script>
+<script src="js/adhan-dl.js"></script>
+<script src="js/notifs.js"></script>
+<script src="js/mosque-bgs.js"></script>
+<script src="js/settings2.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/library-data.js"></script>
+<script src="js/library.js"></script>
+<script src="js/quiz-data.js"></script>
+<script src="js/quiz.js"></script>
+<script src="js/sections.js"></script>
+<script src="js/quran2.js"></script>
+<script src="js/v2-sunnah.js"></script>
+<script src="js/v2-prophets-data-a.js"></script>
+<script src="js/v2-prophets-data-b.js"></script>
+<script src="js/v2-prophets-videos.js"></script>
+<script src="js/v2-prophets.js"></script>
+<script src="js/v2-tajweed.js"></script>
+<script src="js/v2-adhkar2.js"></script>
+<script src="js/v2-zakat.js"></script>
+<script src="js/v2-cards.js"></script>
+<script src="js/v2-hifz.js"></script>
+<script src="js/v2-ruqya2.js"></script>
+<script src="js/v2-qibla.js"></script>
+<script src="js/v2-qplayer.js"></script>
+<script src="js/v2-mosques.js"></script>
+<script src="js/v2-dst.js"></script>
+<script src="js/v2-system.js"></script>
+<script src="js/v2-plog.js"></script>
+<script src="js/v2-health.js"></script>
+<script src="js/v2-travel.js"></script>
+<script src="js/v2-unify.js"></script>
+<script src="js/v2-dedupe.js"></script>
+<script src="js/v2-navbar.js"></script>
+<script src="js/v2-mushaf.js"></script>
+<script src="js/v2-onboard.js"></script>
+<script src="js/v2-extras.js"></script>
+<script src="js/v2-imgmenu.js"></script>
+<script src="js/v2-sounds.js"></script>
+<script src="js/v2-library.js"></script>
+<script src="js/v2-voice.js"></script>
+<script src="js/v2-qasr.js"></script>
+<script src="js/v2-tasmee.js"></script>
+<script src="js/moon.js"></script>
+<script src="js/v2-moon.js"></script>
+<script src="js/v2-occasions.js"></script>
+<script src="js/main.js"></script>
+<script src="js/v2-wnow.js"></script>
+<script src="js/ideas.js"></script>
+<script src="js/nowplaying.js"></script>
+<script src="js/glass.js"></script>
+<script src="js/v2-polish.js"></script>
+</body>
+</html>

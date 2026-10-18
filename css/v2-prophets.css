@@ -1,0 +1,172 @@
+/* v2 module: prophets — stories of the prophets (illustrated reader + narration) */
+.pz-svg{display:block;width:100%;height:100%}
+.pz-svg *{transform-box:fill-box}
+@keyframes pzTw{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes pzDrift{0%{transform:translateX(-14px)}100%{transform:translateX(18px)}}
+@keyframes pzWave{0%{transform:translateX(0)}100%{transform:translateX(-80px)}}
+@keyframes pzWave2{0%{transform:translateX(-80px)}100%{transform:translateX(0)}}
+@keyframes pzRain{0%{transform:translate(0,-20px);opacity:0}15%{opacity:.9}100%{transform:translate(-14px,60px);opacity:0}}
+@keyframes pzFlick{0%,100%{transform:scale(1,1) skewX(0)}30%{transform:scale(.94,1.07) skewX(2deg)}60%{transform:scale(1.05,.95) skewX(-2deg)}}
+@keyframes pzPulse{0%,100%{opacity:.7}50%{opacity:1}}
+@keyframes pzSpin{to{transform:rotate(360deg)}}
+@keyframes pzSway{0%,100%{transform:rotate(-1.2deg)}50%{transform:rotate(1.2deg)}}
+@keyframes pzBob{0%,100%{transform:translateY(-3px) rotate(-1deg)}50%{transform:translateY(4px) rotate(1.2deg)}}
+@keyframes pzFloat{0%,100%{transform:translateY(-3px)}50%{transform:translateY(3px)}}
+@keyframes pzDash{to{stroke-dashoffset:-64}}
+@keyframes pzFly{0%{transform:translateX(-12px) translateY(2px)}50%{transform:translateX(8px) translateY(-5px)}100%{transform:translateX(26px) translateY(2px)}}
+@keyframes pzWind{0%{stroke-dashoffset:0;opacity:.2}50%{opacity:.8}100%{stroke-dashoffset:-180;opacity:.2}}
+@keyframes pzFlash{0%,86%,100%{opacity:0}88%{opacity:1}91%{opacity:.1}93%{opacity:.9}97%{opacity:0}}
+@keyframes pzEmber{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(-70px) translateX(10px);opacity:0}}
+@keyframes pzBubble{0%{transform:translateY(0);opacity:0}20%{opacity:.9}100%{transform:translateY(-60px);opacity:0}}
+@keyframes pzAnt{0%{transform:translateX(-18px)}100%{transform:translateX(24px)}}
+@keyframes pzSmoke{0%{transform:translateY(0) scale(1);opacity:.4}100%{transform:translateY(-40px) scale(1.8);opacity:0}}
+@keyframes pzTilt{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+@keyframes pzRock{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+@keyframes pzStreak{0%{stroke-dashoffset:420}100%{stroke-dashoffset:0}}
+@keyframes pzDust{0%{transform:translateY(0)}100%{transform:translateY(-18px)}}
+.pz-tw{animation:pzTw 3.4s ease-in-out infinite}
+.pz-drift{animation:pzDrift 14s ease-in-out infinite alternate}
+.pz-wave{animation:pzWave 7s linear infinite}
+.pz-wave2{animation:pzWave2 9s linear infinite}
+.pz-rain{animation:pzRain .8s linear infinite}
+.pz-flick{animation:pzFlick 1.1s ease-in-out infinite}
+.pz-pulse{animation:pzPulse 4s ease-in-out infinite}
+.pz-spin{animation:pzSpin 40s linear infinite}
+.pz-spin-slow{animation:pzSpin 90s linear infinite}
+.pz-sway{animation:pzSway 5s ease-in-out infinite}
+.pz-bob{animation:pzBob 5s ease-in-out infinite}
+.pz-float{animation:pzFloat 4s ease-in-out infinite}
+.pz-dash{animation:pzDash 3s linear infinite}
+.pz-fly{animation:pzFly 7s ease-in-out infinite alternate}
+.pz-wind{animation:pzWind 3.4s linear infinite}
+.pz-flash{animation:pzFlash 6s linear infinite}
+.pz-ember{animation:pzEmber 3.4s ease-out infinite}
+.pz-bubble{animation:pzBubble 4s ease-out infinite}
+.pz-ant{animation:pzAnt 6s ease-in-out infinite alternate}
+.pz-smoke circle{animation:pzSmoke 5s ease-out infinite}
+.pz-tilt{animation:pzTilt 5s ease-in-out infinite}
+.pz-rock{animation:pzRock 4s ease-in-out infinite}
+.pz-streak{animation:pzStreak 4s ease-out infinite alternate}
+.pz-dust circle{animation:pzDust 6s linear infinite alternate}
+.pz-grain{animation:pzDrift 3s linear infinite alternate}
+@media (prefers-reduced-motion:reduce){.pz-svg *{animation:none!important}}
+html[data-fx=low] .pz-svg *{animation:none!important}
+.pr-card .pz-svg *{animation:none!important}   /* grid thumbnails stay still: 40+ animated SVGs would be heavy */
+
+/* grid */
+.pr-top:empty{display:none}
+.pr-resume{display:flex;align-items:center;gap:12px;width:100%;text-align:start;color:inherit;margin-bottom:12px}
+.pr-resi{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--p);color:#fff;flex:none}
+.pr-resi svg{width:20px;height:20px}
+.pr-tools{display:flex;flex-direction:column;gap:10px;margin:4px 0 14px}
+.pr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pr-grid .empty{grid-column:1/-1}
+.pr-card{position:relative;display:block;aspect-ratio:4/3.4;border-radius:22px;overflow:hidden;padding:0;border:0;color:#fff;text-align:start;isolation:isolate;
+  background:linear-gradient(135deg,hsl(var(--h) 55% 38%),hsl(calc(var(--h) + 30) 60% 20%));box-shadow:0 6px 18px rgba(0,0,0,.18);transition:transform .25s var(--spring,ease)}
+.pr-card:active{transform:scale(.97)}
+.pr-art{position:absolute;inset:0;opacity:.95}
+.pr-shade{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72),rgba(0,0,0,.05) 62%)}
+.pr-ct{position:absolute;inset-inline:12px;bottom:12px;display:flex;flex-direction:column;gap:1px;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.pr-ct b{font-size:1.08rem;line-height:1.35}
+.pr-ct small{font-size:.74rem;opacity:.92;line-height:1.4}
+.pr-heart{position:absolute;top:8px;inset-inline-end:8px;color:#ff6b81}
+.pr-heart svg{width:20px;height:20px;fill:currentColor}
+html[data-theme=dark] .pr-card,html[data-theme=dark] .pr-stage{filter:brightness(.92)}
+
+/* reader */
+.pr-body{padding:0!important}
+.pr-stage{position:sticky;top:0;z-index:4;width:100%;aspect-ratio:400/240;max-height:42vh;overflow:hidden;background:#10162f;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.pr-layers,.pr-layer{position:absolute;inset:0}
+.pr-layer{opacity:0;transition:opacity .8s ease}
+.pr-layer.in{opacity:1}
+.pr-stage::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.6),transparent 45%);pointer-events:none}
+.pr-stage-t{position:absolute;inset-inline:16px;bottom:10px;z-index:2;color:#fff;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;text-shadow:0 1px 8px rgba(0,0,0,.7);pointer-events:none}
+.pr-stage-t b{font-size:1.25rem}
+.pr-stage-t small{opacity:.9;font-size:.78rem}
+.pr-wrap{--pr-fs:1;padding:16px 18px 8px;max-width:640px;margin:0 auto}
+.pr-sum{padding:12px 14px;border-radius:18px;background:color-mix(in oklab,var(--p) 12%,transparent);line-height:1.9;font-size:.95rem;margin-bottom:14px}
+.pr-cont{width:100%;margin-bottom:12px}
+.pr-p{margin:0 0 6px;border-inline-start:3px solid transparent;padding:12px 14px;border-radius:16px;font-family:var(--font-quran),'Amiri','Noto Naskh Arabic',serif;font-size:calc(1.22rem * var(--pr-fs));line-height:2.15;text-align:start;transition:background .35s,box-shadow .35s;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html[dir=ltr] .pr-p{font-family:Georgia,'Times New Roman',serif;line-height:1.75}
+.pr-p.on{background:color-mix(in oklab,var(--p) 13%,transparent);border-inline-start-color:var(--p)}
+.pr-live .pr-cnt{color:var(--p)}
+.pr-h{margin:20px 0 10px;font-size:1.02rem;color:var(--p)}
+.pr-ay{margin:0 0 10px}
+.pr-aytx{font-size:calc(1.35rem * var(--pr-fs));line-height:2.3;text-align:center}
+.pr-ayft{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;font-size:.8rem;color:var(--on-sv)}
+.pr-less ul{margin:0;padding-inline-start:20px;line-height:2;font-size:.97rem}
+.pr-src{margin:14px 2px 0;font-size:.78rem;color:var(--on-sv);line-height:1.8}
+.pr-pad{height:84px}
+.pr-bar{position:sticky;bottom:0;z-index:5;display:flex;align-items:center;gap:4px;padding:8px 12px calc(8px + var(--sab,0px));background:var(--card-bg,var(--s1,#fff));border-top:1px solid var(--card-border,var(--outline-v));-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 -6px 18px rgba(0,0,0,.12)}
+.pr-bar .grow{flex:1}
+.pr-bar .icon-btn svg{width:20px;height:20px}
+.pr-play{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;background:var(--p);color:#fff;flex:none;box-shadow:0 4px 12px color-mix(in oklab,var(--p) 45%,transparent)}
+.pr-play svg{width:24px;height:24px}
+.pr-cnt{font-size:.8rem;margin-inline-start:8px;color:var(--on-sv);font-variant-numeric:tabular-nums}
+.pr-rate{direction:ltr;unicode-bidi:isolate;min-width:52px;height:36px;border-radius:999px;font-weight:700;font-size:.85rem;background:var(--icon-bg,var(--s2));color:var(--on-s)}
+.pr-fav svg{fill:#ff6b81;color:#ff6b81}
+.pr-nov{display:flex;flex-direction:column;gap:10px;line-height:1.9}
+.pr-nov ol{margin:0;padding-inline-start:22px}
+.pr-nov p{margin:0}
+
+.pr-fig{position:relative;margin:16px 0 10px;border-radius:22px;overflow:hidden;box-shadow:0 10px 26px rgba(0,0,0,.28),0 2px 6px rgba(0,0,0,.18);background:#10162f}
+.pr-figart{aspect-ratio:400/240;width:100%}
+.pr-fig figcaption{position:absolute;inset-inline:0;bottom:0;padding:22px 14px 9px;color:#fff;font-size:.82rem;font-weight:600;background:linear-gradient(to top,rgba(0,0,0,.65),transparent);text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.pr-galw{margin-top:8px}
+.pr-gal{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 12px;margin-inline:-18px;padding-inline:18px;scrollbar-width:none}
+.pr-gal::-webkit-scrollbar{display:none}
+.pr-gi{flex:none;width:200px;scroll-snap-align:start;border:0;padding:0;border-radius:18px;overflow:hidden;background:var(--card-bg,var(--s1));color:var(--on-s);text-align:start;box-shadow:0 6px 16px rgba(0,0,0,.2)}
+.pr-giart{aspect-ratio:400/240}
+.pr-gi span{display:block;padding:7px 10px;font-size:.78rem;font-weight:600}
+.pr-gi .pz-svg *{animation:none!important}
+.pr-big{margin:0}
+.pr-ct small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* videos */
+.pr-vids{margin:0 0 16px}
+.pr-vrow{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 10px;scroll-snap-type:x proximity}
+.pr-vc{flex:0 0 min(72%,260px);scroll-snap-align:start;border:0;background:var(--card-bg);border-radius:18px;padding:0 0 10px;text-align:start;color:inherit;font:inherit;cursor:pointer;overflow:hidden;box-shadow:var(--card-shadow);transition:transform .15s}
+.pr-vc:active{transform:scale(.97)}
+.pr-vth{position:relative;display:block;aspect-ratio:16/9;background:#10202a}
+.pr-vth img{width:100%;height:100%;object-fit:cover;display:block}
+.pr-vpl{position:absolute;inset:0;display:grid;place-items:center}
+.pr-vpl svg{width:46px;height:46px;padding:11px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;box-sizing:border-box}
+.pr-vtt{display:block;padding:8px 12px 0;font-size:.85rem;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pr-vbody{padding-bottom:30px}
+.pr-vbox{position:sticky;top:0;z-index:2;aspect-ratio:16/9;background:#000;width:100%}
+.pr-vf{width:100%;height:100%;border:0;display:block}
+.pr-voff{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;text-align:center;padding:16px}
+.pr-vmeta{padding:14px 16px}
+.pr-vn{margin-top:10px;line-height:1.8}
+.pr-vl{padding:0 16px}
+.pr-vi{display:flex;align-items:center;gap:10px;width:100%;border:0;background:var(--card-bg);border-radius:14px;padding:8px;margin-bottom:8px;color:inherit;font:inherit;text-align:start;cursor:pointer}
+.pr-vi img{width:96px;aspect-ratio:16/9;object-fit:cover;border-radius:10px;flex:none}
+.pr-vi.on{outline:2px solid var(--p)}
+.pr-vi svg{width:22px;height:22px;flex:none;color:var(--p)}
+
+.pr-tf{position:relative;display:block;overflow:hidden;background:#10202a;width:100%;height:100%}
+.pr-tf>svg,.pr-tf>div,.pr-tf>canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pr-tf>img{position:absolute;inset:0;z-index:1}
+.pr-vi .pr-tf{width:96px;height:auto;aspect-ratio:16/9;border-radius:10px;flex:none}
+/* mosques */
+.mq-chips{display:flex;gap:8px;margin:0 0 12px}
+.mq-it{display:flex;align-items:center;gap:10px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;padding:10px 12px;margin-bottom:8px}
+.mq-ic{width:38px;height:38px;border-radius:12px;background:var(--pc);color:var(--on-pc);display:grid;place-items:center;flex:none}
+.mq-ic svg{width:22px;height:22px}
+.mq-tx{min-width:0}.mq-nm{overflow-wrap:anywhere}
+.mq-load{display:flex;flex-direction:column;align-items:center;gap:10px;padding:30px 0;color:var(--on-sv)}
+.mq-err{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.mq-info{margin-top:10px}
+.mq-it .btn{flex:none}
+/* dst */
+.dst-now{margin-bottom:6px}.dst-city{font-size:1.05rem;margin:2px 0 6px}.dst-st{font-weight:700;color:var(--p);margin-bottom:4px}
+.dst-seg{display:flex;gap:8px;flex-wrap:wrap}
+.dst-it{display:flex;align-items:center;gap:10px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.dst-b{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
+.dst-tag{font-size:.72rem;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--pc);color:var(--on-pc)}
+.dst-tag.sum{background:color-mix(in oklab,var(--gold,#c8a24a) 30%,transparent);color:var(--on-s)}.dst-tag.fix{background:var(--s3,#0001);color:var(--on-sv)}
+.dst-b .badge{direction:ltr;unicode-bidi:isolate}
+/* Android: poster that opens the separate video screen */
+.pr-vposter{position:relative;display:block;width:100%;aspect-ratio:16/9;border:0;padding:0;margin:0;background:#10202a;cursor:pointer;overflow:hidden}
+.pr-vposter .pr-tf{position:absolute;inset:0}
+.pr-vpl.big svg{width:64px;height:64px;padding:16px}
