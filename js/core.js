@@ -8,7 +8,7 @@ const M = window.M = window.M || {};
   if(!sa || !/iPhone|iPad|iPod/.test(navigator.userAgent)) return;
   var de = document.documentElement; de.classList.add('ios-sa');
   var fit = function(){ var h = Math.max(window.innerHeight || 0, screen.height || 0, (window.visualViewport && visualViewport.height) || 0); if(window.innerWidth > window.innerHeight) h = window.innerHeight; de.style.setProperty('--app-h', h + 'px'); };
-  fit(); addEventListener('resize', fit); addEventListener('orientationchange', function(){ setTimeout(fit, 250); }); addEventListener('pageshow', fit);
+  fit(); addEventListener('resize', fit); addEventListener('scroll', function(){ if(window.scrollY || window.scrollX) window.scrollTo(0, 0); }, {passive:true}); addEventListener('orientationchange', function(){ setTimeout(fit, 250); }); addEventListener('pageshow', fit);
 }catch(e){} })();
 M.VERSION = '2.3.1';
 M.$ = (s,r)=>(r||document).querySelector(s);
