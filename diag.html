@@ -1,0 +1,16 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>فحص المسلم</title>
+<style>body{font:16px/1.7 -apple-system,system-ui,sans-serif;margin:0;padding:18px;background:#f4f7f6;color:#123}h1{font-size:20px;margin:0 0 10px}.r{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;margin:6px 0;background:#fff;border-radius:10px;font-size:14px;word-break:break-all}.ok{color:#0a7a3d;font-weight:700}.no{color:#c62828;font-weight:700}button{font:inherit;padding:10px 16px;border-radius:10px;border:0;background:#0f5b57;color:#fff;margin:6px 0}</style></head><body>
+<h1>فحص تطبيق المسلم</h1><div id="o"></div><button id="pl">جرّب تشغيل صوت</button><div id="au"></div>
+<script>
+const o=document.getElementById('o');
+function row(k,v,ok){const d=document.createElement('div');d.className='r';d.innerHTML='<span>'+k+'</span><span class="'+(ok===true?'ok':ok===false?'no':'')+'">'+v+'</span>';o.appendChild(d);}
+const base=location.href.replace(/[^\/]*$/,'');
+row('الرابط',base);
+row('innerHeight / screen.height',innerHeight+' / '+screen.height,innerHeight>=screen.height-2);
+row('standalone (من الشاشة الرئيسية)',String(navigator.standalone===true||matchMedia('(display-mode: standalone)').matches));
+row('service worker', 'serviceWorker' in navigator?'مدعوم':'غير مدعوم');
+const files=['index.html','data/ayahs.json','data/qcf.json','data/meta.json','js/core.js','audio/ad_malki.mp3','asr/model.json','qcf/QCF4_Hafs_01_W.woff2','img/moon.jpg'];
+(async()=>{for(const f of files){try{const r=await fetch(base+f,{cache:'no-store',headers:f.endsWith('.mp3')||f.includes('woff2')?{Range:'bytes=0-1'}:{}});const ct=r.headers.get('content-type')||'';const ok=(r.ok||r.status==206)&&!/text\/html/.test(ct)||f=='index.html'&&r.ok;row(f,r.status+' '+ct.split(';')[0],ok);}catch(e){row(f,'فشل: '+e.message,false);}}
+for(const u of ['https://everyayah.com/data/Alafasy_128kbps/001001.mp3','https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.min.js']){try{await fetch(u,{mode:'no-cors'});row(u.split('/')[2],'وصل',true);}catch(e){row(u.split('/')[2],'محجوب',false);}}})();
+document.getElementById('pl').onclick=()=>{const a=new Audio(base+'audio/ad_malki.mp3');a.onerror=()=>{document.getElementById('au').textContent='خطأ تشغيل: '+(a.error&&a.error.code);};a.play().then(()=>{document.getElementById('au').textContent='اشتغل (لو مسمعتش صوت: زر الصامت/الصوت)';setTimeout(()=>a.pause(),4000);}).catch(e=>{document.getElementById('au').textContent='رفض: '+e.name;});};
+</script></body></html>
