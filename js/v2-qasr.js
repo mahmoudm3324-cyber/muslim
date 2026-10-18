@@ -116,23 +116,25 @@ Q.listen = async function(fn, o){
   const sens = ()=>({low:12, normal:9, high:6})[M.cfg.qaSens || 'normal'] || 9;
   // counting a dhikr: short stretches (the model writes a phrase said many times in one breath only once)
   const PAUSE = ()=>o.keepRepeats ? 420 : (({short:450, normal:520, long:950})[M.cfg.qaPause || 'normal'] || 650);
-  const MAXS = 16000 * (o.keepRepeats ? 6 : 14), MINCUT = 16000 * (o.keepRepeats ? 3 : 8);
+  // a long breath is committed every few seconds (cut at its quietest moment), so the words never wait for a pause that may not come
+  const MAXS = 16000 * (o.keepRepeats ? 6 : 7), MINCUT = 16000 * (o.keepRepeats ? 3 : 2.5);
+  let lastDur = 600, lastPartLen = 0;   // how long a look takes on this phone: the next look waits for it (no queue builds up)
   const cat = (arr, n)=>{ const u = new Float32Array(n); let o = 0; arr.forEach(a=>{ u.set(a, o); o += a.length; }); return u; };
   async function pump(){
     if(busy || L !== sess) return;
     const job = pendFinal.shift();
     if(job){ busy = true; emit({type:'busy', text:'1'});
-      try{ const r = await Q.recognise(job, o); if(heard(r)) emit({type:'final', text:r.text, stats:r}); }catch(e){ emit({type:'error', text:'model', detail:String(e.message || e)}); }
+      try{ const t0 = Date.now(); const r = await Q.recognise(job, o); lastDur = Math.max(200, Date.now() - t0); Q.lastMs = lastDur; if(heard(r)) emit({type:'final', text:r.text, stats:r}); }catch(e){ emit({type:'error', text:'model', detail:String(e.message || e)}); }
       busy = false; emit({type:'busy', text:''}); pump(); return; }
     // while one keeps reciting: a quick look at the stretch so far, so the words light up before the pause
-    if(speaking && segLen > 16000 * 1.0 && Date.now() - lastPartial > 1400 && o.partials !== false){
-      lastPartial = Date.now(); busy = true;
-      try{ const pr = Q.recognise(cat(seg, segLen), o); partialP = pr; const r = await pr; if(L === sess && speaking && !r.cancelled && heard(r)) emit({type:'partial', text:r.text}); }catch(e){}
+    if(speaking && segLen > 16000 * 0.7 && segLen - lastPartLen > 16000 * 0.35 && Date.now() - lastPartial > Math.min(1800, Math.max(550, lastDur * 1.15)) && o.partials !== false){
+      lastPartial = Date.now(); lastPartLen = segLen; busy = true;
+      try{ const t0 = Date.now(); const pr = Q.recognise(cat(seg, segLen), o); partialP = pr; const r = await pr; if(!r.cancelled){ lastDur = Math.max(200, Date.now() - t0); Q.lastMs = lastDur; } if(L === sess && speaking && !r.cancelled && heard(r)) emit({type:'partial', text:r.text}); }catch(e){}
       partialP = null; busy = false; pump();
     }
   }
   function cut(at){   // end the stretch (at: keep samples after this index for the next one)
-    const all = cat(seg, segLen); seg = []; segLen = 0;
+    const all = cat(seg, segLen); seg = []; segLen = 0; lastPartLen = 0;
     const take = at ? all.subarray(0, at) : all;
     if(at){ const rest = all.slice(at); seg = [rest]; segLen = rest.length; }
     if(take.length > 16000 * 0.45){ pendFinal.push(take.slice(0)); if(partialP) Q.cancel(partialP); }

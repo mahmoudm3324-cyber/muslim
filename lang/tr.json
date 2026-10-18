@@ -4740,5 +4740,13 @@
  "كلمة السر الحالية غير صحيحة": "Mevcut parola yanlış",
  "كلمة السر الحالية": "Mevcut parola",
  "كلمة السر قصيرة (٤ أحرف على الأقل)": "Parola çok kısa (en az 4)",
- "كلمة سر التطبيق": "Uygulama parolası"
+ "كلمة سر التطبيق": "Uygulama parolası",
+ "أستمع… ابدأ التلاوة، وتظهر الكلمات أثناء القراءة": "Dinliyorum… okumaya başlayın; kelimeler okudukça görünür",
+ "وقت الهدوء (النوم)": "Sessiz saatler (uyku)",
+ "لا يصلك هذا التذكير بين الوقتين": "Bu hatırlatıcı bu saatler arasında gelmez",
+ "حدّد وقتًا لا يصلك فيه التذكير": "Bu hatırlatıcının gelmeyeceği bir zaman seçin",
+ "نسخة الويب": "Web sürümü",
+ "إشعارات والتطبيق مغلق": "Uygulama kapalıyken bildirimler",
+ "تجربة الآن": "Şimdi dene",
+ "تجربة والتطبيق مغلق": "Uygulama kapalıyken dene"
 }

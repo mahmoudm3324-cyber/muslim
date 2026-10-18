@@ -1525,3 +1525,4 @@ html[dir=ltr] .nfx-g.open .nfx-chev{transform:rotate(90deg)}
 .wp-card{gap:10px}.wp-card .row-flex{gap:10px;align-items:center}.wp-btns{flex-wrap:wrap}.wp-btns .btn{flex:1 1 auto}
 .wp-st{min-height:1.2em}.wp-st.bad{color:var(--err,#c62828)}
 .wp-warn{font-size:.85rem;line-height:1.7;padding:10px 12px;border-radius:12px;background:color-mix(in oklab,var(--p) 12%,transparent)}
+.ts-speed{align-self:flex-start;font-size:.7rem;opacity:.55;font-variant-numeric:tabular-nums;white-space:nowrap}

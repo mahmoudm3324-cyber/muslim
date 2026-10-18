@@ -110,7 +110,7 @@ function tokenise(text){
    so correct recitation costs a few decoder passes instead of one per token. The result is what the model itself would have written. */
 async function run(pcm, full, keepRepeats, hint, rid){
   const t0 = Date.now();
-  const F = full ? FRAMES : Math.min(FRAMES, Math.max(800, Math.ceil((pcm.length / 16000 + 2) * 10) * 10));
+  const F = full ? FRAMES : Math.min(FRAMES, Math.max(500, Math.ceil((pcm.length / 16000 + 1) * 10) * 10));   // clip + 1 s (≥ 5 s): ~1.5× faster than + 2 s, same words in tests
   const mel = new ort.Tensor('float32', logMel(pcm, F), [1, NMEL, F]);
   const tm = Date.now();
   const e = await enc.run({mel});

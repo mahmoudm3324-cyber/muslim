@@ -4740,5 +4740,13 @@
  "كلمة السر الحالية غير صحيحة": "Le mot de passe actuel est incorrect",
  "كلمة السر الحالية": "Mot de passe actuel",
  "كلمة السر قصيرة (٤ أحرف على الأقل)": "Mot de passe trop court (4 min.)",
- "كلمة سر التطبيق": "Mot de passe de l’app"
+ "كلمة سر التطبيق": "Mot de passe de l’app",
+ "أستمع… ابدأ التلاوة، وتظهر الكلمات أثناء القراءة": "J'écoute… commencez la récitation ; les mots apparaissent pendant la lecture",
+ "وقت الهدوء (النوم)": "Heures calmes (sommeil)",
+ "لا يصلك هذا التذكير بين الوقتين": "Ce rappel n'arrivera pas entre ces heures",
+ "حدّد وقتًا لا يصلك فيه التذكير": "Choisissez une période sans ce rappel",
+ "نسخة الويب": "Version web",
+ "إشعارات والتطبيق مغلق": "Notifications application fermée",
+ "تجربة الآن": "Tester maintenant",
+ "تجربة والتطبيق مغلق": "Tester application fermée"
 }

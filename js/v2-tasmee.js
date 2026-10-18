@@ -146,11 +146,12 @@ function open(init){
     if(ev.type === 'busy'){ busy = !!ev.text && (st.on || flushing); live.classList.toggle('busy', busy); if(busy && !heardEl.textContent) heard('…'); return; }
     if(!st.on && !(flushing && ev.type === 'final')) return;
     if(ev.type === 'level'){ meter(+ev.text); return; }
-    if(ev.type === 'ready'){ say('أستمع… ابدأ التلاوة، وتظهر الكلمات بعد كل وقفة'); return; }
+    if(ev.type === 'ready'){ say('أستمع… ابدأ التلاوة، وتظهر الكلمات أثناء القراءة'); return; }
     if(ev.type === 'error'){
       stop(); say(ev.text === 'permission' ? 'لم يُسمح باستخدام الميكروفون' : ev.text === 'network' ? 'خدمة التعرّف تحتاج إنترنت أو حزمة العربية دون اتصال' : ev.text === 'unavailable' ? 'لا توجد خدمة تعرّف على الكلام في الهاتف' : ev.text === 'model' ? 'تعذّر تجهيز المعرّف القرآني — تحقق من المساحة أو الاتصال ثم أعد المحاولة' : 'توقّف التعرّف على الكلام — اضغط للمتابعة', true); return;
     }
     const fin = ev.type === 'final';
+    if(fin && ev.stats && M.qasr && M.qasr.lastMs){ speedEl.textContent = M.n((M.qasr.lastMs / 1000).toFixed(1))+' ث'; speedEl.title = 'زمن التعرّف على آخر مقطع'; }
     // the phone's service may offer several readings: take the one that goes furthest with the fewest misses
     let r = null, best = ev.text || '';
     (M.speechReadings ? M.speechReadings(ev) : [ev.text || '']).forEach(t=>{ const x = align(base, M.arWords(t), fin), ok = Object.values(x.m).filter(v=>v === 1).length, bad = Object.values(x.m).filter(v=>v === 2).length;
@@ -165,10 +166,10 @@ function open(init){
   }
 
   /* ---------------- live strip: level bars + what was heard ---------------- */
-  const bars = h('div.ts-bars', ...Array.from({length:5}, ()=>h('i'))), heardEl = h('div.ts-heard'), statusEl = h('div.ts-status');
+  const bars = h('div.ts-bars', ...Array.from({length:5}, ()=>h('i'))), heardEl = h('div.ts-heard'), statusEl = h('div.ts-status'), speedEl = h('span.ts-speed');
   function say(t, err){ statusEl.textContent = t; statusEl.classList.toggle('err', !!err); ensureLive(); }
   function heard(t){ heardEl.textContent = t; ensureLive(); }
-  function ensureLive(){ if(!live.firstChild) live.append(h('div.ts-live-in', bars, h('div.grow', statusEl, heardEl))); live.classList.toggle('on', st.on); }
+  function ensureLive(){ if(!live.firstChild) live.append(h('div.ts-live-in', bars, h('div.grow', statusEl, heardEl), speedEl)); live.classList.toggle('on', st.on); }
   let lvT = 0;
   function meter(db){ const v = Math.max(0, Math.min(1, (db + 2) / 12)); [...bars.children].forEach((b2, i)=>{ const k = [0.55, 0.8, 1, 0.8, 0.55][i]; b2.style.transform = 'scaleY('+(0.18 + v * k * (0.75 + Math.random() * 0.25)).toFixed(2)+')'; }); clearTimeout(lvT); lvT = setTimeout(()=>meter(-5), 400); }
 

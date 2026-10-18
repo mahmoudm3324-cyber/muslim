@@ -4740,5 +4740,13 @@
  "كلمة السر الحالية غير صحيحة": "Current password is incorrect",
  "كلمة السر الحالية": "Current password",
  "كلمة السر قصيرة (٤ أحرف على الأقل)": "Password too short (4 characters minimum)",
- "كلمة سر التطبيق": "App password"
+ "كلمة سر التطبيق": "App password",
+ "أستمع… ابدأ التلاوة، وتظهر الكلمات أثناء القراءة": "Listening… start reciting; words appear as you read",
+ "وقت الهدوء (النوم)": "Quiet hours (sleep)",
+ "لا يصلك هذا التذكير بين الوقتين": "This reminder won't come between these times",
+ "حدّد وقتًا لا يصلك فيه التذكير": "Set a time when this reminder stays silent",
+ "نسخة الويب": "Web version",
+ "إشعارات والتطبيق مغلق": "Notifications while the app is closed",
+ "تجربة الآن": "Test now",
+ "تجربة والتطبيق مغلق": "Test with the app closed"
 }
