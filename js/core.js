@@ -2,6 +2,14 @@
 (function(){
 'use strict';
 const M = window.M = window.M || {};
+/* iOS home-screen mode: make the shell as tall as the real screen (the window can report a few points less, leaving a white band) */
+(function(){ try{
+  var sa = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  if(!sa || !/iPhone|iPad|iPod/.test(navigator.userAgent)) return;
+  var de = document.documentElement; de.classList.add('ios-sa');
+  var fit = function(){ var h = Math.max(window.innerHeight || 0, screen.height || 0, (window.visualViewport && visualViewport.height) || 0); if(window.innerWidth > window.innerHeight) h = window.innerHeight; de.style.setProperty('--app-h', h + 'px'); };
+  fit(); addEventListener('resize', fit); addEventListener('orientationchange', function(){ setTimeout(fit, 250); }); addEventListener('pageshow', fit);
+}catch(e){} })();
 M.VERSION = '2.3.1';
 M.$ = (s,r)=>(r||document).querySelector(s);
 M.$$ = (s,r)=>Array.from((r||document).querySelectorAll(s));

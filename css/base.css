@@ -212,3 +212,10 @@ svg.ic.sol{fill:currentColor;stroke:none}
 /* curved-edge screens */
 #screens,#tabbar,#views,#sheet-root,#toast-root{left:var(--edge-l,0px);right:var(--edge-r,0px)}
 [hidden]{display:none!important}
+
+/* iPhone home-screen app: the fixed shell could stop short of the bottom edge (white band under the content) */
+@supports (-webkit-touch-callout:none){
+  html,body{min-height:100vh;min-height:-webkit-fill-available}
+  #app{inset:0 0 auto 0;height:100vh;height:-webkit-fill-available;min-height:100vh}
+}
+html.ios-sa #app{height:var(--app-h,100vh)}
