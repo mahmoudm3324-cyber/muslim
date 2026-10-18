@@ -157,7 +157,10 @@ M.buildReminders = function(days){
           if(c.mode === 'every'){ const st = tm(c.from || c.clock || '08:00'); let en = tm(c.to || '22:00'); if(en <= st) en = 23 * 60 + 59; const step = Math.max(10, c.every || 60); for(let m = st; m <= en && list.length < 96; m += step) list.push(m); }
           else if(c.mode === 'times' && Array.isArray(c.times) && c.times.length) list = c.times.map(tm);
           else list = [tm(c.clock || d.clock)];
+          const q = c.quiet && c.quiet.on ? [tm(c.quiet.from || '23:00'), tm(c.quiet.to || '06:00')] : null;
+          const quiet = m=>!q || q[0] === q[1] ? false : q[0] < q[1] ? (m >= q[0] && m < q[1]) : (m >= q[0] || m < q[1]);   // the window may cross midnight
           list.forEach((m, i)=>{
+            if(quiet(m % 1440)) return;
             const x = new Date(day); x.setHours(0, m, 0, 0); const t2 = x.getTime(); if(t2 <= now) return;
             const r2 = resolve(d, c, day, '', i);
             const tj = TJ && TJ.length ? TJ[(day.getDate() + i) % TJ.length] : null;   // a different crown each time
@@ -214,7 +217,7 @@ function testNotify(d, delay){
     try{ window.Android.testNotify(JSON.stringify(it)); M.toast(delay ? 'سيصلك الإشعار بعد '+M.cnt(Math.round(delay / 1000), 'ثانية', true)+' — يمكنك قفل الشاشة الآن' : 'سيصلك الإشعار خلال لحظات', 4000); }catch(e){}
     return;
   }
-  const fire = ()=>{ if(r.snd) M.playSound(r.snd); M.toast(it.title+' — '+it.body, 4500); };
+  const fire = ()=>{ if(M.webShow){ M.webShow(it); return; } if(r.snd) M.playSound(r.snd); M.toast(it.title+' — '+it.body, 4500); };
   if(delay){ M.toast('سيظهر التنبيه بعد '+M.cnt(Math.round(delay / 1000), 'ثانية', true)); setTimeout(fire, delay); } else fire();
 }
 function askPerm(){ try{ window.Android && window.Android.requestNotifPerm && window.Android.requestNotifPerm(); if(window.Notification && Notification.permission === 'default') Notification.requestPermission(); }catch(e){} }
@@ -270,6 +273,7 @@ function openItem(d, onChange){
       const upd = ()=>{ const cc = get(d.id); let n = 1;
         if(cc.mode === 'every'){ const st = tm(cc.from || T); let en = tm(cc.to || '23:59'); if(en <= st) en = 23 * 60 + 59; n = Math.min(96, Math.floor((en - st) / Math.max(10, cc.every || 30)) + 1); }
         else if(cc.mode === 'times' && cc.times) n = cc.times.length;
+        if(cc.quiet && cc.quiet.on){ try{ n = M.buildReminders(2).filter(x=>x.kind === d.id && new Date(x.ts).getDate() === M.addDays(new Date(), 1).getDate()).length || n; }catch(e){} }
         const dd = Array.isArray(cc.days) && cc.days.length && cc.days.length < 7 ? M.cnt(cc.days.length, 'يوم', false, 'أيام')+' في الأسبوع' : 'كل يوم';
         sum.textContent = 'يعمل '+dd+' — '+(n === 1 ? 'تذكير واحد في اليوم.' : M.n(n)+' تذكيرًا في اليوم'+(n > 40 ? ' (عدد كبير، وقد لا يُجدوَل كله على بعض الأجهزة).' : '.')); };
       const saveA = (ts, r)=>{ M.nfSet(d.id, r ? {ui:'a', mode:'every', from:ts[0], clock:ts[0], every:r, to:'23:59', times:ts} : {ui:'a', mode:'times', times:ts, clock:ts[0], from:ts[0]}); upd(); };
@@ -291,7 +295,15 @@ function openItem(d, onChange){
       wrap.append(h('div.nf-reprow', h('div.nf-lbl.grow', 'أيام الأسبوع'), h('button.chip.nf-all'+(all ? '.on' : ''), {onclick:()=>{ M.nfSet(d.id, {days:[]}); draw(); }}, 'كل الأيام')),
         h('div.nf-days', ...DN.map(([n, l, full])=>h('button'+((all || days.includes(n)) ? '.on' : ''), {'aria-label':full, 'aria-pressed':all || days.includes(n), onclick:()=>{
           const cur = all ? DN.map(x=>x[0]) : days.slice(); const x = cur.includes(n) ? cur.filter(q=>q !== n) : cur.concat(n);
-          M.nfSet(d.id, {days:x.length === 7 || !x.length ? [] : x}); draw(); }}, l))), sum);
+          M.nfSet(d.id, {days:x.length === 7 || !x.length ? [] : x}); draw(); }}, l))));
+      /* quiet hours: no reminder of this kind inside the window (sleep, work…), even when the repeat falls there */
+      const Q = c.quiet || {}, qOn = !!Q.on;
+      const saveQ = p=>{ M.nfSet(d.id, {quiet:Object.assign({on:qOn, from:Q.from || '23:00', to:Q.to || '06:00'}, p)}); upd(); };
+      wrap.append(h('div.nf-quiet'+(qOn ? '.on' : ''),
+        h('div.nf-reprow', h('div.grow', h('div.nf-lbl', 'وقت الهدوء (النوم)'), h('div.small.muted', qOn ? 'لا يصلك هذا التذكير بين الوقتين' : 'حدّد وقتًا لا يصلك فيه التذكير')),
+          M.switchEl(qOn, v=>{ saveQ({on:v}); draw(); })),
+        qOn ? h('div.nf-ft', h('span.nf-ftl', 'من'), timeBox(Q.from || '23:00', v=>saveQ({from:v, on:true}))) : null,
+        qOn ? h('div.nf-ft', h('span.nf-ftl', 'إلى'), timeBox(Q.to || '06:00', v=>saveQ({to:v, on:true}))) : null), sum);
       upd();
       body.append(wrap);
     }
@@ -356,7 +368,7 @@ M.openNotifs = function(){
       root.append(h('div.card.nfx-hero'+(master && onCount ? '.on' : ''),
         h('div.nfx-hr', h('span.nfx-bell', {html:M.icon(master && onCount ? 's:bell' : 'bell')}),
           h('div.grow', h('b.title-font', !master ? 'الإشعارات متوقفة' : onCount ? M.cnt(onCount, 'تنبيه', true, 'تنبيهات')+' مفعّلة' : 'لا شيء مفعّل بعد'),
-            h('small', M.platform !== 'web' ? 'تعمل في الخلفية والتطبيق مغلق' : 'تعمل أثناء فتح التطبيق، وفي الخلفية على أندرويد')), msw),
+            h('small', M.platform !== 'web' || (M.webNotifState && M.webNotifState().push) ? 'تعمل في الخلفية والتطبيق مغلق' : 'تعمل والتطبيق مفتوح — فعّل «إشعارات والتطبيق مغلق» بالأسفل')), msw),
         master && nx ? h('button.nfx-next', {onclick:()=>M.openUpcoming()}, h('span.nfx-nl', 'التالي'), h('span.grow', nx.title), h('b.num', M.n(M.fmt(new Date(nx.ts)))), M.ic('fwd')) : null,
         master && !onCount ? h('div.small.muted.nfx-tip', 'ابدأ بالأذان أو اقتراب الصلاة من الأسفل، ثم اختر الصوت والوقت لكل تنبيه.') : null));
       /* groups: a card each, folded or open, with a count and a switch for the whole group */
@@ -390,6 +402,7 @@ M.openNotifs = function(){
         h('div.item.static', h('div.grow', h('div.t', 'صوت الأذان مع إشعار الصلاة'), h('div.s', 'أوقفه ليصلك إشعار بلا أذان')), M.switchEl(M.cfg.adhanTone !== false, v=>{ M.save('adhanTone', v); draw(); })),
         h('div.item.static', h('div.grow', h('div.t', 'ذكر مع إشعار كل صلاة'), h('div.s', 'آية أو حديث خاص بكل صلاة داخل الإشعار')), M.switchEl(M.cfg.nfDhikr !== false, v=>M.save('nfDhikr', v))),
         M.can('keyStop') ? h('div.item.static', h('div.grow', h('div.t', 'إيقاف الأذان بزر الصوت'), h('div.s', 'يتوقف عند الضغط على زر رفع أو خفض الصوت')), M.switchEl(M.cfg.keyStop !== false, v=>M.save('keyStop', v))) : null));
+      if(M.platform === 'web' && M.webPushCard){ root.append(h('div.section-h', 'نسخة الويب')); root.append(M.webPushCard(draw)); }
       if(M.platform === 'ios') root.append(h('div.tiny.muted', {style:'margin:8px 4px 0;line-height:1.8'}, 'على آيفون: صوت الأذان في الإشعار ٣٠ ثانية كحدّ أقصى، ويُجدول أقرب ٦٠ تنبيهًا تقريبًا ثم يتجدد عند فتح التطبيق.'));
       root.append(h('div.section-h', 'المزيد'));
       root.append(h('div.list.card',
