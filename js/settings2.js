@@ -146,8 +146,7 @@ S.cards = {title:'إعدادات البطاقات', build(b){
       const def = M.HOME_ORDER.find(x=>x[0] === k); if(!def) return;
       const mv = d=>{ const a = M.homeOrder(); const j = i + d; if(j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; M.save('homeOrder', a); draw(); };
       l.append(h('div.item.static', h('div.grow', h('div.t', def[1]), def[2] ? h('div.s', def[2]) : null),
-        h('button.icon-btn.tonal', {onclick:()=>mv(-1), disabled:i === 0}, h('span', {style:'display:inline-block;transform:rotate(90deg)'}, M.ic('back'))),
-        h('button.icon-btn.tonal', {onclick:()=>mv(1), disabled:i === order.length - 1}, h('span', {style:'display:inline-block;transform:rotate(-90deg)'}, M.ic('back'))),
+        M.reorder(i, order.length, mv),
         M.switchEl(M.homeOn(k), v=>{ const x = Object.assign({}, M.cfg.homeBlocks); x[k] = v; M.save('homeBlocks', x); })));
     });
     box.append(l);

@@ -1,0 +1,258 @@
+/* ===== pop-up cards: verse khatma («ورد الختمة») and dhikr ===== */
+.pop-root{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:calc(var(--sat) + 16px) 14px calc(var(--sab) + 16px);pointer-events:auto}
+.pop-scrim{position:absolute;inset:0;background:rgba(6,14,12,.5);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .25s var(--ease)}
+.pop-card{position:relative;width:100%;max-width:440px;max-height:100%;overflow-y:auto;overscroll-behavior:contain;
+  background:var(--sheet-bg,var(--s0));color:var(--on-s);border:1px solid var(--card-border,rgba(127,127,127,.18));border-radius:30px;
+  padding:4px 16px 12px;box-shadow:0 30px 80px rgba(0,0,0,.35),0 2px 0 rgba(255,255,255,.05) inset;
+  transform:translateY(26px) scale(.96);opacity:0;transition:transform .42s var(--sp),opacity .2s var(--ease)}
+.pop-root.in .pop-scrim{opacity:1}
+.pop-root.in .pop-card{transform:none;opacity:1}
+.pop-root.out .pop-scrim{opacity:0}
+.pop-root.out .pop-card{transform:translateY(18px) scale(.97);opacity:0;transition-duration:.2s}
+
+/* head */
+.pop-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.pop-badge{flex:none;width:44px;height:44px;display:grid;place-items:center;color:var(--p)}
+.pop-badge .num{font-size:.68rem;font-weight:700}
+.pop-badge.z{border-radius:14px;background:color-mix(in oklab,var(--p) 14%,transparent)}
+.pop-badge.z svg{width:24px;height:24px}
+.pop-kicker{font-family:var(--font-title);font-weight:700;font-size:1.02rem;line-height:1.3}
+.pop-pos{font-size:.76rem;color:var(--on-sv);line-height:1.5}
+.pop-x{flex:none;width:38px;height:38px;border-radius:50%;background:var(--chip-bg);display:grid;place-items:center}
+.pop-x svg{width:18px;height:18px}
+
+/* verses */
+.pop-sura{display:flex;align-items:center;gap:10px;margin:6px 2px 2px;color:var(--gold);font-family:var(--font-title);font-size:.86rem;font-weight:700}
+.pop-sura i{flex:1;height:1px;background:linear-gradient(90deg,transparent,color-mix(in oklab,var(--gold) 55%,transparent))}
+.pop-ayat{font-size:calc(1.62rem * var(--fs,1));line-height:2.25;text-align:center;padding:8px 4px 10px;color:var(--on-s);word-spacing:.04em;
+  max-height:46vh;overflow-y:auto;user-select:text;-webkit-user-select:text}
+.pop-basm{font-size:.86em;color:var(--on-sv);margin-bottom:2px}
+.pop-n{display:inline-grid;place-items:center;min-width:1.55em;height:1.55em;padding:0 .2em;border-radius:50%;border:1.5px solid color-mix(in oklab,var(--gold) 70%,transparent);
+  color:var(--gold);font-family:var(--font);font-size:.5em;font-weight:700;vertical-align:.35em;line-height:1}
+.pop-ayat.slide-next{animation:popNext .38s var(--ease)}
+.pop-ayat.slide-prev{animation:popPrev .38s var(--ease)}
+@keyframes popNext{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+@keyframes popPrev{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+.pop-tafsir{margin:0 2px 10px;padding:12px 14px;border-radius:18px;background:color-mix(in oklab,var(--p) 8%,transparent);font-size:.9rem;line-height:1.95}
+.pop-tf-t{white-space:pre-line}
+
+/* tools: four quiet round buttons */
+.pop-tools{display:flex;justify-content:center;gap:6px;margin:2px 0 12px}
+.pop-tool{flex:1;max-width:92px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 2px;border-radius:16px;color:var(--on-sv);font-size:.72rem;font-weight:600}
+.pop-tool svg{width:22px;height:22px;color:var(--p)}
+.pop-tool.on{background:color-mix(in oklab,var(--p) 12%,transparent);color:var(--on-s)}
+.pop-tool:active{transform:scale(.94)}
+
+/* the main row: previous • confirm • next */
+.pop-acts{display:flex;align-items:center;gap:10px}
+.pop-ok{flex:1;min-height:54px;font-size:1rem;border-radius:18px;box-shadow:0 10px 24px color-mix(in oklab,var(--p) 35%,transparent)}
+.pop-ok svg{width:22px;height:22px}
+.pop-nav{flex:none;width:50px;height:50px;border-radius:16px}
+.pop-flash{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);padding:6px 16px;border-radius:999px;background:var(--ok);color:#fff;font-weight:700;font-size:.9rem;
+  pointer-events:none;animation:popFlash 1.3s var(--ease) forwards}
+@keyframes popFlash{0%{opacity:0;transform:translate(-50%,10px) scale(.9)}15%{opacity:1;transform:translate(-50%,0) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-14px)}}
+
+/* footer */
+.pop-foot{display:block;width:100%;margin-top:12px;padding:10px 4px 2px;text-align:start}
+.pop-bar{height:6px;border-radius:9px;background:color-mix(in oklab,var(--on-s) 9%,transparent);overflow:hidden}
+.pop-bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--p),color-mix(in oklab,var(--p) 55%,var(--gold)))}
+.pop-mini{display:flex;align-items:center;gap:14px;margin-top:8px;font-size:.76rem;color:var(--on-sv)}
+.pop-mini b{color:var(--on-s);font-size:.86rem}
+.pop-more{margin-inline-start:auto;display:inline-flex;align-items:center;gap:2px;color:var(--p);font-weight:700}
+.pop-more svg{width:14px;height:14px}
+.pop-later{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:4px;padding:8px;color:var(--on-sv);font-size:.82rem;font-weight:600}
+.pop-later svg{width:16px;height:16px}
+
+/* statistics */
+.pop-stats{display:flex;flex-direction:column;gap:12px;margin:4px 0 12px}
+.pop-st-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pop-st{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:18px;background:var(--chip-bg)}
+.pop-st b{font-size:1.5rem;line-height:1.2;font-weight:700}
+.pop-st span{font-size:.76rem;color:var(--on-sv)}
+.pop-st.hot{background:var(--p);color:var(--on-p,#fff)}
+.pop-st.hot span{color:inherit;opacity:.85}
+.pop-week{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;height:108px;padding:8px 6px 6px;border-radius:18px;background:var(--chip-bg)}
+.pop-wd{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;font-size:.62rem;color:var(--on-sv);position:relative}
+.pop-wd i{width:100%;max-width:22px;border-radius:7px 7px 3px 3px;background:var(--p);opacity:.85}
+.pop-wd b{font-size:.62rem;color:var(--on-s);min-height:1em}
+.pop-st-list{display:flex;flex-direction:column;border-radius:18px;background:var(--chip-bg);padding:2px 14px}
+.pop-st-list>div{display:flex;justify-content:space-between;gap:10px;padding:10px 0;font-size:.86rem}
+.pop-st-list>div+div{border-top:1px solid var(--outline-v,rgba(127,127,127,.15))}
+.pop-st-list b{font-weight:700}
+
+/* finished a khatma */
+.pop-done{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:18px 6px 6px}
+.pop-done b{font-size:1.4rem}
+.pop-done-ic{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:color-mix(in oklab,var(--gold) 22%,transparent);color:var(--gold);animation:popPulse 1.6s var(--ease) infinite}
+.pop-done-ic svg{width:40px;height:40px}
+.pop-dua{font-family:var(--font-quran);font-size:1.05rem;line-height:2}
+@keyframes popPulse{50%{transform:scale(1.07)}}
+
+/* dhikr */
+.pop-dhikr{font-family:var(--font-quran);font-size:calc(1.55rem * var(--fs,1));line-height:2.1;text-align:center;padding:10px 4px 2px}
+.pop-fadl{font-size:.8rem;line-height:1.85;color:var(--on-sv);text-align:center;padding:0 8px}
+.pop-tapwrap{display:flex;justify-content:center;margin:14px 0 10px}
+.pop-tap{border-radius:50%;color:var(--p);transition:transform .15s var(--ease)}
+.pop-tap:active{transform:scale(.93)}
+.pop-tap-in{display:flex;flex-direction:column;align-items:center;line-height:1.15}
+.pop-tap-in b{font-size:2rem;color:var(--on-s)}
+.pop-tap-in span{font-size:.72rem;color:var(--on-sv)}
+.pop-tap.done .pop-tap-in svg{width:40px;height:40px;color:var(--ok)}
+.pop-sug{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;margin-bottom:10px;border-radius:18px;text-align:start;
+  background:color-mix(in oklab,var(--gold) 14%,transparent)}
+.pop-sug svg{width:22px;height:22px;color:var(--gold)}
+.pop-sug b{display:block;font-size:.92rem}
+.pop-sug small{color:var(--on-sv);font-size:.74rem}
+
+/* settings screen */
+.pops-c{gap:12px}
+.pops-ic{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;flex:none;background:color-mix(in oklab,var(--p) 14%,transparent);color:var(--p)}
+.pops-ic svg{width:24px;height:24px}
+.pops-pos{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:16px;background:var(--chip-bg)}
+.pops-btns{gap:8px}
+.pops-warn{border-color:color-mix(in oklab,var(--warn) 55%,transparent)}
+.pops-warn svg{color:var(--warn)}
+
+/* the Android pop-up page: only the card, over whatever was on screen */
+html.pop-page,html.pop-page body{background:transparent!important;height:100%}
+html.pop-page .pop-scrim{background:rgba(0,0,0,.42)}
+@media (prefers-reduced-motion:reduce){.pop-card,.pop-scrim{transition:none}.pop-ayat{animation:none!important}.pop-done-ic{animation:none}}
+.pops-sets .pops-timed{display:flex;flex-direction:column}
+.pops-off{display:flex;flex-direction:column;gap:6px;padding:0 14px 12px}
+.pop-setbar{margin:-2px 0 6px;height:4px}
+.pop-dhikr.q{font-size:calc(1.45rem * var(--fs,1))}
+.pop-dhikr{max-height:40vh;overflow-y:auto}
+.pop-dhikr.slide-next{animation:popNext .35s var(--ease)}
+.pop-dhikr.slide-prev{animation:popPrev .35s var(--ease)}
+
+/* ===== app lock (web / iPhone) ===== */
+.app-lock{position:fixed;inset:0;z-index:300;display:grid;place-items:center;padding:24px;background:radial-gradient(120% 80% at 50% 0%,color-mix(in oklab,var(--p) 26%,var(--s0)),var(--s0) 70%);
+  animation:wlIn .25s var(--ease)}
+.app-lock.out{opacity:0;transition:opacity .25s var(--ease)}
+.app-lock.shake .wl-in{animation:wlShake .4s}
+.wl-in{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:320px;text-align:center}
+.wl-logo{width:84px;height:84px;border-radius:28px;display:grid;place-items:center;background:color-mix(in oklab,var(--p) 18%,transparent);color:var(--p);margin-bottom:6px}
+.wl-logo svg{width:40px;height:40px}
+.wl-t{font-family:var(--font-title);font-weight:700;font-size:1.4rem}
+.wl-msg{font-size:.88rem;color:var(--on-sv);min-height:1.4em}
+.wl-bio,.wl-go{width:100%;min-height:52px;border-radius:18px}
+.wl-pw{width:100%;text-align:center}
+.wl-hic{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;flex:none;background:color-mix(in oklab,var(--p) 14%,transparent);color:var(--p)}
+.wl-st{color:var(--warn);min-height:1.2em;margin:0 4px}
+html.is-locked #app{visibility:hidden}
+@keyframes wlIn{from{opacity:0}to{opacity:1}}
+@keyframes wlShake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.pops-status{gap:8px}
+.pops-chk{display:flex;align-items:center;gap:8px;font-size:.84rem}
+.pops-chk svg{width:18px;height:18px;flex:none}
+.pops-chk.ok svg{color:var(--ok)}
+.pops-chk.no{color:var(--warn)}
+.pops-kh{margin-bottom:12px;gap:12px}
+.pops-today{display:flex;flex-direction:column;align-items:center;line-height:1.2;padding-inline-start:10px;border-inline-start:1px solid var(--outline-v,rgba(127,127,127,.2))}
+.pops-today b{font-size:1.3rem;color:var(--p)}
+.pops-today small{font-size:.68rem;color:var(--on-sv)}
+.pops-adh{display:flex;align-items:center;gap:12px;width:100%;text-align:start;margin:10px 0}
+.pops-adh>svg{width:18px;height:18px;opacity:.6}
+
+/* Android: the card floating over other apps (the window is exactly the card, the rest of the screen stays usable) */
+html.pop-float .pop-root{position:absolute;inset:0 0 auto 0;height:auto;align-items:flex-start;padding:4px 10px 12px}
+html.pop-float .pop-scrim{display:none}
+html.pop-float .pop-card{max-height:none;overflow:visible;box-shadow:0 18px 40px -12px rgba(0,0,0,.45),0 0 0 1px color-mix(in oklab,var(--on-s) 8%,transparent)}
+html.pop-float .pop-ayat{max-height:calc(var(--sh,800px) * .38)}
+html.pop-float .pop-dhikr{max-height:calc(var(--sh,800px) * .32)}
+html.pop-float .pop-tafsir{max-height:calc(var(--sh,800px) * .25);overflow-y:auto}
+html.pop-float .pop-card{padding:4px 12px 8px;border-radius:26px}
+html.pop-float .pop-ayat{font-size:calc(1.42rem * var(--fs,1));line-height:2.1;padding:4px 2px 6px}
+html.pop-float .pop-tools{margin:0 0 8px}
+html.pop-float .pop-tool{padding:5px 2px;font-size:.68rem}
+html.pop-float .pop-ok{min-height:48px}
+html.pop-float .pop-nav{width:46px;height:46px}
+html.pop-float .pop-foot{margin-top:8px;padding-top:6px}
+html.pop-float .pop-later{padding:4px}
+
+/* ===== the bar that moves the card, and the three sizes ===== */
+.pop-grab{display:flex;justify-content:center;align-items:center;height:20px;margin:0 -8px 2px;cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none}
+.pop-grab i{display:block;width:40px;height:5px;border-radius:5px;background:color-mix(in oklab,var(--on-s) 24%,transparent);transition:width .2s var(--ease),background .2s}
+.pop-card.dragging .pop-grab i{width:58px;background:var(--p)}
+.pop-card.dragging{cursor:grabbing}
+.pop-head .grow{touch-action:none;-webkit-user-select:none;user-select:none}
+.pop-head .pop-sz{margin-inline-end:-4px}
+.pop-head .pop-sz svg{width:17px;height:17px}
+
+/* متوسطة (the default) */
+.pop-root.pz-md .pop-card{max-width:410px;padding-inline:13px;padding-bottom:9px;border-radius:26px}
+.pop-root.pz-md .pop-head{gap:10px;margin-bottom:4px}
+.pop-root.pz-md .pop-badge{width:40px;height:40px}
+.pop-root.pz-md .pop-badge.z{border-radius:13px}
+.pop-root.pz-md .pop-badge.z svg{width:22px;height:22px}
+.pop-root.pz-md .pop-kicker{font-size:.95rem}
+.pop-root.pz-md .pop-pos{font-size:.72rem}
+.pop-root.pz-md .pop-x{width:34px;height:34px}
+.pop-root.pz-md .pop-sura{font-size:.8rem;margin:2px 2px 0}
+.pop-root.pz-md .pop-ayat{font-size:calc(1.36rem * var(--fs,1));line-height:2.05;padding:4px 2px 6px;max-height:34vh}
+.pop-root.pz-md .pop-tools{margin:0 0 8px}
+.pop-root.pz-md .pop-tool{padding:5px 2px;gap:3px;font-size:.67rem}
+.pop-root.pz-md .pop-tool svg{width:20px;height:20px}
+.pop-root.pz-md .pop-acts{gap:8px}
+.pop-root.pz-md .pop-ok{min-height:48px;font-size:.95rem;border-radius:16px}
+.pop-root.pz-md .pop-nav{width:46px;height:46px;border-radius:15px}
+.pop-root.pz-md .pop-foot{margin-top:8px;padding-top:6px}
+.pop-root.pz-md .pop-mini{margin-top:6px}
+.pop-root.pz-md .pop-later{padding:4px;margin-top:2px}
+.pop-root.pz-md .pop-dhikr{font-size:calc(1.36rem * var(--fs,1));line-height:2;padding:4px 2px 0;max-height:32vh}
+.pop-root.pz-md .pop-dhikr.q{font-size:calc(1.3rem * var(--fs,1))}
+.pop-root.pz-md .pop-tapwrap{margin:10px 0 8px}
+.pop-root.pz-md .pop-tap-in b{font-size:1.75rem}
+.pop-root.pz-md .pop-sug{padding:9px 12px;margin-bottom:8px}
+
+/* صغيرة: just the verse, the tools as icons, and the button */
+.pop-root.pz-sm .pop-card{max-width:370px;padding-inline:10px;padding-bottom:8px;border-radius:22px}
+.pop-root.pz-sm .pop-grab{height:18px}
+.pop-root.pz-sm .pop-head{gap:8px;margin-bottom:2px}
+.pop-root.pz-sm .pop-badge{width:34px;height:34px}
+.pop-root.pz-sm .pop-badge .num{font-size:.58rem}
+.pop-root.pz-sm .pop-badge.z{border-radius:11px}
+.pop-root.pz-sm .pop-badge.z svg{width:19px;height:19px}
+.pop-root.pz-sm .pop-kicker{font-size:.86rem}
+.pop-root.pz-sm .pop-pos{font-size:.68rem;line-height:1.35}
+.pop-root.pz-sm .pop-x{width:30px;height:30px}
+.pop-root.pz-sm .pop-x svg{width:15px;height:15px}
+.pop-root.pz-sm .pop-sura{display:none}
+.pop-root.pz-sm .pop-ayat{font-size:calc(1.17rem * var(--fs,1));line-height:1.95;padding:2px 2px 4px;max-height:24vh}
+.pop-root.pz-sm .pop-tools{margin:0 0 6px;gap:4px}
+.pop-root.pz-sm .pop-tool{flex:none;width:44px;padding:6px 0;border-radius:13px}
+.pop-root.pz-sm .pop-tool span{display:none}
+.pop-root.pz-sm .pop-tool svg{width:19px;height:19px}
+.pop-root.pz-sm .pop-acts{gap:6px}
+.pop-root.pz-sm .pop-ok{min-height:40px;font-size:.88rem;border-radius:13px;box-shadow:0 6px 16px color-mix(in oklab,var(--p) 30%,transparent)}
+.pop-root.pz-sm .pop-ok svg{width:18px;height:18px}
+.pop-root.pz-sm .pop-nav{width:40px;height:40px;border-radius:13px}
+.pop-root.pz-sm .pop-foot{margin-top:6px;padding:4px 2px 0}
+.pop-root.pz-sm .pop-bar{height:4px}
+.pop-root.pz-sm .pop-mini,.pop-root.pz-sm .pop-later,.pop-root.pz-sm .pop-fadl{display:none}
+.pop-root.pz-sm .pop-dhikr{font-size:calc(1.17rem * var(--fs,1));line-height:1.9;padding:2px 2px 0;max-height:24vh}
+.pop-root.pz-sm .pop-dhikr.q{font-size:calc(1.12rem * var(--fs,1))}
+.pop-root.pz-sm .pop-tapwrap{margin:6px 0}
+.pop-root.pz-sm .pop-tap-in b{font-size:1.4rem}
+.pop-root.pz-sm .pop-tap-in span{font-size:.64rem}
+.pop-root.pz-sm .pop-tap.done .pop-tap-in svg{width:28px;height:28px}
+.pop-root.pz-sm .pop-sug{padding:7px 10px;margin-bottom:6px;gap:8px}
+.pop-root.pz-sm .pop-sug small{display:none}
+.pop-root.pz-sm .pop-done{gap:6px;padding:8px 4px 2px}
+.pop-root.pz-sm .pop-done-ic{width:54px;height:54px}
+.pop-root.pz-sm .pop-done-ic svg{width:28px;height:28px}
+.pop-root.pz-sm .pop-done b{font-size:1.1rem}
+.pop-root.pz-sm .pop-flash{bottom:70px}
+/* over other apps the card is as wide as the window (the window is full width) */
+html.pop-float .pop-root .pop-card{max-width:440px}
+html.pop-float .pop-root.pz-md .pop-ayat{max-height:calc(var(--sh,800px) * .27)}
+html.pop-float .pop-root.pz-sm .pop-ayat{max-height:calc(var(--sh,800px) * .2)}
+html.pop-float .pop-root.pz-md .pop-dhikr{max-height:calc(var(--sh,800px) * .28)}
+html.pop-float .pop-root.pz-sm .pop-dhikr{max-height:calc(var(--sh,800px) * .2)}
+
+/* settings: size and place */
+.pops-szb{gap:8px}
+.pops-move{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;background:var(--chip-bg)}
+.pops-move>svg{flex:none;width:20px;height:20px;color:var(--p)}
+.pops-move .small{line-height:1.7}
+.pop-ayat.more{-webkit-mask-image:linear-gradient(#000 calc(100% - 34px),transparent);mask-image:linear-gradient(#000 calc(100% - 34px),transparent)}

@@ -49,6 +49,7 @@ M.openKhatma = function(){
     function draw(){
       box.innerHTML = '';
       const a = list(); const active = a.filter(k=>!k.done), done = a.filter(k=>k.done);
+      if(M.khatmaExtra) try{ box.append(M.khatmaExtra(draw)); }catch(e){}
       if(!active.length){
         box.append(M.hero({icon:'s:khatma', kicker:'ختم القرآن الكريم', title:'ابدأ ختمة جديدة', sub:'اختر المدة ويحسب لك التطبيق وردك اليومي ويتابع تقدّمك من صفحات قراءتك.'}));
         box.append(h('div.kh-plans', ...[[7, 'أسبوع'], [15, 'نصف شهر'], [30, 'شهر'], [60, 'شهران'], [90, '٣ أشهر'], [365, 'سنة']].map(([d, l])=>h('button.kh-plan', {onclick:()=>{ const a2 = list(); a2.push({id:Date.now(), name:'', start:M.dkey(), days:d}); save(a2); draw(); M.toast('بدأت ختمتك — بارك الله فيك'); }},

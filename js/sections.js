@@ -333,9 +333,7 @@ M.openShortcutsEditor = function(){
       cur.forEach((id, i)=>{
         const mv = d=>{ const a = M.shortcuts().slice(); const j = i + d; if(j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; M.save('shortcuts', a); draw(); };
         l.append(h('div.item.static', h('span.lead', {html:M.icon(SEC[id][2])}), h('div.grow.t', SEC[id][1]),
-          h('button.icon-btn.tonal', {onclick:()=>mv(-1), disabled:i === 0}, h('span', {style:'display:inline-block;transform:rotate(90deg)'}, M.ic('back'))),
-          h('button.icon-btn.tonal', {onclick:()=>mv(1), disabled:i === cur.length - 1}, h('span', {style:'display:inline-block;transform:rotate(-90deg)'}, M.ic('back'))),
-          h('button.icon-btn.tonal', {onclick:()=>{ M.save('shortcuts', cur.filter(x=>x !== id)); draw(); }}, M.ic('trash'))));
+          M.reorder(i, cur.length, mv), M.removeBtn(()=>{ M.save('shortcuts', cur.filter(x=>x !== id)); draw(); })));
       });
       box.append(l, h('div.section-h', 'إضافة'));
       const g = h('div.list.card'); M.SECTIONS.filter(s=>!cur.includes(s[0])).forEach(s=>g.append(h('button.item', {onclick:()=>{ if(cur.length >= 12) return M.toast('الحد الأقصى ١٢ اختصارًا'); M.save('shortcuts', cur.concat(s[0])); draw(); }}, h('span.lead', {html:M.icon(s[2])}), h('div.grow.t', s[1]), M.ic('plus'))));

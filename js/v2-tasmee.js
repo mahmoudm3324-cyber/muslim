@@ -29,8 +29,9 @@ function open(init){
   const eng = ()=>st.eng === 'system' && sysOk() ? 'system' : appOk() ? 'app' : sysOk() ? 'system' : '';
   const view = M.openView({id:'tasmee', title:'تسميع القرآن', onClose:()=>{ stop(true); stopAyah(); }, actions:[h('button.icon-btn', {'aria-label':'الإعدادات', onclick:()=>settings()}, M.ic('settings'))]});
   const b = view.body; b.classList.add('ts-body');
+  b.classList.add('ts2');
   const hero = h('div.ts-hero'), quick = h('div.ts-quick'), paper = h('div.ts-paper'), live = h('div.ts-live'), result = h('div.ts-result'), hist = h('div.ts-hist'), dock = h('div.ts-dock');
-  b.append(hero, quick, paper, live, result, hist, dock);
+  b.append(hero, paper, live, result, hist, dock);
   const audio = new Audio(); audio.preload = 'none'; (M._audios = M._audios || []).push(audio);
 
   if(!eng()) b.insertBefore(h('div.card.pad.ts-na', h('div.bold', 'التسميع بالصوت غير متاح هنا'),
@@ -42,13 +43,19 @@ function open(init){
 
   /* ---------------- header: the passage and its progress ---------------- */
   function drawHero(){
-    const ok = marks.filter(x=>x === 1).length, pct = toks.length ? Math.round(base / toks.length * 100) : 0;
-    hero.replaceChildren(h('button.ts-hero-in', {onclick:pick, 'aria-label':'تغيير المقطع'},
-      h('div.grow', h('div.ts-hero-k', 'تسميع'), h('div.ts-hero-s.title-font', 'سورة '+M.sname(st.s)), h('div.ts-hero-r', rangeTxt(), h('span.ts-hero-e', M.ic('fwd')))),
-      M.ring ? M.ring(pct / 100, 64, 6, M.n(pct)+'٪') : h('b', M.n(pct)+'٪')));
+    const said = marks.filter(x=>x === 1).length, pct = toks.length ? base / toks.length : 0;
+    const MODES = [['hide', 'مخفي', 'lock'], ['faint', 'باهت', 'eye'], ['show', 'ظاهر', 'text']];
+    hero.replaceChildren(h('div.ts-stage',
+      h('div.ts-st-top',
+        h('div.grow',
+          h('div.ts-hero-k', 'تسميع من الحفظ'),
+          h('div.ts-hero-s.title-font', 'سورة '+M.sname(st.s)),
+          h('button.ts-range', {onclick:pick, 'aria-label':'تغيير المقطع'}, h('span', rangeTxt()), M.ic('chevDown'))),
+        h('div.ts-ring', M.ring ? M.ring(pct, 68, 6, h('div.ts-ring-in', h('b.num', M.n(Math.round(pct * 100))+'٪'), h('small.num', M.n(said)+'/'+M.n(toks.length)))) : null)),
+      h('div.ts-modes', ...MODES.map(([v, l, ic])=>h('button.ts-mode'+(st.mode === v ? '.on' : ''), {onclick:()=>{ st.mode = v; remember(); paint(); }, 'aria-pressed':String(st.mode === v)}, M.ic(ic), h('span', l)))),
+      quick));
     const len = st.b - st.a + 1;
-    quick.replaceChildren(...[[1, 'آية'], [3, '٣ آيات'], [5, '٥ آيات'], [10, '١٠ آيات'], [0, 'السورة كاملة']].filter(([n])=>!n || n <= N()).map(([n, l])=>h('button.chip'+((n ? len === n : (st.a === 1 && st.b === N())) ? '.on' : ''), {onclick:()=>{ if(n){ st.b = Math.min(N(), st.a + n - 1); } else { st.a = 1; st.b = Math.min(N(), 60); } remember(); build(); }}, n === 3 || n === 5 || n === 10 ? M.cnt(n, 'آية') : l)));
-    void ok;
+    quick.replaceChildren(...[[1, 'آية'], [3, '٣ آيات'], [5, '٥ آيات'], [10, '١٠ آيات'], [0, 'السورة كاملة']].filter(([n])=>!n || n <= N()).map(([n, l])=>h('button.chip'+((n ? len === n : (st.a === 1 && st.b === N())) ? '.on' : ''), {onclick:()=>{ if(n){ st.b = Math.min(N(), st.a + n - 1); } else { st.a = 1; st.b = Math.min(N(), 60); } remember(); build(); }}, l)));
   }
   function pick(){
     const ss = h('select.field', {'aria-label':'السورة'}); M.Q.surahs.forEach((s, i)=>ss.append(h('option', {value:i + 1}, M.n(i + 1)+'. '+s.ar))); ss.value = st.s;
@@ -112,10 +119,10 @@ function open(init){
       if(g.a !== lastA && g.say){ lastA = g.a; }
       const m = gMark(g), cls = m === 1 ? '.ok' : m === 2 ? '.miss' : m === 3 ? '.hint' : m === 4 ? '.part' : gi === cur ? '.cur' : '';
       box.append(h('span.ts-w'+cls, {dataset:{g:gi}, title:g.say ? 'تُقرأ: '+g.say : ''}, g.t), ' ');
-      if(g.end) box.append(h('button.ts-ay.num', {'aria-label':'اسمع الآية '+M.n(g.a), onclick:()=>playAyah(g.a)}, '﴿'+M.n(g.a)+'﴾'), ' ');
+      if(g.end) box.append(h('button.ts-ay.num', {'aria-label':'اسمع الآية '+M.n(g.a), dataset:{a:g.a}, onclick:()=>playAyah(g.a)}, M.n(g.a)), ' ');
     });
     const say = groups.filter(g=>g.say);
-    paper.replaceChildren(...[box, say.length ? h('div.ts-say', M.ic('info'), h('span', 'الحروف المقطّعة تُقرأ بأسمائها: ', ...say.map((g, i)=>h('b.qfont', (i ? '، ' : '')+g.t+' = '+g.say)))) : null,
+    paper.replaceChildren(...[h('div.ts-orn', h('i'), h('span.title-font', 'سورة '+M.sname(st.s)), h('i')), box, say.length ? h('div.ts-say', M.ic('info'), h('span', 'الحروف المقطّعة تُقرأ بأسمائها: ', ...say.map((g, i)=>h('b.qfont', (i ? '، ' : '')+g.t+' = '+g.say)))) : null,
       h('div.ts-prog', h('i', {style:'width:'+(toks.length ? (base / toks.length * 100) : 0)+'%'}))].filter(Boolean));
     const c = box.querySelector('.ts-w.cur'); if(c && st.on) try{ c.scrollIntoView({block:'center', behavior:'smooth'}); }catch(e){}
     drawHero();
@@ -136,7 +143,10 @@ function open(init){
       let hit = -1; for(let j = 1; j <= 4 && p + j < toks.length; j++) if(same(w, toks[p + j])){ hit = j; break; }
       // skipping ahead on a short common word (لا، في، من…) needs the next word to agree too
       if(hit > 0 && toks[p + hit].n.length <= 3 && !(k + 1 < said.length && p + hit + 1 < toks.length && same(said[k + 1], toks[p + hit + 1]))) hit = -1;
-      if(hit > 0 && (final || hit === 1)){ for(let j = 0; j < hit; j++) out.m[p + j] = 2; out.m[p + hit] = 1; p += hit + 1; }
+      if(hit > 0 && (final || hit === 1)){
+        // one short word (يوم، من، في…) the recogniser often swallows into its neighbour: not a sure mistake
+        const soft = hit === 1 && !toks[p].alts && toks[p].n.length <= 3 ? ({loose:1, normal:3, strict:2})[M.cfg.vcTol || 'normal'] : 2;
+        for(let j = 0; j < hit; j++) out.m[p + j] = soft; out.m[p + hit] = 1; p += hit + 1; }
       // anything else (isti'adha, basmala, a repeated word) is ignored
     }
     out.p = p; return out;
@@ -171,7 +181,7 @@ function open(init){
   function heard(t){ heardEl.textContent = t; ensureLive(); }
   function ensureLive(){ if(!live.firstChild) live.append(h('div.ts-live-in', bars, h('div.grow', statusEl, heardEl), speedEl)); live.classList.toggle('on', st.on); }
   let lvT = 0;
-  function meter(db){ const v = Math.max(0, Math.min(1, (db + 2) / 12)); [...bars.children].forEach((b2, i)=>{ const k = [0.55, 0.8, 1, 0.8, 0.55][i]; b2.style.transform = 'scaleY('+(0.18 + v * k * (0.75 + Math.random() * 0.25)).toFixed(2)+')'; }); clearTimeout(lvT); lvT = setTimeout(()=>meter(-5), 400); }
+  function meter(db){ const v = Math.max(0, Math.min(1, (db + 2) / 12)); dock.style.setProperty('--lv', v.toFixed(2)); [...bars.children].forEach((b2, i)=>{ const k = [0.55, 0.8, 1, 0.8, 0.55][i]; b2.style.transform = 'scaleY('+(0.18 + v * k * (0.75 + Math.random() * 0.25)).toFixed(2)+')'; }); clearTimeout(lvT); lvT = setTimeout(()=>meter(-5), 400); }
 
   /* ---------------- listening ---------------- */
   async function start(){
@@ -227,17 +237,20 @@ function open(init){
     drawDock(); markPlaying();
   }
   function stopAyah(){ try{ audio.pause(); }catch(e){} playing = null; markPlaying(); }
-  function markPlaying(){ paper.querySelectorAll('.ts-ay').forEach(x=>x.classList.toggle('on', playing != null && x.textContent === '﴿'+M.n(playing)+'﴾')); }
+  function markPlaying(){ paper.querySelectorAll('.ts-ay').forEach(x=>x.classList.toggle('on', playing != null && +x.dataset.a === playing)); }
   audio.addEventListener('ended', ()=>{ const was = playing; playing = null; markPlaying(); drawDock(); if(resumeAfter && !ended){ resumeAfter = false; say('تابع من حيث توقفت'); setTimeout(start, 350); } void was; });
   const curAyah = ()=>toks[base] ? groups[toks[base].g].a : st.b;
 
   /* ---------------- dock ---------------- */
   function drawDock(){
-    const mic = h('button.ts-mic'+(st.on ? '.on' : ''), {'aria-label':st.on ? 'إيقاف' : 'ابدأ التسميع', onclick:()=>st.on ? stop() : start()}, M.ic(st.on ? 'pause' : 'mic'));
+    const mic = h('button.ts-mic'+(st.on ? '.on' : ''), {'aria-label':st.on ? 'إيقاف' : 'ابدأ التسميع', onclick:()=>st.on ? stop() : start()}, h('i.ts-mic-ring'), h('i.ts-mic-ring.r2'), M.ic(st.on ? 'stop' : 'mic'));
+    const dk = (ic, lb, fn, dis, cls)=>h('button.ts-dk'+(cls || ''), {onclick:fn, disabled:!!dis, 'aria-label':lb}, h('span.ts-dk-i', M.ic(ic)), h('span', lb));
     dock.replaceChildren(
-      h('button.ts-dk', {onclick:()=>playAyah(curAyah()), 'aria-label':'اسمع الآية'}, M.ic(playing ? 'pause' : 'volume'), h('span', playing ? 'إيقاف' : 'اسمع الآية')),
+      dk('refresh', 'من جديد', ()=>{ build(); say('اضغط الميكروفون وابدأ التلاوة من حفظك'); }, !base && !ended),
+      dk(playing ? 'pause' : 'volume', playing ? 'إيقاف' : 'اسمع الآية', ()=>playAyah(curAyah())),
       mic,
-      h('button.ts-dk', {onclick:hint, disabled:base >= toks.length}, M.ic('eye'), h('span', 'تلميح')));
+      dk('eye', 'تلميح', hint, base >= toks.length),
+      dk('settings', 'الإعدادات', ()=>settings()));
     dock.classList.toggle('on', st.on);
   }
 

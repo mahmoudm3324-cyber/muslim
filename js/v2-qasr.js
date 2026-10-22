@@ -67,9 +67,9 @@ const Q = M.qasr = {
     return ready;
   },
   /* recognise one stretch of 16 kHz samples */
-  recognise(pcm, o){
+  recognise(pcm, o, quick){
     let hint = ''; try{ hint = o && o.hint ? (o.hint() || '') : ''; }catch(e){}
-    const msg = {cmd:'run', pcm, keepRepeats:!!(o && o.keepRepeats), hint};
+    const msg = {cmd:'run', pcm, keepRepeats:!!(o && o.keepRepeats), hint, quick:!!quick};
     const p = call(msg, []); p.rid = msg.id; return p;
   },
   /* a quick look that is no longer wanted (the reciter paused): stop it between two words */
@@ -115,7 +115,7 @@ Q.listen = async function(fn, o){
   let partialP = null, floor = -60, peak = -90, speaking = false, quiet = 0, voiced = 0, warm = 12, busy = false, pendFinal = [], lastPartial = 0, quietest = {v:1, at:0};
   const sens = ()=>({low:12, normal:9, high:6})[M.cfg.qaSens || 'normal'] || 9;
   // counting a dhikr: short stretches (the model writes a phrase said many times in one breath only once)
-  const PAUSE = ()=>o.keepRepeats ? 420 : (({short:450, normal:520, long:950})[M.cfg.qaPause || 'normal'] || 650);
+  const PAUSE = ()=>o.keepRepeats ? 320 : (({short:380, normal:460, long:900})[M.cfg.qaPause || 'normal'] || 600);
   // a long breath is committed every few seconds (cut at its quietest moment), so the words never wait for a pause that may not come
   const MAXS = 16000 * (o.keepRepeats ? 6 : 7), MINCUT = 16000 * (o.keepRepeats ? 3 : 2.5);
   let lastDur = 600, lastPartLen = 0;   // how long a look takes on this phone: the next look waits for it (no queue builds up)
@@ -127,9 +127,9 @@ Q.listen = async function(fn, o){
       try{ const t0 = Date.now(); const r = await Q.recognise(job, o); lastDur = Math.max(200, Date.now() - t0); Q.lastMs = lastDur; if(heard(r)) emit({type:'final', text:r.text, stats:r}); }catch(e){ emit({type:'error', text:'model', detail:String(e.message || e)}); }
       busy = false; emit({type:'busy', text:''}); pump(); return; }
     // while one keeps reciting: a quick look at the stretch so far, so the words light up before the pause
-    if(speaking && segLen > 16000 * 0.7 && segLen - lastPartLen > 16000 * 0.35 && Date.now() - lastPartial > Math.min(1800, Math.max(550, lastDur * 1.15)) && o.partials !== false){
+    if(speaking && segLen > 16000 * (o.keepRepeats ? 0.5 : 0.7) && segLen - lastPartLen > 16000 * 0.3 && Date.now() - lastPartial > Math.min(1800, Math.max(550, lastDur * 1.15)) && o.partials !== false){
       lastPartial = Date.now(); lastPartLen = segLen; busy = true;
-      try{ const t0 = Date.now(); const pr = Q.recognise(cat(seg, segLen), o); partialP = pr; const r = await pr; if(!r.cancelled){ lastDur = Math.max(200, Date.now() - t0); Q.lastMs = lastDur; } if(L === sess && speaking && !r.cancelled && heard(r)) emit({type:'partial', text:r.text}); }catch(e){}
+      try{ const t0 = Date.now(); const pr = Q.recognise(cat(seg, segLen), o, true); partialP = pr; const r = await pr; if(!r.cancelled){ lastDur = Math.max(200, Date.now() - t0); Q.lastMs = lastDur; } if(L === sess && speaking && !r.cancelled && heard(r)) emit({type:'partial', text:r.text}); }catch(e){}
       partialP = null; busy = false; pump();
     }
   }

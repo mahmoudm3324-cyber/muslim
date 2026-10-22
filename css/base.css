@@ -218,3 +218,18 @@ svg.ic.sol{fill:currentColor;stroke:none}
    that is exactly as tall as the screen, so it is painted all the way down (core.js sets --app-h and the class) */
 html.ios-sa,html.ios-sa body{height:var(--app-h,100%)!important;min-height:0;overflow:hidden}
 html.ios-sa #app{position:absolute;inset:0 0 auto 0;height:var(--app-h,100%)}
+
+/* arrows: one refined chevron everywhere (a little bolder than the outline icons, so they read at small sizes) */
+svg.ic.chev{stroke-width:2.15}
+/* reorder pill: "up" over "down" in one quiet control, and a soft remove button */
+.rord{flex:none;display:flex;flex-direction:column;align-items:center;width:38px;border-radius:14px;background:var(--chip-bg);overflow:hidden;
+  box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--on-s) 6%,transparent)}
+.rord-b{width:38px;height:27px;display:grid;place-items:center;color:var(--on-s);transition:background .15s var(--ease),opacity .15s}
+.rord-b svg{width:17px;height:17px}
+.rord-b:active:not(:disabled){background:color-mix(in oklab,var(--p) 18%,transparent);color:var(--p)}
+.rord-b:disabled{opacity:.28}
+.rord-sep{display:block;width:16px;height:1px;background:color-mix(in oklab,var(--on-s) 14%,transparent)}
+.rord-x{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:var(--on-sv);transition:background .15s var(--ease),color .15s}
+.rord-x svg{width:19px;height:19px}
+.rord-x:active{background:color-mix(in oklab,var(--danger) 16%,transparent);color:var(--danger)}
+.item .rord+.rord-x,.item .rord+.switch{margin-inline-start:2px}

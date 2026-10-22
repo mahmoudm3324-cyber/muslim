@@ -1,0 +1,88 @@
+/* ===== تسميع القرآن — redesigned screen (scoped to .ts2) =====
+   One stage card on top (surah, range, progress, how the text shows), a mushaf sheet where hidden words are quiet
+   ink-coloured bars that turn into the word as it is recited, and a dock whose microphone breathes with the voice. */
+.ts2{padding-bottom:150px}
+.ts2 .ts-hero{margin-bottom:12px}
+
+/* stage */
+.ts2 .ts-stage{position:relative;overflow:hidden;padding:16px 16px 12px;border-radius:28px;color:var(--on-pc,var(--on-s));
+  background:linear-gradient(150deg,color-mix(in oklab,var(--p) 30%,var(--card-bg)) 0%,color-mix(in oklab,var(--p) 10%,var(--card-bg)) 70%);
+  box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--p) 22%,transparent),0 14px 32px -20px color-mix(in oklab,var(--p) 70%,transparent)}
+.ts2 .ts-stage::after{content:"";position:absolute;inset-inline-end:-40px;top:-50px;width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle,color-mix(in oklab,var(--gold) 26%,transparent),transparent 70%);pointer-events:none}
+.ts2 .ts-st-top{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
+.ts2 .ts-hero-k{font-size:.72rem;font-weight:700;opacity:.7;letter-spacing:0}
+.ts2 .ts-hero-s{font-size:1.75rem;line-height:1.25;margin:2px 0 6px}
+.ts2 .ts-range{display:inline-flex;align-items:center;gap:6px;padding:5px 12px 5px 10px;border-radius:999px;font-size:.84rem;font-weight:700;
+  background:color-mix(in oklab,var(--card-bg) 70%,transparent);box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--on-s) 10%,transparent)}
+.ts2 .ts-range svg{width:15px;height:15px;opacity:.7}
+.ts2 .ts-ring{flex:none;color:var(--p)}
+.ts2 .ts-ring-in{display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.ts2 .ts-ring-in b{font-size:.95rem;color:var(--on-s)}
+.ts2 .ts-ring-in small{font-size:.62rem;color:var(--on-sv)}
+.ts2 .ts-modes{position:relative;z-index:1;display:flex;gap:4px;margin-top:12px;padding:4px;border-radius:16px;background:color-mix(in oklab,var(--card-bg) 65%,transparent)}
+.ts2 .ts-mode{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:36px;border-radius:12px;font-size:.8rem;font-weight:700;color:var(--on-sv);transition:background .2s var(--ease),color .2s}
+.ts2 .ts-mode svg{width:17px;height:17px}
+.ts2 .ts-mode.on{background:var(--p);color:var(--on-p,#fff);box-shadow:0 4px 12px -4px color-mix(in oklab,var(--p) 70%,transparent)}
+.ts2 .ts-mode:first-child.on svg{opacity:.75}
+.ts2 .ts-quick{position:relative;z-index:1;margin-top:10px;padding:0 0 2px}
+.ts2 .ts-quick .chip{min-height:32px;padding:0 14px;font-size:.8rem;background:color-mix(in oklab,var(--card-bg) 60%,transparent)}
+.ts2 .ts-quick .chip.on{background:var(--on-s);color:var(--s0)}
+
+/* the mushaf sheet */
+.ts2 .ts-paper{padding:14px 14px 14px;border-radius:26px;position:relative;
+  background:linear-gradient(180deg,color-mix(in oklab,#fdf6e4 92%,var(--card-bg)),color-mix(in oklab,#f6ead0 92%,var(--card-bg)));
+  box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--gold) 34%,transparent),inset 0 0 0 5px color-mix(in oklab,#fdf6e4 92%,var(--card-bg)),inset 0 0 0 6px color-mix(in oklab,var(--gold) 22%,transparent),0 12px 26px -18px rgba(0,0,0,.45)}
+html[data-theme=dark] .ts2 .ts-paper,html[data-theme=amoled] .ts2 .ts-paper{background:linear-gradient(180deg,color-mix(in oklab,var(--s2) 90%,var(--gold)),color-mix(in oklab,var(--s1,var(--s2)) 94%,var(--gold)));
+  box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--gold) 30%,transparent),0 12px 26px -18px rgba(0,0,0,.6)}
+.ts2 .ts-orn{display:flex;align-items:center;gap:10px;margin:2px 6px 6px;color:color-mix(in oklab,var(--gold) 85%,var(--on-s));font-size:.85rem;font-weight:700}
+.ts2 .ts-orn i{flex:1;height:6px;background:radial-gradient(circle,var(--gold) 1.5px,transparent 2px) center/10px 6px repeat-x;opacity:.55}
+.ts2 .ts-text{font-size:calc(1.62rem * var(--fs,1));line-height:2.45;text-align:justify;text-align-last:center;padding:2px 4px}
+/* hidden words: soft bars with the word's own width, the next one gently lit */
+.ts2 .ts-hide .ts-w{color:transparent;border-bottom:0;background:color-mix(in oklab,var(--on-s) 10%,transparent);padding:0 3px}
+.ts2 .ts-hide .ts-w:not(.ok):not(.hint):not(.miss):not(.part){display:inline-block;height:.58em;line-height:1;overflow:hidden;vertical-align:middle;border-radius:999px}
+.ts2 .ts-hide .ts-w.cur{background:color-mix(in oklab,var(--p) 22%,transparent);box-shadow:0 0 0 2px color-mix(in oklab,var(--p) 45%,transparent);animation:ts2cur 1.4s ease-in-out infinite}
+.ts2 .ts-faint .ts-w{opacity:.32;color:inherit}
+.ts2 .ts-text .ts-w.cur{box-shadow:0 0 0 2px color-mix(in oklab,var(--p) 40%,transparent)}
+.ts2 .ts-text .ts-w.ok,.ts2 .ts-text .ts-w.hint,.ts2 .ts-text .ts-w.miss,.ts2 .ts-text .ts-w.part{background:none;box-shadow:none;animation:none;opacity:1;color:inherit}
+.ts2 .ts-text .ts-w.ok{display:inline-block;animation:ts2ok .9s var(--ease)}
+.ts2 .ts-text .ts-w.part{color:color-mix(in oklab,var(--on-s) 55%,var(--p));background:color-mix(in oklab,var(--p) 10%,transparent)}
+.ts2 .ts-text .ts-w.hint{color:#b8862b;text-decoration:underline dotted color-mix(in oklab,#e0a21a 70%,transparent);text-underline-offset:.35em}
+.ts2 .ts-text .ts-w.miss{color:#c2453c;text-decoration:underline wavy color-mix(in oklab,#c2453c 70%,transparent);text-underline-offset:.35em;text-decoration-thickness:1.5px}
+@keyframes ts2ok{0%{color:#2e9d6a;opacity:.2;transform:translateY(4px)}40%{opacity:1;transform:none;color:#2e9d6a}100%{}}
+@keyframes ts2cur{50%{box-shadow:0 0 0 4px color-mix(in oklab,var(--p) 18%,transparent)}}
+.ts2 .ts-ay{display:inline-grid;place-items:center;min-width:1.7em;height:1.7em;padding:0 .2em;margin:0 .15em;border-radius:50%;font-family:var(--font);font-size:.5em;font-weight:700;line-height:1;vertical-align:middle;
+  color:color-mix(in oklab,var(--gold) 80%,var(--on-s));border:1.5px solid color-mix(in oklab,var(--gold) 65%,transparent);background:color-mix(in oklab,var(--gold) 8%,transparent)}
+.ts2 .ts-ay.on{background:var(--gold);color:#fff;border-color:var(--gold);animation:ts2cur 1.2s infinite}
+.ts2 .ts-prog{height:4px;margin:10px 6px 2px;background:color-mix(in oklab,var(--gold) 20%,transparent)}
+.ts2 .ts-prog i{background:linear-gradient(90deg,var(--p),color-mix(in oklab,var(--p) 50%,var(--gold)))}
+
+/* what is heard */
+.ts2 .ts-live{margin-top:12px}
+.ts2 .ts-live-in{padding:12px 14px;border-radius:20px;background:var(--card-bg);box-shadow:inset 0 0 0 1px var(--card-border,var(--outline-v))}
+.ts2 .ts-live.on .ts-live-in{box-shadow:inset 0 0 0 1.5px color-mix(in oklab,var(--p) 45%,transparent),0 10px 24px -16px color-mix(in oklab,var(--p) 70%,transparent)}
+.ts2 .ts-bars i{width:4px;border-radius:3px}
+.ts2 .ts-heard{font-family:var(--font-quran);font-size:1.05rem;line-height:1.9;color:var(--on-s);opacity:.8;max-height:3.9em}
+.ts2 .ts-speed{padding:2px 8px;border-radius:999px;background:var(--chip-bg);opacity:.8}
+
+/* dock */
+.ts2 .ts-dock{gap:4px;padding:8px 10px;border-radius:30px;width:min(440px,calc(100% - 20px));justify-content:space-between;
+  box-shadow:0 18px 40px -14px rgba(0,0,0,.4),inset 0 0 0 1px color-mix(in oklab,var(--on-s) 7%,transparent)}
+.ts2 .ts-dk{min-width:0;flex:1;gap:3px;font-size:.66rem;color:var(--on-sv)}
+.ts2 .ts-dk-i{width:40px;height:34px;border-radius:14px;display:grid;place-items:center;color:var(--on-s);transition:background .15s}
+.ts2 .ts-dk:active:not(:disabled) .ts-dk-i{background:var(--chip-bg)}
+.ts2 .ts-dk .ic{width:21px;height:21px}
+.ts2 .ts-mic{--lv:0;position:relative;width:70px;height:70px;margin:-22px 4px 0;border:4px solid var(--sheet-bg,var(--s0));
+  background:radial-gradient(circle at 35% 30%,color-mix(in oklab,var(--p) 70%,#fff),var(--p) 60%);box-shadow:0 10px 24px -6px color-mix(in oklab,var(--p) 70%,transparent)}
+.ts2 .ts-mic .ic{width:30px;height:30px;position:relative;z-index:1}
+.ts2 .ts-mic-ring{position:absolute;inset:-4px;border-radius:50%;border:2px solid color-mix(in oklab,var(--p) 55%,transparent);opacity:0;pointer-events:none}
+.ts2 .ts-dock.on .ts-mic{animation:none;transform:scale(calc(1 + var(--lv) * .08));transition:transform .1s linear}
+.ts2 .ts-dock.on .ts-mic-ring{animation:ts2ring 1.8s var(--ease) infinite}
+.ts2 .ts-dock.on .ts-mic-ring.r2{animation-delay:.9s}
+@keyframes ts2ring{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(1.55)}}
+
+/* result */
+.ts2 .ts-res{border-radius:26px}
+.ts2 .ts-res.good{box-shadow:inset 0 0 0 1.5px color-mix(in oklab,#2e9d6a 45%,transparent)}
+.ts2 .ts-res.low{box-shadow:inset 0 0 0 1.5px color-mix(in oklab,#c2453c 40%,transparent)}
+@media (prefers-reduced-motion:reduce){.ts2 .ts-text .ts-w.ok,.ts2 .ts-hide .ts-w.cur,.ts2 .ts-dock.on .ts-mic-ring,.ts2 .ts-ay.on{animation:none}}

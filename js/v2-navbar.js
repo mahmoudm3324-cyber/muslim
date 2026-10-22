@@ -429,9 +429,8 @@ M.openNavbarCfg = function(tabName){
           const mv = dd=>{ const a = M.navItems(), j = i + dd; if(j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; saveItems(a); redraw(); };
           const grip = h('button.nbc-grip', {'aria-label':'اسحب لإعادة الترتيب', html:GRIP});
           const r = h('div.item.static.nbc-row', {dataset:{id}}, grip, h('span.lead', {html:M.icon(d.icon)}), h('div.grow.t', d.label),
-            h('button.icon-btn.tonal', {'aria-label':'أعلى', disabled:i === 0, onclick:()=>mv(-1)}, M.ic('chevUp')),
-            h('button.icon-btn.tonal', {'aria-label':'أسفل', disabled:i === items.length - 1, onclick:()=>mv(1)}, M.ic('chevDown')),
-            h('button.icon-btn.tonal', {'aria-label':'إزالة', onclick:()=>{ const a = M.navItems(); if(a.length <= MIN) return M.toast('الحد الأدنى '+M.n(MIN)+' عناصر'); saveItems(a.filter(x=>x !== id)); redraw(); }}, M.ic('trash')));
+            M.reorder(i, items.length, mv),
+            M.removeBtn(()=>{ const a = M.navItems(); if(a.length <= MIN) return M.toast('الحد الأدنى '+M.n(MIN)+' عناصر'); saveItems(a.filter(x=>x !== id)); redraw(); }));
           dragRow(grip, r, l, i);
           l.append(r);
         });

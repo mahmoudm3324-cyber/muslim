@@ -46,15 +46,17 @@ M.voiceCountStop = vcStop;
 /* how many times a phrase was said in a stretch of recognised words (tolerates a dropped or misheard word in long adhkar) */
 M.countPhrase = function(words, phrase){
   const P = M.arWords(phrase).slice(0, 8); if(!P.length) return 0;
+  // a word cut short by a breath («وبحد» for «وبحمده») still counts when it begins the same way
+  const strip = w=>w.replace(/^(و|ف)/, ''), eq = (a, b)=>{ if(M.arSame(a, b)) return true; const x = strip(a), y = strip(b), last = b === P[P.length - 1] && P.length > 2, k = last ? 2 : 3; return x.length >= 3 && y.length >= 4 && x.slice(0, k) === y.slice(0, k) && x.length >= y.length * 0.5; };
   const need = P.length <= 2 ? P.length : Math.ceil(P.length * 0.7);
   let c = 0, i = 0;
   while(i < words.length){
-    let k = M.arSame(words[i], P[0]) ? 0 : (P.length > 2 && M.arSame(words[i], P[1]) ? 1 : -1);
+    let k = eq(words[i], P[0]) ? 0 : (P.length > 2 && eq(words[i], P[1]) ? 1 : -1);
     if(k < 0){ i++; continue; }
     let j = i, hit = 0, skips = 0;
     while(j < words.length && k < P.length && skips <= 2){
-      if(M.arSame(words[j], P[k])){ hit++; j++; k++; }
-      else if(k + 1 < P.length && M.arSame(words[j], P[k + 1])){ k++; skips++; }
+      if(eq(words[j], P[k])){ hit++; j++; k++; }
+      else if(k + 1 < P.length && eq(words[j], P[k + 1])){ k++; skips++; }
       else { j++; skips++; }
     }
     if(hit >= need){ c++; i = j; } else i++;
@@ -115,7 +117,7 @@ M.voiceBar = function(onCount, o){
         for(let k = sess; k < n; k++) hit();
         sess = Math.max(sess, n);
         if(ev.type === 'final'){ past = words; if(past.length > 40){ const keep = past.slice(-14); sess = Math.max(0, sess - (M.countPhrase(past, target()) - M.countPhrase(keep, target()))); past = keep; } }
-      }, {keepRepeats:true, onProgress:f=>{ if(mode === 'app' && f < 1) st.textContent = 'تنزيل المعرّف… '+M.n(Math.round(f * 100))+'٪'; }});
+      }, {keepRepeats:true, hint:()=>{ const t = target(); return t ? Array(6).fill(t).join(' ') : ''; }, onProgress:f=>{ if(mode === 'app' && f < 1) st.textContent = 'تنزيل المعرّف… '+M.n(Math.round(f * 100))+'٪'; }});
     } else if(smart()){
       mode = 'speech'; sess = 0; set(true); st.textContent = 'جارٍ تشغيل الميكروفون…';
       try{ window.Android && window.Android.speechSilent && window.Android.speechSilent(M.cfg.micBeep !== true); }catch(e){}

@@ -108,9 +108,10 @@ function tokenise(text){
 /* full: the model's whole 30 s window (most exact); otherwise the window is the clip plus 2 s, several times faster.
    hint: the words expected next. They are tried as a draft several tokens at a time (the model checks them in one pass and keeps the ones it agrees with),
    so correct recitation costs a few decoder passes instead of one per token. The result is what the model itself would have written. */
-async function run(pcm, full, keepRepeats, hint, rid){
+async function run(pcm, full, keepRepeats, hint, rid, quick){
   const t0 = Date.now();
-  const F = full ? FRAMES : Math.min(FRAMES, Math.max(500, Math.ceil((pcm.length / 16000 + 1) * 10) * 10));   // clip + 1 s (≥ 5 s): ~1.5× faster than + 2 s, same words in tests
+  const F = full ? FRAMES : quick ? Math.min(FRAMES, Math.max(300, Math.ceil((pcm.length / 16000 + 0.6) * 10) * 10))   // a quick look while one recites: a smaller window, the final pass redoes it
+    : Math.min(FRAMES, Math.max(500, Math.ceil((pcm.length / 16000 + 1) * 10) * 10));   // clip + 1 s (≥ 5 s): ~1.5× faster than + 2 s, same words in tests
   const mel = new ort.Tensor('float32', logMel(pcm, F), [1, NMEL, F]);
   const tm = Date.now();
   const e = await enc.run({mel});
@@ -179,7 +180,7 @@ self.onmessage = async ev=>{
       self.postMessage({id:d.id, ok:true});
     } else if(d.cmd === 'cancel'){ cancelId = d.target;
     } else if(d.cmd === 'run'){
-      const r = await run(d.pcm, d.full, d.keepRepeats, d.hint, d.id);
+      const r = await run(d.pcm, d.full, d.keepRepeats, d.hint, d.id, !!d.quick);
       self.postMessage(Object.assign({id:d.id, ok:true}, r));
     }
   }catch(e){ self.postMessage({id:d.id, ok:false, error:String(e && e.message || e)}); }

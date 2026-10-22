@@ -305,8 +305,7 @@ M.homeOrderUI = function(box){
   o.forEach((k, i)=>{
     const mv = d=>{ const a = M.homeOrder(); const j = i + d; if(j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; M.save('homeOrder', a); M.homeOrderUI(box); };
     box.append(h('div.item.static', h('div.grow.t', M.HOME_ORDER.find(x=>x[0] === k)[1]),
-      h('button.icon-btn.tonal', {'aria-label':'أعلى', onclick:()=>mv(-1), disabled:i === 0}, h('span', {style:'display:inline-block;transform:rotate(90deg)'}, M.ic('back'))),
-      h('button.icon-btn.tonal', {'aria-label':'أسفل', onclick:()=>mv(1), disabled:i === o.length - 1}, h('span', {style:'display:inline-block;transform:rotate(-90deg)'}, M.ic('back')))));
+      M.reorder(i, o.length, mv)));
   });
 };
 

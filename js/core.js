@@ -10,7 +10,7 @@ const M = window.M = window.M || {};
   var fit = function(){ var h = Math.max(window.innerHeight || 0, screen.height || 0, (window.visualViewport && visualViewport.height) || 0); if(window.innerWidth > window.innerHeight) h = window.innerHeight; de.style.setProperty('--app-h', h + 'px'); };
   fit(); addEventListener('resize', fit); addEventListener('scroll', function(){ if(window.scrollY || window.scrollX) window.scrollTo(0, 0); }, {passive:true}); addEventListener('orientationchange', function(){ setTimeout(fit, 250); }); addEventListener('pageshow', fit);
 }catch(e){} })();
-M.VERSION = '2.3.1';
+M.VERSION = '3.0.0';
 M.$ = (s,r)=>(r||document).querySelector(s);
 M.$$ = (s,r)=>Array.from((r||document).querySelectorAll(s));
 
@@ -83,7 +83,7 @@ M.store = {
 M.platform = window.isIOSApp ? 'ios' : (window.Android && typeof window.Android.scheduleAdhan === 'function') ? 'android' : 'web';
 M.CAPS = {
   android:['widgets', 'appIcon', 'liveNotif', 'alarmRing', 'focusMode', 'keyStop', 'flipStop', 'volKeys', 'appLock', 'battery', 'exactAlarm', 'nativeHealth', 'quickTiles',
-           'nativeVideo', 'notifAction', 'downloads', 'bgAudio', 'longAdhan', 'speech', 'micTone'],
+           'nativeVideo', 'notifAction', 'downloads', 'bgAudio', 'longAdhan', 'speech', 'micTone', 'popupUnlock'],
   ios:['downloads', 'bgAudio', 'notifAction', 'speech'],
   web:['speech']
 };
@@ -180,11 +180,13 @@ stop:'<rect x="5.5" y="5.5" width="13" height="13" rx="2.2"/>',
 next:'<path d="M5 5.6v12.8a.8.8 0 0 0 1.2.7l9.600-6.400a.8.8 0 0 0 0-1.400L6.200 4.900A.8.8 0 0 0 5 5.600z"/><rect x="17.5" y="5" width="2.2" height="14" rx="1"/>',
 prev:'<path d="M19 5.6v12.8a.8.8 0 0 1-1.200.7l-9.600-6.400a.8.8 0 0 1 0-1.400l9.600-6.400A.8.8 0 0 1 19 5.600z"/><rect x="4.300" y="5" width="2.200" height="14" rx="1"/>',
 settings:'<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
-back:'<path d="m9 5 7 7-7 7"/>',
-fwd:'<path d="m15 5-7 7 7 7"/>',
+back:'<path d="m9.5 5.5 6.5 6.5-6.5 6.5"/>',
+fwd:'<path d="m14.5 5.5-6.5 6.5 6.5 6.5"/>',
 check:'<path d="m5 12.5 4.5 4.5L19 7.500"/>',
 plus:'<path d="M12 5v14M5 12h14"/>',
 minus:'<path d="M5 12h14"/>',
+shrink:'<path d="M14 10l6.5-6.5M10 14l-6.5 6.5M14 4.5V10h5.5M10 19.5V14H4.5"/>',
+enlarge:'<path d="M14.5 9.5 20 4M9.5 14.5 4 20M14 4h6v6M10 20H4v-6"/>',
 close:'<path d="M6 6l12 12M18 6 6 18"/>',
 compass:'<circle cx="12" cy="12" r="9"/><path d="m15.800 8.200-2 5.600-5.600 2 2-5.600z"/>',
 calendar:'<rect x="3.5" y="5" width="17" height="15.500" rx="3"/><path d="M8 3v4M16 3v4M3.500 10h17"/>',
@@ -224,8 +226,8 @@ shield:'<path d="M12 3 5 6v5c0 4.500 3 8 7 10 4-2 7-5.500 7-10V6z"/>',
   alarm:'<circle cx="12" cy="13" r="7"/><path d="M12 9v4l2 2M5 4 2 7M19 4l3 3"/>',
   text:'<path d="M4 7V5h16v2M9 19h6M12 5v14"/>',
   hash:'<path d="M5 9h14M5 15h14M10 4 8 20M16 4l-2 16"/>',
-  chevDown:'<path d="m6 9 6 6 6-6"/>',
-chevUp:'<path d="m6 15 6-6 6 6"/>',
+  chevDown:'<path d="m5.5 9 6.5 6.5L18.5 9"/>',
+chevUp:'<path d="m5.5 15 6.5-6.5 6.5 6.5"/>',
 eye:'<path d="M2.500 12S6 5.500 12 5.500 21.500 12 21.500 12 18 18.500 12 18.500 2.500 12 2.500 12z"/><circle cx="12" cy="12" r="2.800"/>',
 globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.800 2.800 2.800 15.200 0 18M12 3c-2.800 2.800-2.800 15.200 0 18"/>',
 mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.500 11.500a6.500 6.500 0 0 0 13 0M12 18v3"/>',
@@ -243,8 +245,9 @@ undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.500a5.500 5.500 0 0 1 0 11H11"/>
 fullscreen:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>'
 };
 const FILL = {play:1,pause:1,stop:1,next:1,prev:1};
+const CHEV = {back:1, fwd:1, chevUp:1, chevDown:1, arrowUp:1, arrowDown:1};
 M.icon = function(name, cls){
-  const f = FILL[name] ? ' fill' : '';
+  const f = FILL[name] ? ' fill' : CHEV[name] ? ' chev' : '';
   return '<svg class="ic'+f+(cls?' '+cls:'')+'" viewBox="0 0 24 24" aria-hidden="true">'+(P[name]||P.dot)+'</svg>';
 };
 M.ic = function(name, cls){ const w = document.createElement('span'); w.style.display = 'contents'; w.innerHTML = M.icon(name, cls); return w.firstChild; };
@@ -352,6 +355,12 @@ M.switchEl = function(val, onChange){
   el.addEventListener('click', ()=>{ const v = !el.classList.contains('on'); el.classList.toggle('on', v); el.setAttribute('aria-checked', String(v)); M.haptic(8); onChange(v); });
   return el;
 };
+/* reorder control used by every editable list: one quiet pill with "up" over "down" */
+M.reorder = function(i, len, mv){
+  const b = (d, ic, lb)=>h('button.rord-b', {'aria-label':lb, disabled:d < 0 ? i === 0 : i === len - 1, onclick:e=>{ e.stopPropagation(); M.haptic(6); mv(d); }}, M.ic(ic));
+  return h('div.rord', b(-1, 'chevUp', 'تحريك لأعلى'), h('i.rord-sep'), b(1, 'chevDown', 'تحريك لأسفل'));
+};
+M.removeBtn = function(fn, label){ return h('button.rord-x', {'aria-label':label || 'إزالة', onclick:e=>{ e.stopPropagation(); fn(); }}, M.ic('trash')); };
 M.seg = function(options, value, onChange){
   const wrap = h('div.seg');
   options.forEach(([v, label])=>{

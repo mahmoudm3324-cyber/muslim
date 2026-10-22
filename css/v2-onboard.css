@@ -195,3 +195,17 @@ html[data-theme=dark] .ob-nt-bar i,html[data-theme=amoled] .ob-nt-bar i{backgrou
 @keyframes obFloat{50%{transform:translateY(-6px)}}
 @media (prefers-reduced-motion:reduce){.ob-ring,.ob-glow,.ob-sparks i,.ob-shine,.ob-wel-em>*:last-child{animation:none!important}.ob-sparks i{opacity:.4}.ob-shine{-webkit-text-fill-color:currentColor;background:none}.ob-promise span{opacity:1;transform:none;animation:none}.ob-rule i{width:70px;animation:none}.ob-rule b{transform:rotate(45deg);animation:none}}
 .ob-st.ob-shine{animation:obUp .55s var(--sp) both,obShine 5.5s ease-in-out infinite;animation-delay:calc(var(--i,0)*60ms + 100ms),1.4s}
+
+/* the welcome page scrolls when its content is taller than the screen (the update's "what's new" list);
+   auto margins keep it centred when it fits, and let it start from the top when it does not */
+.ob-wel{overflow-x:hidden;overflow-y:auto;justify-content:flex-start}
+.ob-wel>.ob-wel-em{margin-top:auto}
+.ob-wel>:last-child{margin-bottom:auto}
+.ob-wel.more{-webkit-mask-image:linear-gradient(#000 calc(100% - 44px),transparent);mask-image:linear-gradient(#000 calc(100% - 44px),transparent)}
+.ob-wel.upd{gap:10px}
+.ob-wel.upd .ob-arch.big{width:92px;height:110px}
+.ob-wel.upd .ob-arch.big img{border-radius:16px}
+.ob-wel.upd .ob-rings{width:min(52vw,210px)}
+.ob-wel.upd .ob-big{font-size:2.2rem}
+.ob-wel.upd .ob-ul{line-height:1.8;font-size:.86rem}
+.ob-wel.upd .ob-ul li+li{margin-top:6px}

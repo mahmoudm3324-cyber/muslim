@@ -71,12 +71,15 @@ function build(mode){
       sv('svg', {viewBox:'0 0 200 200', class:'ob-ring r2'}, sv('path', {d:star(80, 12, .84), fill:'none', stroke:'var(--ob-gold)', 'stroke-width':'.7'})),
       h('i.ob-glow'));
     const sparks = h('div.ob-sparks', {'aria-hidden':'true'}, ...Array.from({length:16}, (_, i)=>h('i', {style:'--x:'+((i * 37 + 11) % 100)+'%;--y:'+((i * 53 + 7) % 92)+'%;--d:'+((i % 7) * 0.45).toFixed(2)+'s;--s:'+(5 + (i % 4) * 3)+'px;--t:'+(2.6 + (i % 5) * 0.7).toFixed(1)+'s'})));
-    const el = h('div.ob-page.ob-wel', sparks,
+    const el = h('div.ob-page.ob-wel'+(upd ? '.upd' : ''), sparks,
       h('div.ob-st.ob-wel-em', rings, arch(h('img', {src:'img/icons/'+icon+'.jpg', alt:''}), true)),
       h('h1.ob-h.ob-big.title-font.ob-st.ob-shine', 'المسلم'), h('div.ob-rule', {'aria-hidden':'true'}, h('i'), h('b'), h('i')),
       h('p.ob-p.ob-st', upd ? 'تم تحديث التطبيق إلى الإصدار '+M.n(M.VERSION)+'. هذا أبرز ما أضفناه لك.' : 'رفيقك اليومي للقرآن والصلاة والذكر. نجهّزه على ذوقك في خطوات قصيرة.'),
       upd ? card(h('b.ob-ul-h', 'الجديد في هذا الإصدار'), h('ul.ob-ul', ...(M.whatsNew ? M.whatsNew() : M.WHATS_NEW).map(t=>h('li', t)))) : null,
       !upd ? h('div.ob-promise.ob-st', ...[['s:shield', 'بلا إعلانات'], ['lock', 'بلا حسابات'], ['download', 'يعمل دون إنترنت']].map(([ic, t])=>h('span', {html:M.icon(ic)}, t))) : null);
+    /* a long "what's new" list scrolls: fade the bottom edge while there is more below */
+    const more = ()=>el.classList.toggle('more', el.scrollHeight - el.scrollTop - el.clientHeight > 8);
+    el.addEventListener('scroll', more, {passive:true}); requestAnimationFrame(()=>requestAnimationFrame(more)); setTimeout(more, 700); setTimeout(more, 1600);
     return {el, primary: upd ? 'متابعة' : 'ابدأ', onPrimary: upd ? finish : null, second: upd ? 'إعادة تخصيص التطبيق' : null, onSecond: ()=>go(1), noSkip: true};
   });
 
@@ -160,7 +163,7 @@ function build(mode){
     };
     const freqOf = id=>{ const c = M.nfGet(id); if(c.mode === 'every') return (c.every || 60) <= 60 ? 'h1' : 'h2'; return 'once'; };
     const ITEMS = [
-      {id:'salawat', ic:'s:muhammad', t:'الصلاة على النبي ﷺ', d:'«اللهم صلِّ وسلِّم على نبينا محمد» بصوت مسجّل', voices:['r_salawat6', 'r_salawat1', 'r_salawat3', 'r_salawat5', 'r_salawat2', 'r_salawat4'], freq:true},
+      {id:'salawat', ic:'s:muhammad', t:'الصلاة على النبي ﷺ', d:'«اللهم صلِّ وسلِّم على نبينا محمد» بصوت مسجّل', voices:['r_salawat6', 'r_salawat1', 'r_salawat3', 'r_salawat5', 'r_salawat2', 'r_salawat4', 'r_salawat7', 'r_salawat8', 'r_salawat9', 'r_salawat10'], freq:true},
       {id:'dhikr', ic:'s:beads', t:'ذكر الله', d:'تسبيح وتهليل واستغفار يتجدّد كل مرة', voices:['r_ahabb', 'r_dhikr1', 'r_tasbih1', 'r_hasbuna', 'r_tahlil', 'r_tawakkul'], freq:true},
       {id:'morning', ic:'sunrise', t:'أذكار الصباح', d:'بعد الشروق بقليل', voices:['r_morning']},
       {id:'evening', ic:'moon', t:'أذكار المساء', d:'بعد العصر', voices:['r_evening']}
