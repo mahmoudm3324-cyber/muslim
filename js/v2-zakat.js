@@ -21,7 +21,7 @@ const money = x=>(x >= 1000 ? num(x) : dec(x, 2)) + (S.cur ? ' '+S.cur : '');
 const NISAB_G = 85, NISAB_S = 595, CROP_NISAB = 653;
 const pad2 = n=>(n < 10 ? '0' : '')+n;
 const dstr = d=>d.getFullYear()+'-'+pad2(d.getMonth() + 1)+'-'+pad2(d.getDate());
-const fdate = d=>{ try{ return M.fmtHijri(M.hijri(d)) + ' — ' + d.toLocaleDateString(M.cfg && M.cfg.lang && M.cfg.lang !== 'ar' ? M.cfg.lang : 'ar', {day:'numeric', month:'long', year:'numeric'}); }catch(e){ return dstr(d); } };
+const fdate = d=>{ try{ return M.fmtHijri(M.hijri(d)) + ' — ' + d.toLocaleDateString(M.lang && M.lang !== 'ar' ? M.lang : 'ar', {day:'numeric', month:'long', year:'numeric'}); }catch(e){ return dstr(d); } };
 
 /* ---------- calculation ---------- */
 function calc(){

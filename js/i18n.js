@@ -5,7 +5,9 @@
 (function(){
 const M = window.M;
 M.LANGS = [['ar', 'العربية', 'Arabic'], ['en', 'English', 'English'], ['fr', 'Français', 'French'], ['tr', 'Türkçe', 'Turkish'], ['de', 'Deutsch', 'German'], ['es', 'Español', 'Spanish']];
-const lang = M.lang = (M.LANGS.some(l=>l[0] === M.cfg.lang) ? M.cfg.lang : 'ar');
+/* the user's choice in the app, else the app language set in the phone's settings (iPhone: window.__iosLang; Android 13+: Android.getAppLang), else Arabic */
+const sysLang = window.__iosLang || (()=>{ try{ return window.Android && Android.getAppLang ? Android.getAppLang() : ''; }catch(e){ return ''; } })();
+const lang = M.lang = (M.LANGS.some(l=>l[0] === M.cfg.lang) ? M.cfg.lang : M.LANGS.some(l=>l[0] === sysLang) ? sysLang : 'ar');
 M.setLang = function(id){ if(id === M.lang) return; M.save('lang', id); try{ M.syncNative && M.syncNative(true); }catch(e){} setTimeout(()=>location.reload(), 120); };
 if(lang === 'ar') return;
 

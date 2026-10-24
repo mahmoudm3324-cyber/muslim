@@ -84,7 +84,7 @@ M.platform = window.isIOSApp ? 'ios' : (window.Android && typeof window.Android.
 M.CAPS = {
   android:['widgets', 'appIcon', 'liveNotif', 'alarmRing', 'focusMode', 'keyStop', 'flipStop', 'volKeys', 'appLock', 'battery', 'exactAlarm', 'nativeHealth', 'quickTiles',
            'nativeVideo', 'notifAction', 'downloads', 'bgAudio', 'longAdhan', 'speech', 'micTone', 'popupUnlock'],
-  ios:['downloads', 'bgAudio', 'notifAction', 'speech', 'appIcon'],
+  ios:['downloads', 'bgAudio', 'notifAction', 'speech', 'appIcon'].concat(window.__iosCaps || []),   // + liveNotif, and alarmRing on iOS 26 (from the app)
   web:['speech']
 };
 M.can = f=>(M.CAPS[M.platform] || []).includes(f);
@@ -137,7 +137,7 @@ const CNT = {
 };
 M.cnt = function(n, w, gen, legacy){
   const f = CNT[w] || [w, w, w, w, w], a = Math.abs(n), r = a % 100;
-  if(M.cfg.lang && M.cfg.lang !== 'ar') return M.n(n)+' '+(legacy || f[0]);   // another language: the phrase its dictionary already knows ("{0} …")
+  if(M.lang && M.lang !== 'ar') return M.n(n)+' '+(legacy || f[0]);   // another language: the phrase its dictionary already knows ("{0} …")
   if(a === 1) return f[0];
   if(a === 2) return gen ? f[2] : f[1];
   return M.n(n)+' '+(r >= 3 && r <= 10 ? f[3] : r >= 11 ? f[4] : f[0]);
