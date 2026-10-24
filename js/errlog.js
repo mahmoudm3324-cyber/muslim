@@ -52,6 +52,8 @@ setTimeout(function(){
     b.onclick = function(){ location.reload(); };
     inner.appendChild(t); inner.appendChild(p); inner.appendChild(pre); inner.appendChild(b); box.appendChild(inner);
     document.body.appendChild(box);
+    // a slow first load (many files on a slow connection) is not a failure: take the screen away once the app draws
+    var iv = setInterval(function(){ if(window.M && window.M.curTab){ clearInterval(iv); if(box.parentNode) box.parentNode.removeChild(box); } }, 500);
     try{ window.Android && window.Android.ready && window.Android.ready(); }catch(e){}
   }catch(e){}
 }, 9000);
