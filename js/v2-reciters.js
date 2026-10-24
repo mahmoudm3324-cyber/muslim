@@ -41,7 +41,9 @@ M.audioURL = function(s, a, rec){
     else if(!cache[rec]) M.recReady(rec);
     return prev(s, a, FALLBACK);
   }
-  return M.segFileURL(s, rec) + '#t=' + t[0].toFixed(2) + ',' + t[1].toFixed(2);
+  // a downloaded surah plays from the phone (the file saved by M.downloadSurah), otherwise from mp3quran.net
+  const base = M.dlHas && M.dlHas(rec, s) ? '/dl/audio/'+rec+'/'+p3(s)+'.mp3' : M.segFileURL(s, rec);
+  return base + '#t=' + t[0].toFixed(2) + ',' + t[1].toFixed(2);
 };
 M.segReciters = Object.keys(SEG);
 

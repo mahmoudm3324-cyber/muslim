@@ -84,7 +84,7 @@ M.platform = window.isIOSApp ? 'ios' : (window.Android && typeof window.Android.
 M.CAPS = {
   android:['widgets', 'appIcon', 'liveNotif', 'alarmRing', 'focusMode', 'keyStop', 'flipStop', 'volKeys', 'appLock', 'battery', 'exactAlarm', 'nativeHealth', 'quickTiles',
            'nativeVideo', 'notifAction', 'downloads', 'bgAudio', 'longAdhan', 'speech', 'micTone', 'popupUnlock'],
-  ios:['downloads', 'bgAudio', 'notifAction', 'speech', 'appIcon'].concat(window.__iosCaps || []),   // + liveNotif, and alarmRing on iOS 26 (from the app)
+  ios:['downloads', 'bgAudio', 'notifAction', 'speech', 'appIcon', 'appLock'].concat(window.__iosCaps || []),   // + liveNotif, and alarmRing on iOS 26 (from the app)
   web:['speech']
 };
 M.can = f=>(M.CAPS[M.platform] || []).includes(f);

@@ -11,6 +11,8 @@ const mb = b=>{ const v = b / 1048576; return v >= 1024 ? M.n((v / 1024).toFixed
 const remoteURL = M.audioURL;
 M.audioURL = function(s, a, rec){
   rec = rec || M.cfg.reciter; if(!/^[\w-]+$/.test(rec)) rec = M.RECITERS[0][0];
+  // one-file-per-surah reciters (v2-reciters.js) pick their own downloaded file and verse slice
+  if(M.isSegReciter && M.isSegReciter(rec)) return remoteURL(s, a, rec);
   try{ if(native() && (dlAudio()[rec] || {})[s]) return '/dl/audio/'+rec+'/'+p3(s)+p3(a)+'.mp3'; }catch(e){}
   return remoteURL(s, a, rec);
 };
@@ -57,12 +59,17 @@ M.getTafsir = async function(slug, s, a){
 const jobs = {}; // id -> callback(done, total, failed, finished)
 window.onDl = function(id, d, t, bad, fin){ const f = jobs[id]; if(f) f(d, t, bad, fin); if(fin) delete jobs[id]; };
 
-function surahFiles(rec, s){ const n = M.Q.surahs[s - 1].n, out = []; for(let a = 1; a <= n; a++) out.push(['https://everyayah.com/data/'+rec+'/'+p3(s)+p3(a)+'.mp3', 'audio/'+rec+'/'+p3(s)+p3(a)+'.mp3']); if(s !== 1 && s !== 9) out.push(['https://everyayah.com/data/'+rec+'/001001.mp3', 'audio/'+rec+'/001001.mp3']); return out; }
+/* reciters recorded one file per surah (v2-reciters.js, e.g. Islam Sobhi): the surah's single file from its own server */
+function surahFiles(rec, s){ if(M.isSegReciter && M.isSegReciter(rec)){ const u = M.segFileURL(s, rec); return u ? [[u, 'audio/'+rec+'/'+p3(s)+'.mp3']] : []; }
+  const n = M.Q.surahs[s - 1].n, out = []; for(let a = 1; a <= n; a++) out.push(['https://everyayah.com/data/'+rec+'/'+p3(s)+p3(a)+'.mp3', 'audio/'+rec+'/'+p3(s)+p3(a)+'.mp3']); if(s !== 1 && s !== 9) out.push(['https://everyayah.com/data/'+rec+'/001001.mp3', 'audio/'+rec+'/001001.mp3']); return out; }
 function markAudio(rec, s, on){ const d = dlAudio(); d[rec] = d[rec] || {}; if(on) d[rec][s] = 1; else delete d[rec][s]; M.store.set('dlAudio', d); }
 
-M.downloadSurah = function(rec, s, onProg){
+M.dlHas = (rec, s)=>{ try{ return native() && !!(dlAudio()[rec] || {})[s]; }catch(e){ return false; } };
+M.downloadSurah = async function(rec, s, onProg){
+  if(M.isSegReciter && M.isSegReciter(rec) && M.recReady) await M.recReady(rec);   // the surah file's address comes with the timings
   return new Promise(res=>{
     if(!native()) return res(false);
+    if(!surahFiles(rec, s).length) return res(false);
     const id = 'a_'+s+'_'+Date.now().toString(36), files = surahFiles(rec, s);
     jobs[id] = (d, t, bad, fin)=>{ onProg && onProg(d, t, bad); if(fin){ const ok = bad === 0 && d >= t; if(ok) markAudio(rec, s, true); res(ok); } };
     try{ window.Android.downloadFiles(id, JSON.stringify(files)); }catch(e){ delete jobs[id]; res(false); }

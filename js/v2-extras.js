@@ -100,18 +100,19 @@ M.openSecuritySettings = function(){
       const lockSw = M.switchEl(!!M.cfg.appLock, v=>{
         const back = msg=>{ M.save('appLock', false); sync(); lockSw.classList.remove('on'); lockSw.setAttribute('aria-checked', 'false'); if(msg) M.toast(msg, 4500); };
         if(!v){ M.save('appLock', false); sync(); return; }
-        if(!call('lockAvailable')){ if(call('hasLockPass')){ M.save('appLock', true); sync(); M.toast('تم تفعيل القفل بكلمة السر'); return; } back('لا يوجد قفل شاشة على الهاتف — فعّل البصمة أو رمز القفل من إعدادات الهاتف، أو اضبط كلمة سر للتطبيق'); passSheet(); return; }
+        if(!call('lockAvailable')){ if(native('hasLockPass') && call('hasLockPass')){ M.save('appLock', true); sync(); M.toast('تم تفعيل القفل بكلمة السر'); return; } back('لا يوجد قفل شاشة على الهاتف — فعّل البصمة أو رمز القفل من إعدادات الهاتف، أو اضبط كلمة سر للتطبيق'); passSheet(); return; }
         if(!native('testLock')){ M.save('appLock', true); sync(); return; }
         window.onLockTest = (ok, why)=>{ window.onLockTest = null; if(ok){ M.save('appLock', true); sync(); M.toast('تم تفعيل قفل التطبيق ✓'); } else back(why === 'none' ? 'لا يوجد قفل شاشة على الهاتف' : 'لم يُفعَّل القفل — لم تُؤكَّد البصمة'); };
         call('testLock');
       });
-      rows.push(h('div.item.static', h('div.grow', h('div.t', 'قفل التطبيق'), h('div.s', call('bioAvail') ? 'بالبصمة أو رمز قفل الهاتف عند فتح التطبيق' : 'برمز قفل الهاتف أو كلمة سر التطبيق عند فتحه')), lockSw));
-      rows.push(M.item({icon:'t:lock', title:'كلمة سر التطبيق', sub:call('hasLockPass') ? 'مفعّلة — تُطلب عند فتح التطبيق مع البصمة' : 'اختيارية — بديل عن رمز قفل الهاتف', onClick:()=>passSheet(), trail:M.ic('fwd')}));
-      rows.push(sw('flipStop', 'قلب الهاتف لكتم الأذان', 'ضع الهاتف على وجهه ليتوقف صوت الأذان فورًا'));
-      rows.push(sw('volTasbih', 'التسبيح بأزرار الصوت', 'داخل شاشة المسبحة: رفع الصوت يزيد العدّاد وخفضه يتراجع'));
+      rows.push(h('div.item.static', h('div.grow', h('div.t', 'قفل التطبيق'), h('div.s', window.isIOSApp ? 'بـ Face ID أو Touch ID أو رمز قفل الآيفون عند فتح التطبيق' : call('bioAvail') ? 'بالبصمة أو رمز قفل الهاتف عند فتح التطبيق' : 'برمز قفل الهاتف أو كلمة سر التطبيق عند فتحه')), lockSw));
+      // the iPhone app locks with Face ID / Touch ID / the passcode only; the app password, flipping and the volume keys are Android's
+      if(native('setLockPass')) rows.push(M.item({icon:'t:lock', title:'كلمة سر التطبيق', sub:call('hasLockPass') ? 'مفعّلة — تُطلب عند فتح التطبيق مع البصمة' : 'اختيارية — بديل عن رمز قفل الهاتف', onClick:()=>passSheet(), trail:M.ic('fwd')}));
+      if(M.can('flipStop')) rows.push(sw('flipStop', 'قلب الهاتف لكتم الأذان', 'ضع الهاتف على وجهه ليتوقف صوت الأذان فورًا'));
+      if(M.can('volKeys')) rows.push(sw('volTasbih', 'التسبيح بأزرار الصوت', 'داخل شاشة المسبحة: رفع الصوت يزيد العدّاد وخفضه يتراجع'));
     }
     if(!native('setAppLock') && M.openWebLock) rows.splice(1, 0, M.item({icon:'t:lock', title:'قفل التطبيق', sub:'بصمة الوجه أو الإصبع (Face ID / Touch ID) أو كلمة سر', onClick:()=>M.openWebLock(), trail:M.ic('fwd')}));
-    b.append(h('div.list.card', ...rows), h('div.tiny.muted', {style:'margin:10px 4px;line-height:1.9'}, native('setAppLock') ? 'قفل التطبيق وقلب الهاتف وأزرار الصوت تعمل في تطبيق أندرويد فقط.' : 'بعض الخيارات (القفل وقلب الهاتف وأزرار الصوت) تظهر في تطبيق أندرويد فقط.'));
+    b.append(h('div.list.card', ...rows), h('div.tiny.muted', {style:'margin:10px 4px;line-height:1.9'}, window.isIOSApp ? 'قلب الهاتف لكتم الأذان والتسبيح بأزرار الصوت في تطبيق أندرويد فقط؛ الآيفون لا يسمح للتطبيقات بهما.' : native('setAppLock') ? 'قفل التطبيق وقلب الهاتف وأزرار الصوت تعمل في تطبيق أندرويد فقط.' : 'بعض الخيارات (القفل وقلب الهاتف وأزرار الصوت) تظهر في تطبيق أندرويد فقط.'));
   }});
 };
 M.addSection({id:'sleep_timer', title:'مؤقت النوم', icon:'moon', group:'أدوات', fn:()=>M.openSleepTimer()});
