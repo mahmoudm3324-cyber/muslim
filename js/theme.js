@@ -34,12 +34,21 @@ M.setIconAccent = function(i){ M.save('appIcon', i); M.save('accentSrc', 'icon')
     M.cfg.accent = M.iconAccent(i); M.cfg.appIcon = i; M.cfg.accentSrc = 'icon'; M.store.set('settings', M.cfg);
   }catch(e){}
 })();
+/* the text scale: the user's own choice, else the phone's text size (window.__sys from the iPhone app) */
+M.baseFontScale = function(){
+  const own = +M.cfg.fontScale || 1, sys = +(window.__sys || {}).fontScale || 0;
+  return own === 1 && sys ? sys : own;
+};
 M.applyTheme = function(){
   const skin = M.resolveSkin(), theme = M.resolveTheme(), dark = theme !== 'light';
   root.dataset.skin = skin; root.dataset.theme = theme; root.dataset.anim = M.cfg.anim ? 'on' : 'off'; root.dataset.astyle = M.cfg.animStyle || 'default';
   M.applyEdge && M.applyEdge();
-  root.style.setProperty('--fs', M.cfg.fontScale);
-  if((+M.cfg.fontScale || 1) >= 1.25) root.setAttribute('data-fsbig', ''); else root.removeAttribute('data-fsbig');
+  /* the phone's own text size, Reduce Transparency and Increase Contrast (window.__sys from the iPhone app, or the browser's media queries)
+     apply while the user has not set these in the app */
+  const sys = window.__sys || {};
+  const fs = M.baseFontScale();
+  root.style.setProperty('--fs', fs);
+  if(fs >= 1.25) root.setAttribute('data-fsbig', ''); else root.removeAttribute('data-fsbig');
   let [h, s] = hexToHsl(M.cfg.accent); s = Math.max(28, Math.min(80, s));
   const v = {};
   if(!dark){
@@ -59,7 +68,9 @@ M.applyTheme = function(){
     });
   }
   /* accessibility: «تباين عالٍ» darkens/lightens text, borders and accent tokens; «إلغاء الشفافية» is pure CSS (css/v2-a11y.css) */
-  const hc = !!M.cfg.contrast, solid = !!M.cfg.solid;
+  const mq = q=>{ try{ return matchMedia(q).matches; }catch(e){ return false; } };
+  const hc = !!M.cfg.contrast || !!sys.contrast || mq('(prefers-contrast: more)');
+  const solid = !!M.cfg.solid || !!sys.solid || mq('(prefers-reduced-transparency: reduce)');
   root.toggleAttribute('data-contrast', hc); root.toggleAttribute('data-solid', solid);
   if(hc){
     if(!dark) Object.assign(v, {'--p':C(h,s,25), '--pc':C(h,Math.min(s,70),84), '--on-pc':C(h,s+10,8), '--sc':C(h,26,81), '--on-sc':C(h,40,8), '--on-s':C(h,24,3), '--on-sv':C(h,10,19), '--outline':C(h,8,30), '--outline-v':C(h,10,48)});
@@ -72,6 +83,9 @@ M.applyTheme = function(){
   M.emit('theme');
 };
 matchMedia('(prefers-color-scheme: dark)').addEventListener && matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{ if(M.cfg.theme === 'auto') M.applyTheme(); });
+['(prefers-contrast: more)', '(prefers-reduced-transparency: reduce)'].forEach(q=>{ try{ matchMedia(q).addEventListener('change', ()=>M.applyTheme()); }catch(e){} });
+/* the iPhone app calls this when the system text size or an accessibility setting changes */
+window.__sysChanged = function(s){ window.__sys = s || {}; M.applyTheme(); };
 
 /* ---------- backgrounds ---------- */
 const svgURI = s=>"url(\"data:image/svg+xml;utf8,"+encodeURIComponent(s)+"\")";

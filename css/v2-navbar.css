@@ -10,8 +10,9 @@ html[data-theme=dark],html[data-theme=amoled]{
 .fab{display:none!important}
 
 /* ---------- tab bar ---------- */
-#tabbar{padding-bottom:var(--sab)}
-html[data-skin] #tabbar .bar{margin:0 14px 12px;padding:6px;width:min(460px,calc(100% - 28px));border-radius:36px;gap:0}
+/* the floating bar sits partly inside the home-indicator area (as the iOS tab bar does): about 22px above the screen edge on an iPhone, 10px where there is no inset */
+#tabbar{padding-bottom:max(10px,calc(var(--sab) - 12px))}
+html[data-skin] #tabbar .bar{margin:0 14px 0;padding:6px;width:min(460px,calc(100% - 28px));border-radius:36px;gap:0}
 @media (max-width:360px){html[data-skin] #tabbar .bar{margin-inline:10px;width:calc(100% - 20px)}}
 html[data-skin] #tabbar .tab{flex:1 1 0;min-width:0;height:58px;padding:0 1px;gap:3px;border-radius:30px;justify-content:center;color:var(--on-sv)}
 html[data-skin] #tabbar .tab.on{color:var(--p)}

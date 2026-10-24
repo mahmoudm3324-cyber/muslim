@@ -48,7 +48,7 @@ const root = document.documentElement;
 function applySenior(){
   const on = !!M.cfg.senior;
   root.dataset.senior = on ? '1' : '0';
-  const base = +M.cfg.fontScale || 1;
+  const base = M.baseFontScale ? M.baseFontScale() : (+M.cfg.fontScale || 1);
   root.style.setProperty('--fs', on ? Math.min(1.6, Math.max(base, 1) * 1.25) : base);
 }
 const ap = M.applyTheme;

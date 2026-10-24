@@ -448,5 +448,5 @@ M.share = async function(text){
   }catch(e){ if(e && e.name === 'AbortError') return; }
   M.copy(text);
 };
-M.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+M.isIOS = !!window.isIOSApp || /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 })();

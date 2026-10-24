@@ -8,8 +8,9 @@
 const M = window.M;
 const REPO = 'MohamadHajjRabee/quran-qcf4@main/fonts-woff2/';
 const QC = 'quran/quran.com-frontend-next';
-/* the Android app carries the default Mushaf edition (QCF4, 36 MB) inside it: it opens with no internet and nothing to download */
-let BUNDLED = !!window.Android && !(window.Android.noBundledQcf);
+/* the Android and iPhone apps carry the default Mushaf edition (QCF4, 36 MB, www/qcf) inside them: it opens with no internet and nothing to download.
+   (the iPhone app also defines window.Android, so an iPhone build without the folder is found by the probe below instead of being assumed) */
+let BUNDLED = !!window.Android && !window.isIOSApp && !(window.Android.noBundledQcf);
 /* web build: if the optional 'qcf/' folder was uploaded next to index.html, use it (works offline) */
 const PROBE = BUNDLED ? Promise.resolve() : fetch('qcf/QCF4_Hafs_01_W.woff2', {method:'HEAD', cache:'no-store'}).then(r=>{ if(r.ok && !/text\/html/.test(r.headers.get('content-type') || '')) BUNDLED = true; }).catch(()=>{});
 const kindOf = n=>(n === 'Q' || typeof n === 'number') ? 'p' : n[0];
