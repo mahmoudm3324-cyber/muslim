@@ -103,7 +103,7 @@ async function downloadTafsir(slug, onProg){
 async function deleteTafsir(slug){ for(let s = 1; s <= 114; s++){ await M.kv.del('tafs:'+slug+':'+s); } const d = M.store.get('dlTafsir', {}) || {}; delete d[slug]; M.store.set('dlTafsir', d); const pt = tafPart(); delete pt[slug]; M.store.set('dlTafsirPart', pt); }
 
 M.openDownloads = function(tab){
-  let cur = tab || 'audio', rec = M.cfg.reciter, busy = false, stop = false;
+  let cur = tab || 'audio', rec = M.isSegReciter && M.isSegReciter(M.cfg.reciter) ? M.RECITERS[0][0] : M.cfg.reciter, busy = false, stop = false;
   const body = h('div.dlv');
   const prog = (lbl)=>{ const i = h('i'), t = h('div.small.muted', lbl || ''); return {el:h('div.dl-prog', t, h('div.dl-bar', i)), set:(d, tot, txt)=>{ i.style.width = Math.round(d / Math.max(1, tot) * 100)+'%'; if(txt != null) t.textContent = txt; }}; };
   function audio(){
@@ -111,7 +111,7 @@ M.openDownloads = function(tab){
     const recName = (M.RECITERS.find(r=>r[0] === rec) || [])[1] || rec;
     const top = h('div.card.pad.col-flex',
       h('div.small.muted', 'القارئ'),
-      h('select.field', {onchange:e=>{ if(busy){ e.target.value = rec; return M.toast('انتظر انتهاء التنزيل الحالي'); } rec = e.target.value; draw(); }}, ...M.RECITERS.map(([id, nm])=>h('option', {value:id, selected:id === rec}, nm))),
+      h('select.field', {onchange:e=>{ if(busy){ e.target.value = rec; return M.toast('انتظر انتهاء التنزيل الحالي'); } rec = e.target.value; draw(); }}, ...M.RECITERS.filter(([id])=>!(M.isSegReciter && M.isSegReciter(id))).map(([id, nm])=>h('option', {value:id, selected:id === rec}, nm))),   // reciters recorded by surah are not offered per verse
       h('div.small', 'المحفوظ على الجهاز: '+M.n(n)+' من '+M.n(114)+' سورة'+(native() ? ' • '+mb(+window.Android.dlSize('audio/'+rec) || 0) : '')));
     if(M.openQuranPlayer) top.append(h('button.btn.tonal.sm', {onclick:()=>M.openQuranPlayer()}, M.ic('play'), 'فتح مشغّل القرآن'));
     if(!native()){ body.append(top, h('div.card.pad.empty', 'تنزيل التلاوات للعمل دون اتصال متاح في تطبيق الأندرويد. في المتصفح تُشغَّل التلاوة من الإنترنت.')); return; }

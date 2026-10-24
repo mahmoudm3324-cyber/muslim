@@ -32,7 +32,7 @@ function open(init){
   b.classList.add('ts2');
   const hero = h('div.ts-hero'), quick = h('div.ts-quick'), paper = h('div.ts-paper'), live = h('div.ts-live'), result = h('div.ts-result'), hist = h('div.ts-hist'), dock = h('div.ts-dock');
   b.append(hero, paper, live, result, hist, dock);
-  const audio = new Audio(); audio.preload = 'none'; (M._audios = M._audios || []).push(audio);
+  const audio = new Audio(); audio.preload = 'none'; if(M.segArm) M.segArm(audio); (M._audios = M._audios || []).push(audio);
 
   if(!eng()) b.insertBefore(h('div.card.pad.ts-na', h('div.bold', 'التسميع بالصوت غير متاح هنا'),
     h('div.small.muted', {style:'line-height:1.9;margin-top:6px'}, 'يحتاج الميكروفون ومتصفحًا حديثًا يدعم WebAssembly.')), hero);
@@ -228,8 +228,9 @@ function open(init){
   }
 
   /* ---------------- hearing an ayah ---------------- */
-  function playAyah(a){
+  async function playAyah(a){
     if(playing === a && !audio.paused){ stopAyah(); return; }
+    if(M.recReady) await M.recReady(st.rec);
     if(st.on){ resumeAfter = true; stop(true); live.classList.remove('on'); }
     playing = a; audio.src = M.audioURL(st.s, a, st.rec); audio.playbackRate = st.rate;
     say('تُتلى الآية '+M.n(a)+' — '+((M.RECITERS || []).find(r=>r[0] === st.rec) || ['', ''])[1]); heard('');

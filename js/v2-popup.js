@@ -19,11 +19,11 @@ const n = x=>M.n(x);
 const now = ()=>Date.now();
 
 /* ---------------- settings ---------------- */
-const W_DEF = {on:true, n:1, open:!NATIVE(), unlock:true, every:0, rec:'', s:1, a:1, khatmas:0, since:''};
+const W_DEF = {on:true, n:1, open:!NATIVE(), unlock:true, every:0, rec:'', s:1, a:1, khatmas:0, since:'', ts:0};
 const Z_DEF = {on:false, open:!NATIVE(), unlock:true, every:120, i:0, morning:false, evening:false, after:false, between:false, offM:20, offE:30, offA:12};
 const wcfg = ()=>Object.assign({}, W_DEF, M.store.get('pw', {}) || {});
 const zcfg = ()=>Object.assign({}, Z_DEF, M.store.get('pz', {}) || {});
-const wset = p=>{ M.store.set('pw', Object.assign(wcfg(), p)); syncNative(); };
+const wset = p=>{ if('s' in p || 'a' in p || 'khatmas' in p) p.ts = Date.now(); M.store.set('pw', Object.assign(wcfg(), p)); syncNative(); try{ wirdPush(); }catch(e){} };
 const zset = p=>{ M.store.set('pz', Object.assign(zcfg(), p)); syncNative(); if(!IS_PAGE && ['morning', 'evening', 'after', 'between', 'offM', 'offE', 'offA'].some(k=>k in p)){ try{ M.syncNative && M.syncNative(); }catch(e){} try{ M.popupPlan && M.popupPlan(); }catch(e){} } };
 const U_DEF = {sz:'md', big:'md', dy:0};
 const ucfg = ()=>Object.assign({}, U_DEF, M.store.get('popui', {}) || {});
@@ -44,10 +44,47 @@ M.popupSync = syncNative;
 
 /* ---------------- verse khatma ---------------- */
 const letters = t=>String(t || '').replace(/[^ء-يٱ]/g, '').length;   // the letters only: no marks, no spaces
-function logRead(verses, lt){
-  const L = M.store.get('pwlog', {}) || {}, k = M.dkey(); const c = L[k] || [0, 0];
+function logRead(verses, lt, day){
+  const L = M.store.get('pwlog', {}) || {}, k = day || M.dkey(); const c = L[k] || [0, 0];
   L[k] = [c[0] + verses, c[1] + lt]; M.store.set('pwlog', L);
 }
+/* confirmed verses: the verse log (verses + letters) and — linked to the khatma — every mushaf page they finish
+   counts as a page read that day (the khatma's progress, today's wird and the home card all read those pages) */
+function logVerses(list, day){
+  let lt = 0; list.forEach(([s2, a2])=>{ lt += letters(M.ayahText(s2, a2)); });
+  logRead(list.length, lt, day);
+  try{
+    const k = day || M.dkey(), pr = M.QD.pagesRead || {}, arr = pr[k] || []; let ch = false;
+    list.forEach(([s2, a2])=>{
+      const p = M.pageOf(s2, a2), id = M.aid(s2, a2);
+      const last = id >= TOTAL - 1 || M.pageOf(...M.fromAid(id + 1)) !== p;
+      if(last && !arr.includes(p)){ arr.push(p); ch = true; }
+    });
+    if(ch){ pr[k] = arr; M.QD.pagesRead = pr; try{ M.emit && M.emit('pagesread'); }catch(e){} }
+  }catch(e){}
+  try{ wirdPush(); }catch(e){}
+  return lt;
+}
+/* the home-screen widget (Android) shares the position: push ours, take back what was read on the widget */
+function wirdPush(){
+  if(!(A() && A().wirdPut)) return;
+  const c = wcfg(), st = stats();
+  A().wirdPut(JSON.stringify({s:c.s, a:c.a, n:c.n, khatmas:c.khatmas | 0, ts:c.ts || 0, rec:c.rec || M.cfg.reciter || 'Alafasy_128kbps', hindi:M.cfg.digits !== 'latin',
+    stats:{d:M.dkey(), today:st.today, week:st.week, month:st.month, streak:st.streak}}));
+}
+async function wirdPull(){
+  if(!(A() && A().wirdGet)) return false;
+  let g = null; try{ g = JSON.parse(A().wirdGet() || '{}'); }catch(e){ return false; }
+  if(!g || !g.s) return false;
+  try{ await M.loadQuran(); }catch(e){ return false; }
+  (g.log || []).forEach(([day, s2, a2, k])=>{ const list = []; let id = M.aid(s2, a2); for(let i = 0; i < k && id < TOTAL; i++, id++) list.push(M.fromAid(id)); if(list.length) logVerses(list, day); });
+  const c = wcfg(), moved = (g.ts || 0) > (c.ts || 0);
+  if(moved) M.store.set('pw', Object.assign(c, {s:g.s, a:g.a, khatmas:g.khatmas | 0, ts:g.ts}));
+  try{ A().wirdTake(); }catch(e){}
+  wirdPush();
+  return moved || (g.log || []).length > 0;
+}
+M.wirdPull = wirdPull;
 function stats(){
   const L = M.store.get('pwlog', {}) || {}, d = new Date(), today = M.dkey(d);
   const ws = new Date(d); ws.setDate(d.getDate() - ((d.getDay() + 1) % 7)); const wk = M.dkey(ws);   // the week starts on Saturday
@@ -131,6 +168,21 @@ function setSize(sz){
   uset(sz === 'sm' ? {sz} : {sz, big:sz});
   if(open && open.el){ open.el.classList.remove('pz-sm', 'pz-md', 'pz-lg'); open.el.classList.add('pz-'+SZ()); open.redraw && open.redraw(); requestAnimationFrame(()=>open && fitDy(open.el, open.card)); }
 }
+/* the Quran text to share: ﴿ verses, each ended by its ayah mark ۝ with its number ﴾ [surah: verses] —
+   the mark takes Arabic-Indic digits (it draws the medallion around them), whatever the app's digits */
+const AR = x=>String(x).replace(/\d/g, d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+function shareTextOf(list){
+  const [s] = list[0], a0 = list[0][1], a1 = list[list.length - 1][1];
+  return '﴿ '+list.map(([s2, a2])=>M.ayahText(s2, a2)+' \u06DD'+AR(a2)).join(' ')+' ﴾\n[سورة '+M.sname(s)+': '+(a0 === a1 ? n(a0) : n(a0)+'–'+n(a1))+']';
+}
+/* minimise: the card folds into one slim bar (and back) */
+function minBtn(fold){ return h('button.icon-btn.pop-x.pop-min', {'aria-label':'تصغير النافذة', title:'تصغير', onclick:fold}, M.ic('minus')); }
+function minBar(title, sub, act, unfold){
+  return h('div.pop-minbar',
+    h('button.icon-btn.pop-x', {'aria-label':'إغلاق', onclick:()=>close('x')}, M.ic('close')),
+    h('button.pop-minmid', {'aria-label':'تكبير النافذة', onclick:unfold}, h('div.grow', h('b', title), h('small', sub)), M.ic('enlarge')),
+    act);
+}
 function sizeBtn(){
   const small = SZ() === 'sm';
   return h('button.icon-btn.pop-x.pop-sz', {'aria-label':small ? 'تكبير النافذة' : 'تصغير النافذة', onclick:()=>setSize(small ? (ucfg().big === 'lg' ? 'lg' : 'md') : 'sm')}, M.ic(small ? 'enlarge' : 'shrink'));
@@ -170,27 +222,44 @@ async function showWird(o){
   o = o || {};
   try{ await M.loadQuran(); }catch(e){ if(IS_PAGE) close('err'); return false; }
   if(open) close('replace');
-  const {root, card, key} = shell('wird');
+  const {root, card, key} = shell('wird');   // root: the card's layer (gets .pop-mini when folded)
   open = {el:root, card, kind:'wird', key, onClose:o.onClose, redraw:()=>draw()};
   markShown('wird');
-  let tafsirOn = false, statsOn = false, playing = false, added = 0;
+  let tafsirOn = false, statsOn = false, playing = false, added = 0, shareTxt = '', mini = false;
   function draw(dir){
     const c = wcfg(), list = batch(c), [s, a] = list[0], id = M.aid(s, a), pct = id / TOTAL;
     const st = stats();
     const sz = SZ();
     card.replaceChildren(grab());
-    /* head: what this is, where we are, and a way out */
-    card.append(h('div.pop-head',
-      h('div.pop-badge', M.ring(pct, sz === 'sm' ? 34 : sz === 'md' ? 40 : 44, sz === 'sm' ? 3 : 4, h('span.num', n(Math.floor(pct * 100))+'٪'))),
-      h('div.grow', h('div.pop-kicker', 'ورد الختمة'+(c.khatmas ? ' • الختمة '+n(c.khatmas + 1) : '')), h('div.pop-pos', posLabel(s, a))),
-      sizeBtn(),
+    root.classList.toggle('pop-mini', mini);
+    const confirm = ()=>{
+      logVerses(list); added += list.length;
+      const [ls, la] = list[list.length - 1];
+      if(ls === 114 && la === 6){ wset({s:1, a:1, khatmas:(c.khatmas | 0) + 1}); mini = false; celebrate(); return; }
+      const [ns, na] = step(ls, la, 1); wset({s:ns, a:na});
+      M.haptic && M.haptic(12); stopAudio(); playing = false; tafsirOn = false;
+      draw('next'); flash('+'+n(added)+(added === 1 ? ' آية' : ' آيات'));
+    };
+    if(mini){
+      card.append(minBar('سورة '+M.sname(s)+' • '+(list.length > 1 ? 'الآيات '+n(a)+'–'+n(list[list.length - 1][1]) : 'الآية '+n(a)), 'ورد الختمة • اليوم '+n(st.today),
+        h('button.icon-btn.pop-minok', {'aria-label':'قرأتها', onclick:confirm}, M.ic('check')), ()=>{ mini = false; draw(); }));
+      return;
+    }
+    const pg = M.pageOf(s, a), juz = M.juzOfPage(pg), cnt = M.Q.surahs[s - 1].n;
+    /* head: the khatma's progress ring, the surah, and a way out */
+    card.append(h('div.pop-head.pw-head',
+      h('div.pop-badge.pw-ring', M.ring(pct, sz === 'sm' ? 34 : 40, 3.5, h('span.num', n(Math.floor(pct * 100))+'٪'))),
+      h('div.grow', h('div.pw-kick', 'ورد الختمة'+(c.khatmas ? ' • الختمة '+n(c.khatmas + 1) : '')), h('div.pw-sura.title-font', 'سورة '+M.sname(s))),
+      minBtn(()=>{ mini = true; stopAudio(); playing = false; draw(); }), sizeBtn(),
       h('button.icon-btn.pop-x', {'aria-label':'إغلاق', onclick:()=>close('x')}, M.ic('close'))));
-    if(statsOn){ card.append(statsPanel(st)); card.append(h('div.pop-acts', h('button.btn.tonal.grow', {onclick:()=>{ statsOn = false; draw(); }}, M.ic('back'), 'رجوع إلى الآيات'), h('button.btn.tonal', {onclick:()=>goApp('khatma')}, M.ic('settings')))); return; }
-    /* the verses */
+    if(shareTxt){ card.append(sharePanel(shareTxt, ()=>{ shareTxt = ''; draw(); })); return; }
+    if(statsOn){ card.append(statsPanel(st)); card.append(h('div.pop-acts', h('button.btn.tonal.grow', {onclick:()=>{ statsOn = false; draw(); }}, M.ic('back'), 'رجوع إلى الآيات'), h('button.btn.tonal', {'aria-label':'الختمة', onclick:()=>goApp('khatma')}, M.ic('settings')))); return; }
+    /* the verses, on a page of their own: a framed folio with the place underneath */
     const text = h('div.pop-ayat.qfont'+(dir ? '.slide-'+dir : ''));
     if(a === 1 && s !== 1 && s !== 9) text.append(h('div.pop-basm', 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'));
     list.forEach(([s2, a2])=>{ text.append(h('span.pop-v', M.ayahText(s2, a2)), ' ', h('span.pop-n', n(a2)), ' '); });
-    card.append(h('div.pop-sura', h('span', 'سورة '+M.sname(s)), h('i')), text);
+    const where = (list.length > 1 ? 'الآيات '+n(a)+'–'+n(list[list.length - 1][1]) : 'الآية '+n(a))+' من '+n(cnt)+'  •  الجزء '+n(juz)+'  •  ص '+n(pg);
+    card.append(h('div.pw-folio', h('i.pw-c.c1'), h('i.pw-c.c2'), h('i.pw-c.c3'), h('i.pw-c.c4'), text, h('div.pw-where', where)));
     /* a long verse scrolls inside the card: fade its bottom edge until it is read to the end */
     const fade = ()=>text.classList.toggle('more', text.scrollHeight - text.scrollTop - text.clientHeight > 6);
     text.addEventListener('scroll', fade, {passive:true}); requestAnimationFrame(fade); setTimeout(fade, 400);
@@ -200,37 +269,31 @@ async function showWird(o){
       Promise.all(list.map(([s2, a2])=>M.getTafsir ? M.getTafsir('ar-tafsir-muyassar', s2, a2).then(r=>String(r && r.text || '').replace(/<[^>]*>/g, ' ').trim()).catch(()=>'') : Promise.resolve('')))
         .then(ts=>{ const t = ts.filter(Boolean).join('\n\n'); tf.lastChild.textContent = t || 'التفسير يحتاج اتصالًا بالإنترنت أول مرة.'; });
     }
-    /* tools */
+    /* tools: one quiet bar */
     const tool = (ic, lb, fn, on)=>h('button.pop-tool'+(on ? '.on' : ''), {onclick:fn, 'aria-label':lb}, M.ic(ic), h('span', lb));
-    card.append(h('div.pop-tools',
-      tool(playing ? 'pause' : 'play', playing ? 'إيقاف' : 'استمع', ()=>play(list)),
+    card.append(h('div.pop-tools.pw-tools',
+      tool(playing ? 'pause' : 'play', playing ? 'إيقاف' : 'استمع', ()=>play(list), playing),
       tool('tafsir', 'التفسير', ()=>{ tafsirOn = !tafsirOn; draw(); }, tafsirOn),
-      tool('share', 'مشاركة', ()=>{ const t = '﴿'+list.map(([s2, a2])=>M.ayahText(s2, a2)+' ('+n(a2)+')').join(' ')+'﴾\n[سورة '+M.sname(s)+']'; if(IS_PAGE && A() && A().share) A().share(t); else M.share(t); }),
+      tool('share', 'مشاركة', ()=>{ const t = shareTextOf(list);
+        stopAudio(); playing = false; shareTxt = t; draw(); }),   // asks: text only, or text on a picture
       tool('quran', 'المصحف', ()=>goApp('surah_'+s))));
     /* the main action: confirm, and move to the next verses */
-    const ok = h('button.btn.pop-ok', {onclick:()=>{
-      let lt = 0; list.forEach(([s2, a2])=>{ lt += letters(M.ayahText(s2, a2)); });
-      logRead(list.length, lt); added += list.length;
-      const [ls, la] = list[list.length - 1];
-      if(ls === 114 && la === 6){ wset({s:1, a:1, khatmas:(c.khatmas | 0) + 1}); celebrate(); return; }
-      const [ns, na] = step(ls, la, 1); wset({s:ns, a:na});
-      M.haptic && M.haptic(12); stopAudio(); playing = false; tafsirOn = false;
-      draw('next'); flash('+'+n(added)+(added === 1 ? ' آية' : ' آيات'));
-    }}, M.ic('check'), sz === 'sm' ? 'قرأتها' : list.length > 1 || sz === 'md' ? 'قرأتها — التالي' : 'قرأتها — الآية التالية');
+    const ok = h('button.btn.pop-ok', {onclick:confirm}, M.ic('check'), sz === 'sm' ? 'قرأتها' : list.length > 1 || sz === 'md' ? 'قرأتها — التالي' : 'قرأتها — الآية التالية');
     card.append(h('div.pop-acts',
       h('button.icon-btn.tonal.pop-nav', {'aria-label':'الآية السابقة', onclick:()=>{ const [ps, pa] = step(s, a, -1); wset({s:ps, a:pa}); stopAudio(); playing = false; draw('prev'); }}, M.ic('back')),
       ok,
       h('button.icon-btn.tonal.pop-nav', {'aria-label':'تخطَّ إلى الآية التالية', onclick:()=>{ const [ns, na] = step(s, a, list.length); wset({s:ns, a:na}); stopAudio(); playing = false; draw('next'); }}, M.ic('fwd'))));
-    /* footer: the khatma bar + today's numbers; tap for the full statistics */
-    card.append(h('button.pop-foot', {onclick:()=>{ statsOn = true; draw(); }},
-      h('div.pop-bar', h('i', {style:'width:'+(pct * 100).toFixed(2)+'%'})),
-      h('div.pop-mini', h('span', 'اليوم ', h('b.num', n(st.today))), h('span', 'الأسبوع ', h('b.num', n(st.week))), h('span', 'الشهر ', h('b.num', n(st.month))), h('span.pop-more', 'الإحصائيات', M.ic('fwd')))),
-      h('button.pop-later', {onclick:()=>close('later')}, M.ic('clock'), 'لاحقًا'));
+    /* footer: today / this week / days in a row, and the way to the full statistics */
+    const pill = (v, l)=>h('span.pw-pill', h('b.num', n(v)), l);
+    card.append(h('button.pop-foot.pw-foot', {'aria-label':'الإحصائيات', onclick:()=>{ statsOn = true; draw(); }},
+      pill(st.today, 'اليوم'), pill(st.week, 'الأسبوع'), st.streak > 1 ? pill(st.streak, 'أيام متتالية') : pill(st.month, 'الشهر'),
+      h('span.pop-more', M.ic('s:stats'))));
   }
-  function play(list){
+  async function play(list){
     if(playing){ stopAudio(); playing = false; draw(); return; }
     const c = wcfg(), rec = c.rec || M.cfg.reciter || 'Alafasy_128kbps';
-    let i = 0; stopAudio(); audio = new Audio(); playing = true; draw();
+    let i = 0; stopAudio(); audio = new Audio(); if(M.segArm) M.segArm(audio); playing = true; draw();
+    if(M.recReady) await M.recReady(rec);
     const next = ()=>{ if(!audio || i >= list.length){ playing = false; stopAudio(); if(open && open.kind === 'wird') draw(); return; } const [s2, a2] = list[i++]; audio.src = M.audioURL(s2, a2, rec); audio.play().catch(()=>{ playing = false; stopAudio(); M.toast && M.toast('تعذّر تشغيل التلاوة — تحتاج اتصالًا بالإنترنت'); if(open) draw(); }); };
     audio.onended = next; audio.onerror = ()=>{ playing = false; stopAudio(); M.toast && M.toast('تعذّر تشغيل التلاوة'); if(open) draw(); };
     next();
@@ -243,6 +306,45 @@ async function showWird(o){
   }
   draw();
   return true;
+}
+/* share from the pop-up page: as text, or as a picture card on one of the app's backgrounds (like the app's share sheet) */
+function sharePanel(text, back){
+  const BGS = (M.BG_LIST || []).slice(0, 26);
+  const day = BGS.length ? BGS[Math.floor(Date.now() / 864e5) % BGS.length] : '';
+  let src = M.cfg.shareBg == null ? day : M.cfg.shareBg, canvas = null, token = 0, mode = 'pick';
+  const box = h('div.pop-shr-prev'), strip = h('div.pop-shr-strip');
+  const paint = async ()=>{ const my = ++token; box.classList.add('busy'); let c = null; try{ c = await M.shareCard(text, src); }catch(e){} if(my !== token || !c) return; canvas = c; c.className = 'pop-shr-canvas'; box.replaceChildren(c); box.classList.remove('busy'); };
+  const mark = ()=>strip.querySelectorAll('.pop-shr-th').forEach(b=>b.classList.toggle('on', b.dataset.src === src));
+  const pick = v=>{ src = v; try{ M.save && M.save('shareBg', v); }catch(e){} mark(); paint(); };
+  strip.append(h('button.pop-shr-th.none', {dataset:{src:''}, 'aria-label':'بدون صورة', onclick:()=>pick('')}, 'لون'),
+    ...BGS.map((v, i)=>h('button.pop-shr-th', {dataset:{src:v}, 'aria-label':'خلفية '+(i + 1), style:'background-image:url("'+(M.bgThumb ? M.bgThumb(v) : v)+'")', onclick:()=>pick(v)})));
+  const sendImg = async ()=>{
+    if(!canvas) return;
+    const url = canvas.toDataURL('image/jpeg', .9);
+    try{ if(A() && A().shareImage){ A().shareImage(url.split(',')[1], text); return; } }catch(e){}
+    try{ const bl = await new Promise(r=>canvas.toBlob(r, 'image/jpeg', .9)), f = new File([bl], 'muslim.jpg', {type:'image/jpeg'}); if(navigator.canShare && navigator.canShare({files:[f]})){ await navigator.share({files:[f], text}); return; } }catch(e){ if(e && e.name === 'AbortError') return; }
+    sendText();
+  };
+  const sendText = ()=>{ try{ if(A() && A().share){ A().share(text); return; } }catch(e){} if(M.shareText) M.shareText(text); else if(navigator.share) navigator.share({text}).catch(()=>{}); };
+  const wrap = h('div.pop-shr');
+  function show(){
+    wrap.replaceChildren();
+    if(mode === 'pick'){
+      wrap.append(h('div.pop-shr-h', 'كيف تريد المشاركة؟'),
+        h('div.pop-shr-opts',
+          h('button.pop-shr-opt', {onclick:()=>{ mode = 'img'; show(); }}, M.ic('image'), h('b', 'نص بصورة'), h('small', 'بطاقة بخلفية من التطبيق')),
+          h('button.pop-shr-opt', {onclick:sendText}, M.ic('text'), h('b', 'نص فقط'), h('small', 'الآية ومرجعها'))),
+        h('button.btn.tonal.block.pop-shr-back', {onclick:back}, M.ic('back'), 'رجوع إلى الآيات'));
+      return;
+    }
+    wrap.append(box, h('div.pop-shr-lbl', 'اختر الخلفية'), strip,
+      h('div.pop-acts', h('button.icon-btn.tonal.pop-nav', {'aria-label':'رجوع', onclick:()=>{ mode = 'pick'; show(); }}, M.ic('back')),
+        h('button.btn.grow.pop-ok', {onclick:sendImg}, M.ic('share'), 'مشاركة الصورة')));
+    mark(); if(!canvas) paint(); else box.replaceChildren(canvas);
+    setTimeout(()=>{ const on = strip.querySelector('.on'); if(on) try{ on.scrollIntoView({inline:'center', block:'nearest'}); }catch(e){} }, 60);
+  }
+  show();
+  return wrap;
 }
 function statsPanel(st){
   const c = wcfg(), max = Math.max(1, ...st.days7.map(d=>d[1]));
@@ -291,7 +393,7 @@ async function showDhikr(o){
   const {root, card, key} = shell('dhikr');
   open = {el:root, card, kind:'dhikr', key, onClose:o.onClose, redraw:()=>draw()};
   markShown('dhikr');
-  let i = 0, cnt = 0, finished = false;
+  let i = 0, cnt = 0, finished = false, mini = false;
   if(!items){   // a short dhikr, a different one each time
     const c0 = zcfg(); i = (c0.i | 0) % DHIKR.length; zset({i:(i + 1) % DHIKR.length});
     items = DHIKR.map(d=>({t:d.t, n:d.n, f:d.f, snd:d.snd}));
@@ -302,10 +404,19 @@ async function showDhikr(o){
   function draw(dir){
     const sz = SZ();
     card.replaceChildren(grab());
+    root.classList.toggle('pop-mini', mini && !finished);
+    if(mini && !finished){   // folded: the dhikr's name, the count, and a tap to count
+      const d = items[i], left = Math.max(0, d.n - cnt);
+      card.append(minBar(multi ? meta.t+' • '+n(i + 1)+'/'+n(items.length) : 'ذكرٌ لك الآن', String(d.t).slice(0, 42)+(String(d.t).length > 42 ? '…' : ''),
+        h('button.icon-btn.pop-minok.pop-mincnt', {'aria-label':'عدّ', onclick:()=>{ if(cnt >= d.n) return; cnt++; dhikrLog(1); M.haptic && M.haptic(cnt === d.n ? 30 : 8);
+          if(cnt >= d.n){ if(multi){ draw(); setTimeout(()=>{ if(open && open.kind === 'dhikr') next(); }, 450); return; } } draw(); }}, left ? h('b.num', n(left)) : M.ic('check')),
+        ()=>{ mini = false; draw(); }));
+      return;
+    }
     const sub = multi ? (finished ? 'تمّت' : n(i + 1)+' من '+n(items.length)+(pr ? ' • صلاة '+(PR_AR[pr] || '') : '')) : 'اضغط الدائرة مع كل مرة';
     card.append(h('div.pop-head', h('div.pop-badge.z', M.ic(meta.ic)),
       h('div.grow', h('div.pop-kicker', multi ? meta.t : (o.set === 'between' ? meta.t : 'ذكرٌ لك الآن')), h('div.pop-pos', sub)),
-      sizeBtn(),
+      finished ? null : minBtn(()=>{ mini = true; stopAudio(); draw(); }), sizeBtn(),
       h('button.icon-btn.pop-x', {'aria-label':'إغلاق', onclick:()=>close('x')}, M.ic('close'))));
     if(multi) card.append(h('div.pop-bar.pop-setbar', h('i', {style:'width:'+((finished ? items.length : i) / items.length * 100).toFixed(1)+'%'})));
     if(finished){
@@ -314,8 +425,9 @@ async function showDhikr(o){
       return;
     }
     const d = items[i], done = cnt >= d.n, pct = Math.min(1, cnt / d.n);
-    card.append(h('div.pop-dhikr'+(d.q ? '.q' : '')+(dir ? '.slide-'+dir : ''), d.t));
-    if(d.f || d.src) card.append(h('div.pop-fadl', d.f || d.src));
+    card.append(h('div.pw-folio.pz-folio', h('i.pw-c.c1'), h('i.pw-c.c2'), h('i.pw-c.c3'), h('i.pw-c.c4'),
+      h('div.pop-dhikr'+(d.q ? '.q.qfont' : '')+(dir ? '.slide-'+dir : ''), d.t),
+      d.f || d.src ? h('div.pop-fadl', d.f || d.src) : null));
     const tap = h('button.pop-tap'+(done ? '.done' : ''), {'aria-label':'عدّ', onclick:()=>{
       if(cnt >= d.n) return; cnt++; dhikrLog(1); M.haptic && M.haptic(cnt === d.n ? 30 : 8);
       if(cnt >= d.n && multi){ draw(); setTimeout(()=>{ if(open && open.kind === 'dhikr') next(); }, 450); return; }
@@ -400,10 +512,17 @@ function blocked(){
 function maybeShow(){
   if(IS_PAGE || open || (navigator.webdriver && !window.__popTest)) return;   // not during automated checks of other screens
   if(blocked()){ setTimeout(maybeShow, 4000); return; }
-  if(due('wird')) showWird(); else if(due('dhikr')) showDhikr();
+  /* both due (the khatma card is often set to «every time»): take turns — the one shown longer ago goes first */
+  const dw = due('wird'), dz = due('dhikr'), l = lastShown();
+  if(dw && dz){ if((l.dhikr || 0) <= (l.wird || 0)) showDhikr(); else showWird(); }
+  else if(dw) showWird(); else if(dz) showDhikr();
 }
 if(!IS_PAGE){
+  /* widget readings come back into the app (log, khatma pages, position) when it opens or comes back to the front */
+  setTimeout(()=>{ wirdPull().then(ch=>{ if(ch && M.refreshScreen) try{ M.refreshScreen(); }catch(e){} }).catch(()=>{}); }, 1200);
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) setTimeout(()=>wirdPull().catch(()=>{}), 300); });
   setTimeout(maybeShow, 2200);
+  try{ M.on && M.on('settings', ()=>{ try{ wirdPush(); }catch(e){} }); }catch(e){}
   let hidAt = 0;
   document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ hidAt = now(); return; } if(hidAt && now() - hidAt > 60e3) setTimeout(maybeShow, 600); });
   setTimeout(syncNative, 3000);
@@ -426,9 +545,13 @@ if(!IS_PAGE){
 /* ---------------- settings screen ---------------- */
 /* the card's size and place (one setting for both cards) */
 function sizeBlock(){
+  const opts = h('div.pops-sizes', {role:'radiogroup', 'aria-label':'حجم النافذة'});
+  const paint = ()=>opts.replaceChildren(...[['sm', 'صغيرة', 'الآية وزر «قرأتها»'], ['md', 'متوسطة', 'مع الأدوات'], ['lg', 'كبيرة', 'كل شيء بخط أكبر']].map(([k, t, d])=>
+    h('button.pops-size'+(SZ() === k ? '.on' : ''), {role:'radio', 'aria-checked':String(SZ() === k), onclick:()=>{ setSize(k); paint(); }},
+      h('span.pops-mock.mk-'+k, h('i.mk-t'), h('i.mk-f'), k !== 'sm' ? h('i.mk-b') : null, h('i.mk-ok')), h('b', t), h('small', d))));
+  paint();
   return h('div.col-flex.pops-szb',
-    h('div.nf-lbl', 'حجم النافذة'),
-    M.seg([['sm', 'صغيرة'], ['md', 'متوسطة'], ['lg', 'كبيرة']], SZ(), v=>setSize(v)),
+    opts,
     h('div.pops-move', M.ic('chevUp'), h('div.grow.small.muted', 'لرفع النافذة أو إنزالها اسحب الشريط الصغير الذي أعلاها، وستظهر بعد ذلك في نفس المكان.'),
       h('button.btn.tonal.sm', {onclick:()=>{ uset({dy:0}); syncNative({posReset:true}); M.toast && M.toast('رجعت النافذة لمكانها الأصلي'); }}, 'المكان الأصلي')));
 }
@@ -463,29 +586,37 @@ M.openPopups = function(part){
           ok(stx.battery !== false, 'التطبيق مستثنى من توفير البطارية', 'توفير البطارية قد يوقف الخدمة'),
           ev ? h('div.tiny.muted', ev+(stx.eventAt ? ' — '+M.fmt(new Date(stx.eventAt)) : '')) : null,
           h('div.row-flex.pops-btns',
-            h('button.btn.grow', {onclick:()=>{ try{ A().popupTest('wird'); }catch(e){} }}, M.ic('eye'), 'جرّب فوق الشاشة الآن'),
+            h('button.btn.grow', {onclick:()=>{ try{ A().popupTest(only === 'dhikr' ? 'dhikr' : 'wird'); }catch(e){} }}, M.ic('eye'), 'جرّب فوق الشاشة الآن'),
             !canOv ? h('button.btn.tonal.grow', {onclick:()=>{ try{ A().requestOverlay(); }catch(e){} }}, 'منح الإذن') : stx.battery === false ? h('button.btn.tonal.grow', {onclick:()=>{ try{ A().openBatterySettings('battery'); }catch(e){} }}, 'البطارية') : h('button.btn.tonal', {onclick:()=>draw()}, M.ic('refresh')))));
       }
       const sw = (v, fn)=>M.switchEl(v, x=>{ fn(x); draw(); });
       const EV = [['0', 'كل مرة'], ['30', 'كل ٣٠ د'], ['60', 'كل ساعة'], ['180', 'كل ٣ س']];
       /* verse khatma */
       const pos = M.Q.ready ? posLabel(w.s, w.a) : '';
-      const wc = h('section.card.pad.col-flex.pops-c',
-        h('div.row-flex', h('span.pops-ic', M.ic('s:khatma')), h('div.grow', h('b.title-font', 'ورد الختمة'), h('div.small.muted', 'آية أو أكثر من حيث توقفت')), M.switchEl(w.on, v=>{ wset({on:v}); if(v && nat && !canOv) try{ A().requestOverlay(); }catch(e){} draw(); })));
+      const sec = (ic, t, ...kids)=>h('section.card.pad.col-flex.pops-sec', h('div.pops-sh', M.ic(ic), h('b', t)), ...kids);
+      const wc = h('div.col-flex.pops-wird');
+      /* 1 — on/off, with a live look at the card */
+      wc.append(h('section.card.pad.col-flex.pops-hero',
+        h('div.row-flex', h('span.pops-ic', M.ic('s:khatma')), h('div.grow', h('b.title-font', 'ورد الختمة المنبثق'), h('div.small.muted', w.on ? (nat ? 'يظهر فوق الشاشة عند فتح الهاتف' : 'يظهر عند فتح التطبيق') : 'متوقف — فعّله ليظهر لك وردك')),
+          M.switchEl(w.on, v=>{ wset({on:v}); if(v && nat && !canOv) try{ A().requestOverlay(); }catch(e){} draw(); })),
+        w.on && pos ? h('button.pw-folio.pops-peek', {onclick:()=>showWird()}, h('i.pw-c.c1'), h('i.pw-c.c2'), h('i.pw-c.c3'), h('i.pw-c.c4'),
+          h('div.kv-v.qfont', M.ayahText(w.s, w.a)), h('div.pw-where', pos)) : null,
+        w.on ? h('div.row-flex.pops-btns', h('button.btn.grow', {onclick:()=>showWird()}, M.ic('eye'), 'اعرضها الآن'), h('button.btn.tonal', {onclick:()=>pickPos(draw)}, 'تغيير الموضع')) : null));
       if(w.on){
-        wc.append(h('div.list',
-          nat ? row('عند فتح قفل الهاتف', canOv ? 'تعمل' : 'تحتاج إذن الظهور فوق التطبيقات', sw(w.unlock, v=>wset({unlock:v}))) : null,
-          row('عند فتح التطبيق', null, sw(w.open, v=>wset({open:v})))),
-          h('div.nf-lbl', 'عدد الآيات في كل مرة'), M.seg([['1', n(1)], ['2', n(2)], ['3', n(3)], ['5', n(5)], ['10', n(10)]], String(w.n), v=>{ wset({n:+v}); }),
-          h('div.nf-lbl', 'متى تظهر'), M.seg(EV, String(w.every), v=>{ wset({every:+v}); }),
-          h('div.pops-pos', h('div.grow', h('div.small.muted', 'موضعك في الختمة'), h('b', pos)),
-            h('button.btn.tonal.sm', {onclick:()=>pickPos(draw)}, 'تغيير')),
-          h('div.row-flex.pops-btns',
-            h('button.btn.grow', {onclick:()=>showWird()}, M.ic('eye'), 'اعرضها الآن'),
-            h('button.btn.tonal.grow', {onclick:()=>M.openWirdStats()}, M.ic('s:stats'), 'الإحصائيات')),
-          sizeBlock());
+        /* 2 — when */
+        wc.append(sec('clock', 'متى تظهر',
+          h('div.list', nat ? row('عند فتح قفل الهاتف', canOv ? 'تعمل' : 'تحتاج إذن الظهور فوق التطبيقات', sw(w.unlock, v=>wset({unlock:v}))) : null,
+            row('عند فتح التطبيق', null, sw(w.open, v=>wset({open:v})))),
+          M.seg(EV, String(w.every), v=>{ wset({every:+v}); })));
+        /* 3 — the reading */
         const recs = (M.RECITERS || []).map(r=>[r[0], r[1]]);
-        if(recs.length) wc.append(h('div.nf-lbl', 'القارئ عند الاستماع'), h('select.field', {onchange:e=>wset({rec:e.target.value})}, h('option', {value:''}, 'قارئ التطبيق الافتراضي'), ...recs.map(([v, l])=>h('option', {value:v, selected:v === w.rec}, l))));
+        wc.append(sec('quran', 'الورد',
+          h('div.nf-lbl', 'عدد الآيات في كل مرة'), M.seg([['1', n(1)], ['2', n(2)], ['3', n(3)], ['5', n(5)], ['10', n(10)]], String(w.n), v=>{ wset({n:+v}); }),
+          recs.length ? h('div.nf-lbl', 'القارئ عند الاستماع') : null,
+          recs.length ? h('select.field', {onchange:e=>wset({rec:e.target.value})}, h('option', {value:''}, 'قارئ التطبيق الافتراضي'), ...recs.map(([v, l])=>h('option', {value:v, selected:v === w.rec}, l))) : null));
+        /* 4 — the look */
+        wc.append(sec('image', 'شكل النافذة', sizeBlock()));
+        wc.append(h('button.btn.tonal.block', {onclick:()=>{ if(M.openKhatma){ M.openKhatma(); } else M.openWirdStats(); }}, M.ic('s:stats'), 'إحصائياتك في صفحة الختمة'));
       }
       if(only !== 'dhikr') root.append(wc);
       /* dhikr: a short dhikr on unlock / open, and whole sets at their times */
@@ -538,18 +669,62 @@ M.openWirdStats = function(){
       h('div.card.pad', statsPanel(stats())), h('button.btn.block', {onclick:()=>showWird()}, M.ic('quran'), 'اقرأ وردك الآن')); }); }});
 };
 /* in the khatma screen: the verse khatma card (position, today, read now, settings, statistics) */
+/* the khatma screen's own statistics: pages read in the mushaf (and finished from the verse cards) + the verse log */
+function pageStats(){
+  const pr = M.QD.pagesRead || {}, d = new Date(), today = M.dkey(d);
+  const ws = new Date(d); ws.setDate(d.getDate() - ((d.getDay() + 1) % 7)); const wk = M.dkey(ws), mk = today.slice(0, 7);
+  let t = 0, w = 0, m = 0; const all = new Set();
+  Object.keys(pr).forEach(k=>{ const n2 = (pr[k] || []).length; (pr[k] || []).forEach(p=>all.add(p)); if(k === today) t += n2; if(k >= wk) w += n2; if(k.slice(0, 7) === mk) m += n2; });
+  return {today:t, week:w, month:m, all:all.size};
+}
+function khatmaStats(){
+  const st = stats(), ps = pageStats(), pr = M.QD.pagesRead || {}, d = new Date();
+  const DN = ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'];
+  const tile = (v, l, cls)=>h('div.ks-t'+(cls || ''), h('b.num', n(v)), h('span', l));
+  const bars = vals=>{ const mx = Math.max(1, ...vals.map(x=>x[1])); return h('div.ks-week', ...vals.map(([dt, v], i)=>h('div.ks-d'+(i === vals.length - 1 ? '.today' : ''), h('b.num', v ? n(v) : ''), h('i', {style:'height:'+Math.max(4, Math.round(v / mx * 56))+'px'}), h('span', DN[dt.getDay()])))); };
+  const days = []; for(let k = 6; k >= 0; k--){ const x = new Date(d); x.setDate(d.getDate() - k); days.push(x); }
+  const body = h('div.ks-body');
+  let tab = M.store.get('ks:tab', 'pages') === 'verses' ? 'verses' : 'pages';
+  function draw(){
+    body.replaceChildren();
+    if(tab === 'pages'){
+      body.append(h('div.ks-tiles', tile(ps.today, 'صفحة اليوم', '.hot'), tile(ps.week, 'هذا الأسبوع'), tile(ps.month, 'هذا الشهر'), tile(ps.all, 'من ٦٠٤ صفحة')),
+        bars(days.map(x=>[x, (pr[M.dkey(x)] || []).length])),
+        h('div.ks-note', 'تُحسب الصفحة إذا قرأتها في المصحف أو أكملت آخر آية فيها من ورد الآيات.'));
+    } else {
+      body.append(h('div.ks-tiles', tile(st.today, 'آية اليوم', '.hot'), tile(st.week, 'هذا الأسبوع'), tile(st.month, 'هذا الشهر'), tile(st.all, 'منذ البداية')),
+        bars(st.days7),
+        h('div.ks-list',
+          h('div', h('span', 'الحروف التي قرأتها'), h('b.num', n(st.letters))),
+          h('div', h('span', 'الحسنات بإذن الله (الحرف بعشر)'), h('b.num', n(st.letters * 10))),
+          h('div', h('span', 'أيام متتالية'), h('b.num', n(st.streak))),
+          h('div', h('span', 'ختمات الآيات المكتملة'), h('b.num', n(wcfg().khatmas | 0)))),
+        h('div.ks-note', '«مَن قرأ حرفًا من كتاب الله فله به حسنة، والحسنة بعشر أمثالها» — رواه الترمذي. العدد تقريبي.'));
+    }
+  }
+  const seg = M.seg([['pages', 'الصفحات'], ['verses', 'الآيات']], tab, v=>{ tab = v; M.store.set('ks:tab', v); draw(); });
+  draw();
+  return h('section.card.pad.col-flex.ks',
+    h('div.ks-h', h('b.title-font', 'إحصائياتك'), h('span.small.muted', st.streak > 1 ? n(st.streak)+' أيام متتالية' : '')), seg, body);
+}
+/* the verse khatma, in the khatma screen: where you are, the next verse on a small folio, and the way in */
 M.khatmaExtra = function(redraw){
-  const w = wcfg(); let pos = ''; try{ if(M.Q.ready) pos = posLabel(w.s, w.a); }catch(e){}
-  const st = stats();
-  return h('section.card.pad.col-flex.pops-kh',
-    h('div.row-flex', h('span.pops-ic', M.ic('s:khatma')), h('div.grow', h('b.title-font', 'ورد الآيات المنبثق'), h('div.small.muted', w.on ? (NATIVE() ? 'يظهر عند فتح قفل الهاتف' : 'يظهر عند فتح التطبيق') : 'متوقف')),
-      M.switchEl(!!w.on, v=>{ wset({on:v}); if(v && NATIVE() && A().canOverlay && !A().canOverlay()) try{ A().requestOverlay(); }catch(e){} redraw && redraw(); })),
-    pos ? h('div.pops-pos', h('div.grow', h('div.small.muted', 'موضعك'), h('b', pos)), h('div.pops-today', h('b.num', n(st.today)), h('small', 'آية اليوم'))) : null,
-    h('div.row-flex.pops-btns',
-      h('button.btn.grow', {onclick:()=>showWird()}, M.ic('quran'), 'اقرأ الآن'),
-      h('button.btn.tonal', {'aria-label':'الإحصائيات', onclick:()=>M.openWirdStats()}, M.ic('s:stats')),
-      h('button.btn.tonal', {'aria-label':'الإعدادات', onclick:()=>M.openPopups('wird')}, M.ic('settings'))));
+  const w = wcfg(); let pos = '', verse = '', sura = '';
+  try{ if(M.Q.ready){ pos = 'الآية '+n(w.a)+' من '+n(M.Q.surahs[w.s - 1].n)+' • الجزء '+n(M.juzOfPage(M.pageOf(w.s, w.a))); verse = M.ayahText(w.s, w.a); sura = 'سورة '+M.sname(w.s); } }catch(e){}
+  const st = stats(), pct = M.Q.ready ? M.aid(w.s, w.a) / TOTAL : 0;
+  return h('section.card.pad.col-flex.kv',
+    h('div.kv-h', h('div.grow', h('div.kv-k', 'ورد الآيات'+(w.khatmas ? ' • الختمة '+n((w.khatmas | 0) + 1) : '')), h('b.title-font.kv-s', sura || 'ورد الآيات')),
+      h('div.kv-today', h('b.num', n(st.today)), h('small', 'آية اليوم'))),
+    verse ? h('button.pw-folio.kv-folio', {onclick:()=>showWird()}, h('i.pw-c.c1'), h('i.pw-c.c2'), h('i.pw-c.c3'), h('i.pw-c.c4'), h('div.kv-v.qfont', verse), h('div.pw-where', pos)) : null,
+    h('div.kv-bar', h('i', {style:'width:'+(pct * 100).toFixed(2)+'%'}), h('span.num', n(Math.floor(pct * 100))+'٪ من ختمة الآيات')),
+    h('div.row-flex.kv-acts',
+      h('button.btn.grow', {onclick:()=>showWird()}, M.ic('quran'), 'اقرأ وردك الآن'),
+      h('button.icon-btn.tonal', {'aria-label':'تغيير الموضع', title:'تغيير الموضع', onclick:()=>pickPos(redraw)}, M.ic('pin')),
+      h('button.icon-btn.tonal', {'aria-label':'إعدادات النافذة', onclick:()=>M.openPopups('wird')}, M.ic('settings'))),
+    h('div.kv-pop', M.ic('s:khatma'), h('div.grow', h('b', 'النافذة المنبثقة'), h('small', w.on ? (NATIVE() ? 'تظهر عند فتح قفل الهاتف' : 'تظهر عند فتح التطبيق') : 'متوقفة')),
+      M.switchEl(!!w.on, v=>{ wset({on:v}); if(v && NATIVE() && A().canOverlay && !A().canOverlay()) try{ A().requestOverlay(); }catch(e){} redraw && redraw(); })));
 };
+M.khatmaStats = khatmaStats;
 /* in the adhkar screen: the adhkar pop-ups */
 if(!IS_PAGE && M.screens && M.screens.adhkar && !M.screens.adhkar.__pop){
   const ob = M.screens.adhkar.build;
@@ -581,7 +756,7 @@ if(IS_PAGE){
   }
   const kind = (new URLSearchParams(location.search).get('kind') || 'wird');
   const q = new URLSearchParams(location.search), set = (q.get('set') || '').split(':');
-  const start = async()=>{ const ok = kind === 'dhikr' ? await showDhikr({set:set[0], pr:set[1]}) : await showWird(); if(!ok){ try{ A().closePopup(); }catch(e){} } };
+  const start = async()=>{ try{ await wirdPull(); }catch(e){} const ok = kind === 'dhikr' ? await showDhikr({set:set[0], pr:set[1]}) : await showWird(); if(!ok){ try{ A().closePopup(); }catch(e){} } };
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 }
 })();

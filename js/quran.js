@@ -14,6 +14,7 @@ const P = M.player = {
   _pre: null
 };
 P.a.preload = 'auto';
+if(M.segArm) M.segArm(P.a);   // reciters recorded by surah: a verse is a slice of the file
 function label(){ return P.s ? 'سورة '+M.sname(P.s)+' • آية '+M.arNum(P.ayah) : ''; }
 P.label = label;
 P.key = ()=>P.s ? P.s+':'+P.ayah : null;
@@ -24,6 +25,8 @@ P.play = async function(s, a, opts){
   P.s = s; P.ayah = a; P.playing = true; P.loading = true;
   if(!opts.keepRange) P.range = null;
   P.eachLeft = (P.range ? P.range.each : M.cfg.repeat) - 1;
+  if(M.recReady) await M.recReady();
+  if(P.s !== s || P.ayah !== a) return;   // moved on while the timings loaded
   P.a.src = M.audioURL(s, a);
   P.a.playbackRate = M.cfg.speed || 1;
   try{ await P.a.play(); }catch(e){ if(e && e.name === 'AbortError') return;   /* stopped or skipped while buffering */
@@ -42,6 +45,7 @@ function nextAyah(s, a){
 }
 function prefetch(){
   const nx = nextAyah(P.s, P.ayah); if(!nx) return;
+  if(M.isSegReciter && M.isSegReciter()) return;   // one file per surah: the next verse is already in it
   try{ if(!P._pre) P._pre = new Audio(); P._pre.preload = 'auto'; P._pre.src = M.audioURL(nx[0], nx[1]); }catch(e){}
 }
 P.toggle = function(){
@@ -76,14 +80,14 @@ P.playRange = function(s, from, to, each, loops){
 function advance(force){
   if(P.range){
     const r = P.range;
-    if(!force && P.eachLeft > 0){ P.eachLeft--; P.a.currentTime = 0; P.a.play().catch(()=>{}); return; }
+    if(!force && P.eachLeft > 0){ P.eachLeft--; (M.segRestart ? M.segRestart(P.a) : (P.a.currentTime = 0)); P.a.play().catch(()=>{}); return; }
     if(P.ayah < r.to){ return P.play(P.s, P.ayah + 1, {keepRange:true}); }
     if(r.loopsLeft > 0 || r.loops === 0){ if(r.loops !== 0) r.loopsLeft--; return P.play(r.s, r.from, {keepRange:true}); }
     P.stop(); return;
   }
-  if(P.loopAyah && !force){ P.a.currentTime = 0; P.a.play().catch(()=>{}); return; }
-  if(!force && P.eachLeft > 0){ P.eachLeft--; P.a.currentTime = 0; P.a.play().catch(()=>{}); return; }
-  if(M.cfg.repeat === 0 && !force){ P.a.currentTime = 0; P.a.play().catch(()=>{}); return; }
+  if(P.loopAyah && !force){ (M.segRestart ? M.segRestart(P.a) : (P.a.currentTime = 0)); P.a.play().catch(()=>{}); return; }
+  if(!force && P.eachLeft > 0){ P.eachLeft--; (M.segRestart ? M.segRestart(P.a) : (P.a.currentTime = 0)); P.a.play().catch(()=>{}); return; }
+  if(M.cfg.repeat === 0 && !force){ (M.segRestart ? M.segRestart(P.a) : (P.a.currentTime = 0)); P.a.play().catch(()=>{}); return; }
   const nx = nextAyah(P.s, P.ayah);
   if((P.queue || P.loopSurah) && (!nx || nx[0] !== P.s)) return P.surahEnded();
   if(!nx || (!M.cfg.autoNext && nx[0] !== P.s)){ P.playing = false; P.s = 0; P.ayah = 0; emitP(); return; }

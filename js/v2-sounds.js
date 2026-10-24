@@ -142,7 +142,7 @@ const CAT = ROWS.map(([key, name, k, path, size, dur, si])=>{ const S = SRCS[si 
   source:'github.com/'+S.repo, licence:S.lic }; });
 M.V2_SOUNDS = CAT;
 /* recordings that now ship inside the app (ad_qatami / tk_qatami) are not offered again as downloads — unless already downloaded */
-const BUNDLED_DUP = ['ath_nasser_al_qatami', 'ath_nasser_al_qatami_tk', 'nasser_qatami_hq'];
+const BUNDLED_DUP = ['ath_nasser_al_qatami', 'ath_nasser_al_qatami_tk', 'nasser_qatami_hq', 'yasser_dosari_saudi_arabia'];
 const byId = id=>CAT.find(c=>c.id === id);
 const native = ()=>!!(window.Android && window.Android.downloadFiles);
 const have = ()=>M.store.get('dlAdhans', {}) || {};

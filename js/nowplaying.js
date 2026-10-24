@@ -14,7 +14,7 @@ function state(){
   const P = M.player, r = radioEl();
   const list = [];
   if(P && P.s && (P.playing || P.a && !P.a.ended && P.a.currentSrc)) list.push({k:'quran', playing:!!P.playing && !P.a.paused, title:'سورة '+M.sname(P.s)+' • آية '+M.arNum(P.ayah), sub:((M.RECITERS || []).find(x=>x[0] === M.cfg.reciter) || [])[1] || 'تلاوة', glyph:'s:mushaf', toggle:()=>P.toggle(), stop:()=>P.stop(), prev:()=>P.prev(), next:()=>P.next(),
-    prog:()=>{ try{ const n = M.Q.surahs[P.s - 1].n, a = P.a, f = a.duration > 0 && isFinite(a.duration) ? Math.min(1, a.currentTime / a.duration) : 0; return ((P.ayah - 1) + f) / n; }catch(e){ return 0; } }});
+    prog:()=>{ try{ const n = M.Q.surahs[P.s - 1].n, q = M.audioPos ? M.audioPos(P.a) : {t:P.a.currentTime, d:P.a.duration}, f = q.d > 0 && isFinite(q.d) ? Math.min(1, q.t / q.d) : 0; return ((P.ayah - 1) + f) / n; }catch(e){ return 0; } }});
   if(M.radio && M.radio.cur && r) list.push({k:'radio', playing:!r.paused, title:M.radio.cur.name, sub:'إذاعة مباشرة', glyph:'s:radio', toggle:()=>{ if(r.paused) r.play().catch(()=>{}); else r.pause(); }, stop:()=>M.radioStop(), prog:null});
   if(sndId) list.push({k:'sound', playing:true, title:sndName(sndId), sub:'المكتبة الصوتية', glyph:'s:minaret', stop:()=>M.stopSound(), prog:null});
   if(!list.length) return null;
@@ -82,7 +82,8 @@ function startAyah(){
   ay = {s:P.s, a:P.ayah, t:setInterval(()=>{
     const a = P.a;
     if(!P.s || (P.s !== ay.s || P.ayah !== ay.a)){ finishAyah(); return; }       // already moved on: stop right away
-    if(a.duration > 0 && a.duration - a.currentTime < 0.18) finishAyah();
+    const q = M.audioPos ? M.audioPos(a) : {t:a.currentTime, d:a.duration};
+    if(q.d > 0 && q.d - q.t < 0.18) finishAyah();
   }, 100)};
   chip();
 }

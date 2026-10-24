@@ -49,7 +49,6 @@ M.openKhatma = function(){
     function draw(){
       box.innerHTML = '';
       const a = list(); const active = a.filter(k=>!k.done), done = a.filter(k=>k.done);
-      if(M.khatmaExtra) try{ box.append(M.khatmaExtra(draw)); }catch(e){}
       if(!active.length){
         box.append(M.hero({icon:'s:khatma', kicker:'ختم القرآن الكريم', title:'ابدأ ختمة جديدة', sub:'اختر المدة ويحسب لك التطبيق وردك اليومي ويتابع تقدّمك من صفحات قراءتك.'}));
         box.append(h('div.kh-plans', ...[[7, 'أسبوع'], [15, 'نصف شهر'], [30, 'شهر'], [60, 'شهران'], [90, '٣ أشهر'], [365, 'سنة']].map(([d, l])=>h('button.kh-plan', {onclick:()=>{ const a2 = list(); a2.push({id:Date.now(), name:'', start:M.dkey(), days:d}); save(a2); draw(); M.toast('بدأت ختمتك — بارك الله فيك'); }},
@@ -68,6 +67,8 @@ M.openKhatma = function(){
         box.append(h('div.kh-bar', h('i', {style:'width:'+pct * 100+'%'}), h('span.num', M.n(604 - n)+' صفحة متبقية')));
       });
       if(active.length) box.append(h('button.btn.tonal.block', {onclick:()=>newOne()}, M.ic('plus'), 'ختمة أخرى'));
+      if(M.khatmaExtra) try{ box.append(h('div.section-h', 'ورد الآيات اليومي'), M.khatmaExtra(draw)); }catch(e){}   // the verse-by-verse khatma (pop-up card + widget)
+      if(M.khatmaStats) try{ box.append(M.khatmaStats()); }catch(e){}   // statistics right here, in the khatma screen
       box.append(h('div.section-h', 'ختماتي المكتملة', h('small', M.n(done.length))));
       if(!done.length) box.append(h('div.muted.small', {style:'margin:0 4px'}, 'لا توجد ختمات مكتملة بعد.'));
       done.forEach(k=>box.append(h('div.item.card.static.kh-done', h('span.lead', {html:M.icon('trophy')}), h('div.grow', h('div.t', k.name || 'ختمة'), h('div.s', k.start+' ← '+k.done)))));

@@ -267,8 +267,8 @@ S.counterset = {title:'إعدادات العدّاد', build(b){
 S.icon = {title:'أيقونة التطبيق', build(b){
   if(!(window.Android && Android.setAppIcon)){ b.append(note('تغيير الأيقونة متاح في تطبيق الأندرويد.')); return; }
   const ig = h('div.icon-grid'); let cur = 10; try{ cur = Android.getAppIcon(); }catch(e){}
-  for(let i = 1; i <= 10; i++) ig.append(h('button.icon-opt'+(i === cur ? '.on' : ''), {dataset:{i}, onclick:()=>{ try{ Android.setAppIcon(i); }catch(e){} M.setIconAccent(i); M.$$('.icon-opt', ig).forEach(x=>x.classList.toggle('on', +x.dataset.i === i)); M.toast('تغيّر لون التطبيق الآن، والأيقونة تتغيّر بعد خروجك من التطبيق', 3600); }}, h('img', {src:'img/icons/'+i+'.jpg', alt:''})));
-  b.append(h('div.section-h', 'اختر أيقونة جديدة للتطبيق'), ig, note('ستتغيّر أيقونة التطبيق بعد خروجك منه. بعض الشاشات الرئيسية تحذف الاختصار القديم عند التغيير؛ ستجد التطبيق بأيقونته الجديدة في قائمة التطبيقات، وبياناتك لا تتأثر.'));
+  for(let i = 1; i <= 10; i++) ig.append(h('button.icon-opt'+(i === cur ? '.on' : ''), {dataset:{i}, onclick:()=>{ try{ Android.setAppIcon(i); }catch(e){} M.setIconAccent(i); M.$$('.icon-opt', ig).forEach(x=>x.classList.toggle('on', +x.dataset.i === i)); if(!window.isIOSApp) M.toast('تغيّر لون التطبيق الآن، والأيقونة تتغيّر بعد خروجك من التطبيق', 3600); }}, h('img', {src:'img/icons/'+i+'.jpg', alt:''})));
+  b.append(h('div.section-h', 'اختر أيقونة جديدة للتطبيق'), ig, window.isIOSApp ? null : note('ستتغيّر أيقونة التطبيق بعد خروجك منه. بعض الشاشات الرئيسية تحذف الاختصار القديم عند التغيير؛ ستجد التطبيق بأيقونته الجديدة في قائمة التطبيقات، وبياناتك لا تتأثر.'));
 }};
 
 /* ---- hero image (bundled gallery or user supplied) ---- */
@@ -463,6 +463,7 @@ S.widgets = {title:'الودجت (الأدوات)', build(b){
     ['ayah','quran','آية اليوم مع التفسير','4×2',0,'آية كريمة مع تفسيرها الميسّر، تتغيّر كل يوم'],
     ['qazkar','quran','اقتباس: ذكر','4×2',1,'ذكر أو دعاء يتغيّر كل يوم أو باللمس'],
     ['qhadith','quran','اقتباس: حديث','4×2',1,'حديث شريف يتغيّر كل يوم أو باللمس'],
+    ['khatma','quran','ورد الختمة','4×2',1,'آياتك من حيث توقفت مع «قرأتها» والاستماع — كبّره أو صغّره كما تحب'],
     ['qayah','quran','اقتباس: آية','4×2',1,'آية بالرسم العثماني تتغيّر كل يوم أو باللمس'],
     ['hq','quran','حديث وقرآن','4×2',1,'تبديل بين الحديث الشريف والقرآن الكريم'],
     ['azkarpro','quran','الأذكار بالأقسام','4×3',1,'أذكار الصباح والمساء والصلاة والنوم والتسابيح'],
