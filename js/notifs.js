@@ -457,7 +457,7 @@ M.nfSoundName = sndName;
         for(const p in PRL){
           const pt = t[p].getTime();
           if(al[p]){ const ts = pt - (M.cfg.alarmPre || 0) * 60000;
-            if(ts > now) out.push({id:'alarm_'+p+'_'+k, ts, title:'منبّه '+PRL[p], body:(M.cfg.alarmPre ? 'بعد '+M.cnt(M.cfg.alarmPre, 'دقيقة', true) : 'حان الوقت'), tone:true, snd:(M.cfg.alarmSnd || 'ad_makkah'), loop:90, ch:'nf_alarm_t', chn:'منبّه الصلاة', kind:'alarm', open:'prayer'}); }
+            if(ts > now) out.push({id:'alarm_'+p+'_'+k, ts, title:'منبّه '+PRL[p], body:(M.cfg.alarmPre ? 'بعد '+M.cnt(M.cfg.alarmPre, 'دقيقة', true) : 'حان الوقت'), tone:true, snd:(M.cfg.alarmSnd || 'ad_makkah'), loop:(M.cfg.alarmDur || 90), vol:(M.cfg.alarmVol || 100), ramp:!!M.cfg.alarmRamp, vib:(M.cfg.alarmVib || 'normal'), snooze:(M.cfg.alarmSnooze || 0), ch:'nf_alarm_t', chn:'منبّه الصلاة', kind:'alarm', open:'prayer'}); }
           const iqn = (M.cfg.iqamaNotif || {})[p], iqm = (M.cfg.iqama || {})[p];
           if(iqn && iqm){ const ts = pt + iqm*60000; if(ts > now) out.push({id:'iqama_'+p+'_'+k, ts, title:'إقامة صلاة '+PRL[p], body:'حان وقت الإقامة', tone:true, snd:null, ch:'nf_iqama_t', chn:'الإقامة', kind:'iqama', open:'prayer', pk:M.cfg.plogNotif !== false ? k+'|'+p : ''}); }
           if(f.on && (f.pr || {})[p] !== false){
@@ -470,6 +470,6 @@ M.nfSoundName = sndName;
     }catch(e){}
     return out.sort((a, b)=>a.ts - b.ts);
   };
-  M.on('settings', k=>{ if(['alarm', 'alarmPre', 'focus', 'liveNotif'].includes(k)){ M.syncNative(); try{ if(window.Android && Android.setLive) Android.setLive(!!M.cfg.liveNotif); }catch(e){} } });
+  M.on('settings', k=>{ if(['alarm', 'alarmPre', 'alarmSnd', 'alarmDur', 'alarmVol', 'alarmRamp', 'alarmVib', 'alarmSnooze', 'focus', 'liveNotif'].includes(k)){ M.syncNative(); try{ if(window.Android && Android.setLive) Android.setLive(!!M.cfg.liveNotif); }catch(e){} } });
   setTimeout(()=>{ try{ if(window.Android && Android.setLive) Android.setLive(!!M.cfg.liveNotif); }catch(e){} }, 3000);
 })();

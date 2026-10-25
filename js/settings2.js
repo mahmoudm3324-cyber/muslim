@@ -23,12 +23,50 @@ S.date = {title:'ضبط التاريخ', build(b){
 
 /* ---- alarm ---- */
 S.alarm = {title:'منبّه الصلاة', build(b){
-  b.append(note('المنبّه يختلف عن إشعار الأذان: يرنّ ويستمر حتى توقفه (بحدّ أقصى ١٫٥ دقيقة) حتى لو كان الجهاز صامتًا، وهو مناسب للفجر خاصة. يعمل على أندرويد.'));
+  const android = M.platform === 'android';
+  b.append(note(android
+    ? 'المنبّه يختلف عن إشعار الأذان: يرنّ ويستمر حتى توقفه أو تنتهي مدته، حتى لو كان الجهاز صامتًا، ويظهر على شاشة القفل كمنبّه الساعة. مناسب للفجر خاصة.'
+    : 'المنبّه يرنّ كمنبّه الساعة في الآيفون (iOS 26 وما بعده) حتى توقفه، حتى في الوضع الصامت وأوضاع التركيز.'));
   const vv = h('b.num', M.n(M.cfg.alarmPre || 0));
   const l = h('div.list.card');
   PR.forEach(([k, n, ic])=>l.append(h('div.item.static', h('span.lead', {html:M.icon(ic)}), h('div.grow', h('div.t', 'منبّه '+n), h('div.s', 'يرنّ وقت الصلاة')), M.switchEl(!!(M.cfg.alarm || {})[k], v=>{ const a = Object.assign({}, M.cfg.alarm); a[k] = v; M.save('alarm', a); if(v && window.Android && Android.requestNotifPerm) Android.requestNotifPerm(); }))));
   b.append(l);
   b.append(h('div.list.card', {style:'margin-top:12px'}, row('المدة قبل الصلاة', 'يرنّ قبل الوقت بعدد الدقائق', h('div.row-flex.gap-s', h('button.icon-btn.tonal', {onclick:()=>{ M.save('alarmPre', Math.max(0, (M.cfg.alarmPre || 0) - 5)); vv.textContent = M.n(M.cfg.alarmPre || 0); }}, M.ic('minus')), vv, h('button.icon-btn.tonal', {onclick:()=>{ M.save('alarmPre', Math.min(60, (M.cfg.alarmPre || 0) + 5)); vv.textContent = M.n(M.cfg.alarmPre || 0); }}, M.ic('plus'))))));
+
+  /* the sound: chosen in the sound library (adhans, takbeer, downloaded adhans), previewed here */
+  b.append(sec('الصوت'));
+  const sndName = ()=>(M.nfSoundName ? M.nfSoundName(M.cfg.alarmSnd || 'ad_makkah') : (M.cfg.alarmSnd || 'ad_makkah'));
+  const sndSub = h('div.s', sndName());
+  const sndCard = h('div.list.card',
+    h('button.item', {onclick:()=>M.openSounds && M.openSounds({target:{type:'alarm'}, onDone:()=>{ sndSub.textContent = sndName(); }})},
+      h('span.lead', {html:M.icon('volume')}), h('div.grow', h('div.t', 'صوت المنبّه'), sndSub), M.ic('fwd')),
+    h('button.item', {onclick:()=>M.playSound && M.playSound(M.cfg.alarmSnd || 'ad_makkah')},
+      h('span.lead', {html:M.icon('play')}), h('div.grow', h('div.t', 'استماع للصوت'), h('div.s', 'اضغط مرة أخرى للإيقاف'))));
+  b.append(sndCard);
+
+  if(android){
+    /* how it rings: volume, a gradual start, vibration, how long, snooze */
+    b.append(sec('طريقة الرنين'));
+    const volV = h('b.num', M.n(M.cfg.alarmVol || 100)+'٪');
+    const c = h('div.list.card');
+    c.append(h('div.item.static.stack', h('div.row-flex', h('div.grow', h('div.t', 'مستوى الصوت'), h('div.s', 'نسبة من صوت المنبّهات في الهاتف')), volV),
+      Object.assign(rg(10, 100, 10, M.cfg.alarmVol || 100, v=>{ M.save('alarmVol', v); volV.textContent = M.n(v)+'٪'; }), {style:'width:100%;margin-top:10px'})));
+    c.append(row('يبدأ بهدوء ثم يرتفع', 'يزداد الصوت تدريجيًا خلال ٣٠ ثانية', sw('alarmRamp', false)));
+    c.append(row('الاهتزاز', '', M.seg([['off', 'بدون'], ['normal', 'عادي'], ['pulse', 'نبضات'], ['strong', 'قوي']], M.cfg.alarmVib || 'normal', x=>M.save('alarmVib', x))));
+    c.append(row('مدة الرنين', 'يتوقف وحده بعدها إن لم توقفه', M.seg([[60, 'دقيقة'], [90, '١٫٥ د'], [180, '٣ د'], [300, '٥ د'], [600, '١٠ د']], M.cfg.alarmDur || 90, x=>M.save('alarmDur', +x))));
+    c.append(row('الغفوة', 'زر «غفوة» في إشعار المنبّه يعيده بعد', M.seg([[0, 'بدون'], [5, '٥ د'], [10, '١٠ د'], [15, '١٥ د']], M.cfg.alarmSnooze || 0, x=>M.save('alarmSnooze', +x))));
+    b.append(c);
+
+    /* the real thing in a few seconds: lock the phone and listen */
+    const test = delay=>{
+      const it = {title:'تجربة المنبّه', body:'هكذا سيرنّ منبّه الصلاة', tone:true, snd:M.cfg.alarmSnd || 'ad_makkah', loop:Math.min(M.cfg.alarmDur || 90, 60),
+        vol:M.cfg.alarmVol || 100, ramp:!!M.cfg.alarmRamp, vib:M.cfg.alarmVib || 'normal', snooze:M.cfg.alarmSnooze || 0, ch:'nf_alarm_t', chn:'منبّه الصلاة', kind:'alarm', delay};
+      try{ window.Android.testNotify(JSON.stringify(it)); M.toast(delay ? 'سيرنّ المنبّه بعد ١٠ ثوانٍ — اقفل الشاشة لتجربته' : 'يرنّ الآن — أوقفه من الإشعار'); }catch(e){ M.toast('تعذّرت التجربة'); }
+    };
+    if(window.Android && Android.testNotify) b.append(h('div.row-flex.gap-s', {style:'margin-top:12px'},
+      h('button.btn.tonal.grow', {onclick:()=>test(0)}, M.ic('bell'), 'تجربة الآن'),
+      h('button.btn.tonal.grow', {onclick:()=>test(10000)}, M.ic('clock'), 'بعد ١٠ ثوانٍ')));
+  }
   b.append(h('button.btn.tonal.block', {style:'margin-top:12px', onclick:()=>M.openUpcoming && M.openUpcoming()}, M.ic('bell'), 'الإشعارات والمنبّهات القادمة'));
 }};
 

@@ -233,3 +233,12 @@ svg.ic.chev{stroke-width:2.15}
 .rord-x svg{width:19px;height:19px}
 .rord-x:active{background:color-mix(in oklab,var(--danger) 16%,transparent);color:var(--danger)}
 .item .rord+.rord-x,.item .rord+.switch{margin-inline-start:2px}
+
+/* wide screens: an unfolded folding phone, a tablet, landscape. The content stays a readable column in the middle
+   instead of stretching edge to edge; sheets and the dock follow it */
+@media (min-width:700px){
+  .screen{padding-inline:max(16px,calc((100% - 720px) / 2))}
+  .view-body{padding-inline:max(16px,calc((100% - 720px) / 2))}
+  .sheet{inset-inline:max(0px,calc((100% - 640px) / 2));border-radius:var(--sheet-r,28px) var(--sheet-r,28px) 0 0}
+  .more-grid{grid-template-columns:repeat(6,minmax(0,1fr))}
+}
