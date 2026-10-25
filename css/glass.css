@@ -58,6 +58,14 @@ html[data-skin=glass][data-theme=dark] .item .lead,html[data-skin=glass][data-th
 html[data-skin] .seg{box-shadow:inset 0 1px 3px rgba(0,0,0,.08)}
 html[data-skin] .seg button.on{background:linear-gradient(180deg,color-mix(in oklab,var(--p) 78%,#fff),var(--p));box-shadow:0 3px 10px color-mix(in oklab,var(--p) 30%,transparent),inset 0 1px 0 rgba(255,255,255,.5)}
 html[data-skin=glass] .badge{background:rgba(255,255,255,.6);color:var(--p);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+html[data-skin=glass][data-theme=dark] .badge,html[data-skin=glass][data-theme=amoled] .badge{background:rgba(255,255,255,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+/* the next-prayer card over a photo: always light text on a dark, dimmed picture (in dark themes the card was light teal with dark text over the photo) */
+html[data-skin=glass] .prayer-hero:has(.hero-photo){color:#fff}
+html[data-skin=glass][data-theme=dark] .prayer-hero:has(.hero-photo),html[data-skin=glass][data-theme=amoled] .prayer-hero:has(.hero-photo){background:linear-gradient(150deg,color-mix(in oklab,var(--p) 42%,#06161b),color-mix(in oklab,var(--p) 18%,#04090b))}
+html[data-skin=glass] .prayer-hero .hero-photo::after{content:"";position:absolute;inset:0;background:rgba(3,18,23,.5)}
+html[data-skin=glass] .prayer-hero:has(.hero-photo) :is(.nx-n,.nx-t,.cd,.small,.tiny,.muted,.lbl){color:inherit}
+html[data-skin=glass] .prayer-hero:has(.hero-photo) .cd{text-shadow:0 1px 10px rgba(0,0,0,.55)}
+html[data-skin=glass] .prayer-hero:has(.hero-photo) .nx-t{opacity:.9}
 /* Apple-style switch: wide, translucent track, thumb stretches while pressed */
 html[data-skin=glass] .switch{width:51px;height:31px}
 html[data-skin=glass] .switch::after{top:2px;inset-inline-start:2px;width:27px;height:27px;box-shadow:0 3px 8px rgba(0,0,0,.28),0 0 0 .5px rgba(0,0,0,.04);transition:transform .4s var(--sp),width .25s var(--ease)}
@@ -73,12 +81,12 @@ html[data-skin=glass] .tile:active,html[data-skin=glass] button.card:active{tran
 html[data-skin=glass] .icon-btn:active{transform:scale(.86);transition-duration:.12s}
 
 /* ---- floating liquid tab bar ---- */
-html[data-skin] #tabbar .bar{margin:0 14px 10px;padding:6px;border-radius:38px;background:linear-gradient(160deg,rgba(255,255,255,.82),rgba(255,255,255,.66));border:0;
+html[data-skin] #tabbar .bar{margin:0 14px 10px;padding:6px;border-radius:38px;background:linear-gradient(160deg,rgba(255,255,255,.92),rgba(255,255,255,.84));border:0;
   -webkit-backdrop-filter:blur(28px) saturate(2);backdrop-filter:blur(28px) saturate(2);
   box-shadow:0 16px 40px rgba(10,30,24,.2),0 1px 3px rgba(10,30,24,.1);width:min(460px,calc(100% - 28px));overflow:visible}
 html[data-skin] #tabbar .bar::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.2px;background:var(--rim);pointer-events:none;z-index:3;
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
-html[data-skin][data-theme=dark] #tabbar .bar,html[data-skin][data-theme=amoled] #tabbar .bar{background:linear-gradient(160deg,rgba(60,74,70,.82),rgba(30,40,38,.78));box-shadow:0 18px 44px rgba(0,0,0,.5)}
+html[data-skin][data-theme=dark] #tabbar .bar,html[data-skin][data-theme=amoled] #tabbar .bar{background:linear-gradient(160deg,rgba(52,64,61,.93),rgba(24,32,31,.9));box-shadow:0 18px 44px rgba(0,0,0,.5)}
 html[data-skin] .tab{flex:1;height:58px;border-radius:30px}
 html[data-skin] .tab.on{color:var(--p)}
 html[data-skin][data-theme=dark] .tab.on,html[data-skin][data-theme=amoled] .tab.on{color:color-mix(in oklab,var(--p) 55%,#fff)}
