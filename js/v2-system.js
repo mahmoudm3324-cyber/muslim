@@ -28,6 +28,7 @@ M.openDeep = function(id){
   let m = /^surah_(\d{1,3})$/.exec(id);
   if(m){ const s = +m[1]; if(s >= 1 && s <= 114 && M.openReader){ closeAll(); M.openReader({sura:s, ayah:1}); return true; } return false; }
   if(TABS.includes(id)){ closeAll(); M.setTab(id); return true; }
+  if(id === 'alarm' && M.openSub){ closeAll(); M.openSub('alarm'); return true; }   // Control Center: منبّه الصلاة
   const known = (M.SECTIONS || []).some(s=>s[0] === id);
   if(!known) return false;
   closeAll();

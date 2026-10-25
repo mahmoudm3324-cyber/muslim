@@ -6,9 +6,9 @@ const M = window.M, root = document.documentElement;
 M.applyFx = function(){
   let t = M.cfg.fx || 'auto';
   if(t === 'auto' && M.isIOS){
-    // iPhones/iPads: Safari reports no deviceMemory (it used to read as a weak 4 GB phone and lost the glass); their GPUs run
-    // the full Liquid Glass. If page transitions keep dropping frames, it steps down to the middle tier (fxSlow, measured below).
-    t = M.store.get('fxSlow', false) ? 'mid' : 'high';
+    // iPhones/iPads: the glass dock, bars and sheets (mid). A blur behind every card (high) made WKWebView scroll and open pages slowly,
+    // so it is now only for those who pick it in Settings. If pages still drop frames, it steps down to the light tier (fxSlow, below).
+    t = M.store.get('fxSlow', false) ? 'low' : 'mid';
   } else if(t === 'auto'){
     const mem = navigator.deviceMemory || 4, cores = navigator.hardwareConcurrency || 4;
     const weak = mem <= 4 || cores <= 6;
@@ -68,6 +68,7 @@ document.addEventListener('touchstart', e=>{
 document.addEventListener('touchmove', e=>{
   if(!sw) return; const t = e.touches[0], dx = t.clientX - sw.x0, dy = t.clientY - sw.y0;
   if(!sw.on){ if(Math.abs(dy) > 14 && Math.abs(dy) > Math.abs(dx)){ sw = null; return; } if(Math.abs(dx) < 10) return; sw.on = true; sw.v.el.style.animation = 'none'; sw.v.el.style.transition = 'none'; }
+  window.__jsSwipeAt = Date.now();   // the iPhone's own edge gesture leaves this swipe alone
   const k = sw.rtl ? Math.min(0, dx) : Math.max(0, dx); sw.dx = k;
   sw.v.el.style.transform = 'translateX('+k+'px)';
   if(e.cancelable) e.preventDefault();
@@ -75,9 +76,10 @@ document.addEventListener('touchmove', e=>{
 const end = ()=>{
   if(!sw) return; const s = sw; sw = null; if(!s.on) return;
   const W = innerWidth, el = s.v.el, fast = Math.abs(s.dx) / Math.max(1, Date.now() - s.t0) > .6;
-  el.style.transition = 'transform .32s cubic-bezier(.2,.8,.2,1)';
-  if(Math.abs(s.dx) > W * .38 || fast){ el.style.transform = 'translateX('+(s.rtl ? -W : W)+'px)'; setTimeout(()=>{ el.style.visibility = 'hidden'; s.v.close(); }, 300); M.haptic && M.haptic(8); }
-  else { el.style.transform = 'none'; setTimeout(()=>{ el.style.transition = ''; el.style.animation = ''; el.style.transform = ''; }, 340); }
+  window.__jsSwipeAt = Date.now();
+  el.style.transition = 'transform .24s cubic-bezier(.2,.8,.2,1)';
+  if(Math.abs(s.dx) > W * .38 || fast){ el.style.transform = 'translateX('+(s.rtl ? -W : W)+'px)'; setTimeout(()=>{ el.style.visibility = 'hidden'; s.v.close(); }, 230); M.haptic && M.haptic(8); }
+  else { el.style.transform = 'none'; setTimeout(()=>{ el.style.transition = ''; el.style.animation = ''; el.style.transform = ''; }, 260); }
 };
 document.addEventListener('touchend', end, {passive:true}); document.addEventListener('touchcancel', end, {passive:true});
 })();

@@ -46,7 +46,9 @@ html[data-skin=glass] .card.accent{background:linear-gradient(150deg,color-mix(i
 html[data-skin=glass] .card.accent::before{background:radial-gradient(140px 100px at var(--px,70%) var(--py,0%),rgba(255,255,255,calc(.4*var(--glow))),transparent 70%),linear-gradient(165deg,rgba(255,255,255,.3),transparent 45%)}
 html[data-skin=glass] .btn{background:linear-gradient(180deg,color-mix(in oklab,var(--p) 78%,#fff),var(--p));box-shadow:0 8px 20px color-mix(in oklab,var(--p) 34%,transparent),inset 0 1.5px 0 rgba(255,255,255,.5)}
 html[data-skin=glass] .btn.tonal{position:relative;background:var(--card-bg);color:var(--on-s);box-shadow:0 2px 8px rgba(0,0,0,.05)}
-html[data-skin=glass] .btn.ghost{box-shadow:inset 0 0 0 1.5px var(--card-border)}
+/* ghost buttons stay see-through with coloured text (the glass .btn fill above made them teal text on teal) */
+html[data-skin=glass] .btn.ghost{background:transparent;color:var(--p);box-shadow:inset 0 0 0 1.5px var(--card-border)}
+html[data-skin=glass][data-theme=dark] .btn.ghost,html[data-skin=glass][data-theme=amoled] .btn.ghost{color:color-mix(in oklab,var(--p) 55%,#fff)}
 html[data-skin=glass] .icon-btn.tonal{box-shadow:0 2px 8px rgba(0,0,0,.05)}
 html[data-skin=glass] .chip{position:relative;box-shadow:none}
 html[data-skin] .chip.on{background:linear-gradient(180deg,color-mix(in oklab,var(--p) 78%,#fff),var(--p));color:var(--on-p)}
@@ -102,12 +104,13 @@ html[data-skin] .tab .lb{font-size:.68rem}
 html[data-skin] .tab.on svg{transform:translateY(-1px) scale(1.1)}
 
 /* ---- navigation: push views from the inline-start edge, parent recedes (iOS-style) ---- */
-html[data-skin=glass] .view{background:var(--view-bg);box-shadow:-18px 0 50px rgba(0,0,0,.14);animation:glassPush .55s var(--sp) both;will-change:transform}
-html[data-skin=glass] .view.leaving{animation:glassPop .34s cubic-bezier(.4,0,.2,1) both}
+/* push/pop: short, no overshoot, transform only (the old spring + scaled, faded screen behind was heavy in the iPhone web view) */
+html[data-skin=glass] .view{background:var(--view-bg);box-shadow:-12px 0 32px rgba(0,0,0,.12);animation:glassPush .36s cubic-bezier(.22,.9,.24,1) both;will-change:transform}
+html[data-skin=glass] .view.leaving{animation:glassPop .26s cubic-bezier(.4,0,.6,1) both}
 @keyframes glassPush{from{transform:translateX(calc(var(--dx,-1)*100%))}to{transform:none}}
 @keyframes glassPop{to{transform:translateX(calc(var(--dx,-1)*100%))}}
-html[data-skin=glass] #screens,html[data-skin=glass] #tabbar{transition:transform .55s var(--sp),opacity .4s,filter .4s}
-html[data-skin=glass][data-views] #screens{transform:scale(.94) translateX(calc(var(--dx,-1)*-4%));opacity:.55}
+html[data-skin=glass] #screens,html[data-skin=glass] #tabbar{transition:transform .36s cubic-bezier(.22,.9,.24,1),opacity .3s}
+html[data-skin=glass][data-views] #screens{transform:translateX(calc(var(--dx,-1)*-8%))}
 html[data-skin=glass][data-views] #tabbar{transform:translateY(130%);opacity:0}
 html[data-skin=glass] .screen.active{animation:fadeIn .4s var(--ease) both}
 html[data-skin=glass] .view-head{background:var(--head-bg)}
@@ -157,13 +160,19 @@ html[data-hz="120"] .btn,html[data-hz="120"] .chip,html[data-hz="120"] .tile,htm
 /* the same pill selection in the Android-style skin */
 html[data-skin=material] .seg{background:var(--seg-bg,color-mix(in oklab,var(--on-s) 9%,transparent))}
 
-/* ---- search bars (المزيد, the Mushaf index, Settings): floating glass pills like the dock, no opaque band behind them ---- */
-html[data-skin=glass]:not([data-solid]) :is(.sec-sticky,.st-search){background:linear-gradient(color-mix(in oklab,var(--s0) 78%,transparent) 55%,transparent);-webkit-backdrop-filter:none;backdrop-filter:none}
+/* ---- search bars (المزيد, the Mushaf index, Settings): floating glass pills in the tiles' own colour, no band behind them.
+   On the tab screens the bar sits right under the title and sticks just below the status bar (it used to carry the status bar's
+   height as padding: a big gap and a hard edge above it) ---- */
+html[data-skin=glass]:not([data-solid]) :is(.sec-sticky,.st-search){background:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-skin=glass] .screen>.sec-sticky{top:calc(var(--sat) - 4px);padding:8px 16px}
 html[data-skin=glass] .sec-sticky .field,html[data-skin=glass] .st-sbox,html[data-skin=glass] .more-bar>.icon-btn{
-  background:linear-gradient(var(--card-bg),var(--card-bg)),color-mix(in oklab,var(--s0) 70%,transparent);
-  box-shadow:0 6px 18px rgba(0,0,0,.12),inset 0 0 0 1px var(--card-border),inset 0 1px 0 rgba(255,255,255,.22);
-  -webkit-backdrop-filter:blur(24px) saturate(1.8);backdrop-filter:blur(24px) saturate(1.8)}
+  background:linear-gradient(160deg,rgba(255,255,255,.86),rgba(255,255,255,.7));border:1px solid var(--card-border);box-shadow:var(--card-shadow),inset 0 1px 0 rgba(255,255,255,.25);
+  -webkit-backdrop-filter:blur(30px) saturate(1.8);backdrop-filter:blur(30px) saturate(1.8)}
 html[data-skin=glass] .sec-sticky .field,html[data-skin=glass] .st-sbox{min-height:48px;border-radius:999px}
-html[data-skin=glass] .sec-sticky .field:focus,html[data-skin=glass] .st-sbox:focus-within{box-shadow:0 6px 18px rgba(0,0,0,.12),inset 0 0 0 1.5px color-mix(in oklab,var(--p) 70%,transparent)}
+html[data-skin=glass] .sec-sticky .field:focus,html[data-skin=glass] .st-sbox:focus-within{border-color:color-mix(in oklab,var(--p) 60%,transparent)}
 html[data-skin=glass] .more-bar{display:flex;align-items:center;gap:10px}
 html[data-skin=glass] .more-bar>.icon-btn{width:48px;height:48px;flex:none}
+html[data-skin=glass] .sec-sticky .field::placeholder{color:var(--on-sv);opacity:1}
+html[data-skin=glass][data-theme=dark] :is(.sec-sticky .field,.st-sbox,.more-bar>.icon-btn),html[data-skin=glass][data-theme=amoled] :is(.sec-sticky .field,.st-sbox,.more-bar>.icon-btn){background:linear-gradient(160deg,rgba(58,70,70,.86),rgba(30,40,40,.8))}
+/* an entrance animation (opacity/transform) on the bar would cut its blur off from the page behind it */
+html[data-skin=glass] .screen>.sec-sticky{animation:none}
