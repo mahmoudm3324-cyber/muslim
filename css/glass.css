@@ -156,3 +156,14 @@ html[data-hz="120"] .btn,html[data-hz="120"] .chip,html[data-hz="120"] .tile,htm
 
 /* the same pill selection in the Android-style skin */
 html[data-skin=material] .seg{background:var(--seg-bg,color-mix(in oklab,var(--on-s) 9%,transparent))}
+
+/* ---- search bars (المزيد, the Mushaf index, Settings): floating glass pills like the dock, no opaque band behind them ---- */
+html[data-skin=glass]:not([data-solid]) :is(.sec-sticky,.st-search){background:linear-gradient(color-mix(in oklab,var(--s0) 78%,transparent) 55%,transparent);-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-skin=glass] .sec-sticky .field,html[data-skin=glass] .st-sbox,html[data-skin=glass] .more-bar>.icon-btn{
+  background:linear-gradient(var(--card-bg),var(--card-bg)),color-mix(in oklab,var(--s0) 70%,transparent);
+  box-shadow:0 6px 18px rgba(0,0,0,.12),inset 0 0 0 1px var(--card-border),inset 0 1px 0 rgba(255,255,255,.22);
+  -webkit-backdrop-filter:blur(24px) saturate(1.8);backdrop-filter:blur(24px) saturate(1.8)}
+html[data-skin=glass] .sec-sticky .field,html[data-skin=glass] .st-sbox{min-height:48px;border-radius:999px}
+html[data-skin=glass] .sec-sticky .field:focus,html[data-skin=glass] .st-sbox:focus-within{box-shadow:0 6px 18px rgba(0,0,0,.12),inset 0 0 0 1.5px color-mix(in oklab,var(--p) 70%,transparent)}
+html[data-skin=glass] .more-bar{display:flex;align-items:center;gap:10px}
+html[data-skin=glass] .more-bar>.icon-btn{width:48px;height:48px;flex:none}
