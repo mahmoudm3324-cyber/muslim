@@ -188,8 +188,9 @@ M.openQuranStats = function(){
 };
 
 /* ---------------- global search ---------------- */
-M.openSearch = function(){
+M.openSearch = function(pre){
   const q = h('input.field', {type:'search', placeholder:'ابحث عن سورة أو آية أو ذكر…', enterkeyhint:'search'});
+  if(typeof pre === 'string') q.value = pre.slice(0, 200);   // Siri: «ابحث في المسلم عن …»
   const out = h('div');
   const FEATS = [['جدول المحاسبة','check',()=>M.openTracker()],['المسبحة','s:counter',()=>M.openTasbih()],['التقويم الهجري','calendar',()=>M.openCalendar()],['أسماء الله الحسنى','sparkle',()=>M.openNames()],['يوم الجمعة','mosque',()=>M.openFriday()],['رمضان','moon',()=>M.openRamadan()],['الحج والعمرة','kaaba',()=>M.openHajj()],['ركن الأطفال','kids',()=>M.openKids()],['إذاعة القرآن','radio',()=>M.openRadio()],['البث المباشر','tv',()=>M.openTV()],['القبلة','compass',()=>M.openQibla()],['حاسبة الزكاة','trophy',()=>M.openZakat()],['تتبّع القضاء','history',()=>M.openQada()],['التذكيرات','bell',()=>M.openReminders()],['الإعدادات','settings',()=>M.openSettings()],['الخلفية والمظهر','palette',()=>M.openSettings('look')]];
   function draw(){
