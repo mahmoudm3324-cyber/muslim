@@ -5,7 +5,11 @@ const M = window.M, root = document.documentElement;
 /* performance tier: auto → low on weak devices; user can force with cfg.fx = 'low' | 'high' */
 M.applyFx = function(){
   let t = M.cfg.fx || 'auto';
-  if(t === 'auto'){
+  if(t === 'auto' && M.isIOS){
+    // iPhones/iPads: Safari reports no deviceMemory (it used to read as a weak 4 GB phone and lost the glass); their GPUs run
+    // the full Liquid Glass. If page transitions keep dropping frames, it steps down to the middle tier (fxSlow, measured below).
+    t = M.store.get('fxSlow', false) ? 'mid' : 'high';
+  } else if(t === 'auto'){
     const mem = navigator.deviceMemory || 4, cores = navigator.hardwareConcurrency || 4;
     const weak = mem <= 4 || cores <= 6;
     t = weak || M.store.get('fxSlow', false) ? 'low' : 'mid';

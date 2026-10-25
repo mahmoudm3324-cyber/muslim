@@ -10,6 +10,14 @@ const M = window.M = window.M || {};
   var fit = function(){ var h = Math.max(window.innerHeight || 0, screen.height || 0, (window.visualViewport && visualViewport.height) || 0); if(window.innerWidth > window.innerHeight) h = window.innerHeight; de.style.setProperty('--app-h', h + 'px'); };
   fit(); addEventListener('resize', fit); addEventListener('scroll', function(){ if(window.scrollY || window.scrollX) window.scrollTo(0, 0); }, {passive:true}); addEventListener('orientationchange', function(){ setTimeout(fit, 250); }); addEventListener('pageshow', fit);
 }catch(e){} })();
+/* iPhone app: the document itself never scrolls (the screens do); undo any shift iOS leaves after the keyboard */
+(function(){ try{
+  if(!window.isIOSApp) return;
+  var back = function(){ if(window.scrollY || window.scrollX) window.scrollTo(0, 0); };
+  addEventListener('scroll', back, {passive:true});
+  if(window.visualViewport) visualViewport.addEventListener('resize', function(){ setTimeout(back, 60); });
+  document.addEventListener('focusout', function(){ setTimeout(back, 120); });
+}catch(e){} })();
 M.VERSION = '3.0.0';
 M.$ = (s,r)=>(r||document).querySelector(s);
 M.$$ = (s,r)=>Array.from((r||document).querySelectorAll(s));
