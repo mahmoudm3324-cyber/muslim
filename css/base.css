@@ -245,8 +245,9 @@ svg.ic.chev{stroke-width:2.15}
 
 /* iPhone native shell (js/v2-native.js): the bar is native; a screen the native layer is showing stays empty underneath it */
 html[data-native] #tabbar{display:none!important}
-html[data-native][data-native-show] :is(#screen-prayer,#screen-home,#screen-adhkar,#screen-more,#screen-quran){opacity:0;pointer-events:none}
+/* !important: the glass skin's entrance animation (fill-mode both) would otherwise keep the page's screen visible under the native one */
+html[data-native][data-native-show] :is(#screen-prayer,#screen-home,#screen-adhkar,#screen-more,#screen-quran){opacity:0!important;pointer-events:none!important;animation:none!important}
 /* pages and sheets the native layer draws stay laid out (it reads them) but unseen */
-html[data-native][data-native-view] #views,html[data-native][data-native-sheet] #sheet-root{opacity:0;pointer-events:none}
+html[data-native][data-native-view] #views,html[data-native][data-native-sheet] #sheet-root{opacity:0!important;pointer-events:none!important}
 /* the native layer animates them itself; the page underneath is read where it ends up */
 html[data-native][data-native-view] #views .view,html[data-native][data-native-sheet] #sheet-root .sheet{animation:none!important;transition:none!important;transform:none!important}

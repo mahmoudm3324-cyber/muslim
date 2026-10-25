@@ -44,7 +44,7 @@ function mix(expr){ probe.style.color = expr; return rgb(getComputedStyle(probe)
 function theme(){
   if(!probe.isConnected) document.body.append(probe);
   const dark = root.dataset.theme !== 'light';
-  return {dark, amoled:root.dataset.theme === 'amoled', skin:root.dataset.skin || 'glass', solid:root.hasAttribute('data-solid'), contrast:root.hasAttribute('data-contrast'),
+  return {dark, hindi:M.cfg.digits === 'hindi', amoled:root.dataset.theme === 'amoled', skin:root.dataset.skin || 'glass', solid:root.hasAttribute('data-solid'), contrast:root.hasAttribute('data-contrast'),
     fs:+(getComputedStyle(root).getPropertyValue('--fs') || 1) || 1,
     p:token('--p'), onP:token('--on-p'), pc:token('--pc'), onPc:token('--on-pc'), s0:token('--s0'), s1:token('--s1'), onS:token('--on-s'), onSV:token('--on-sv'),
     gold:token('--gold'), outlineV:token('--outline-v'), ok:token('--ok'),
@@ -163,6 +163,10 @@ function boxStyle(el, cs){
   const op = +cs.opacity; if(op < 0.99 && !(el.getAnimations && el.getAnimations().length) && cs.animationName === 'none') b.op = +op.toFixed(2);
   return b;
 }
+function showsInside(el, d){
+  for(const c of el.children){ const r = c.getBoundingClientRect(); if(r.width && r.right > 1 && r.left < innerWidth - 1) return true; if(d < 4 && showsInside(c, d + 1)) return true; }
+  return false;
+}
 function inScroller(el){
   for(let p = el.parentElement, i = 0; p && i < 8; p = p.parentElement, i++){ const o = getComputedStyle(p).overflowX; if(o === 'auto' || o === 'scroll') return true; }
   return false;
@@ -175,7 +179,7 @@ function convert(el, depth){
   const tag = el.tagName;
   const r = el.getBoundingClientRect();
   if(!r.width && !r.height && cs.position !== 'fixed') return null;
-  if((r.right <= 1 || r.left >= innerWidth - 1) && cs.position !== 'fixed' && !inScroller(el)) return null;
+  if((r.right <= 1 || r.left >= innerWidth - 1) && cs.position !== 'fixed' && !inScroller(el) && !showsInside(el, 0)) return null;
   let n;
   if(tag === 'svg' || tag === 'SVG' || el instanceof SVGElement){
     const w = Math.max(1, Math.round(r.width)), hh = Math.max(1, Math.round(r.height));
@@ -253,6 +257,8 @@ function convert(el, depth){
   if(n.k !== 'img' && n.k !== 'pic' && cs.display.startsWith('block') && pcs && pcs.display === 'block') n.full = 1;
   if((n.k === 'v' || n.k === 'h' || n.k === 'g') && (n.bg || n.glass || n.grad) && /px$/.test(el.style.width || '')) n.w = Math.round(r.width);
   if((n.bg || n.glass || n.grad || n.bor) && r.height && (el.style.height || cs.aspectRatio !== 'auto')) n.h = Math.round(r.height);
+  // small boxes keep their size (round icon buttons, chips with an icon, badges)
+  if((n.k === 'v' || n.k === 'h') && (n.bg || n.glass || n.bor || clickable(el)) && r.width && r.width <= 72 && r.height <= 72){ n.w = Math.round(r.width); n.h = Math.round(r.height); if(!n.ai) n.ai = 'c'; if(n.k === 'h' && !n.jc) n.jc = 'c'; }
   const mt = parseFloat(cs.marginTop) || 0; if(mt > 0) n.mt = Math.round(mt);
   if(clickable(el)){ const id = 't'+(++tapSeq); taps.set(id, el); n.tap = id; if(el.getAttribute('aria-label')) n.lbl = el.getAttribute('aria-label'); if(el.hasAttribute('data-k') && el.closest('.mpage')) n.lp = 1; }
   // laid over its parent (frames, toolbars, badges): drawn at the same place
