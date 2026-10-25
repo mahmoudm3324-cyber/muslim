@@ -15,6 +15,7 @@ M.openReader = async function(opts){
   opts = opts || {};
   if(M.views.some(v=>v.el.id === 'view-reader')) M.views.filter(v=>v.el.id === 'view-reader').forEach(v=>v.close());
   const R = {mode:opts.mode || M.cfg.readMode, page:1, sel:null, imm:false, sc:null, pager:null, suppress:false, long:null};
+  M.readerR = R;     // the iPhone's native page turns through it (v2-native.js)
   document.documentElement.classList.add('in-reader');
   let ro = null;
   const view = M.openView({id:'reader', noHead:true, nopad:true, bg:'transparent', onClose:()=>{ document.documentElement.classList.remove('in-reader'); off.forEach(f=>f()); ro && ro.disconnect(); M.bgScopeApply(); }});
