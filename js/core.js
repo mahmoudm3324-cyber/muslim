@@ -18,7 +18,7 @@ const M = window.M = window.M || {};
   if(window.visualViewport) visualViewport.addEventListener('resize', function(){ setTimeout(back, 60); });
   document.addEventListener('focusout', function(){ setTimeout(back, 120); });
 }catch(e){} })();
-M.VERSION = '3.0.0';
+M.VERSION = '3.1.0';
 M.$ = (s,r)=>(r||document).querySelector(s);
 M.$$ = (s,r)=>Array.from((r||document).querySelectorAll(s));
 
@@ -92,7 +92,7 @@ M.platform = window.isIOSApp ? 'ios' : (window.Android && typeof window.Android.
 M.CAPS = {
   android:['widgets', 'appIcon', 'liveNotif', 'alarmRing', 'focusMode', 'keyStop', 'flipStop', 'volKeys', 'appLock', 'battery', 'exactAlarm', 'nativeHealth', 'quickTiles',
            'nativeVideo', 'notifAction', 'downloads', 'bgAudio', 'longAdhan', 'speech', 'micTone', 'popupUnlock'],
-  ios:['downloads', 'bgAudio', 'notifAction', 'speech', 'appIcon', 'appLock'].concat(window.__iosCaps || []),   // + liveNotif, and alarmRing on iOS 26 (from the app)
+  ios:['downloads', 'bgAudio', 'notifAction', 'speech', 'appIcon', 'appLock', 'siri'].concat(window.__iosCaps || []),   // + liveNotif, and alarmRing on iOS 26 (from the app)
   web:['speech']
 };
 M.can = f=>(M.CAPS[M.platform] || []).includes(f);

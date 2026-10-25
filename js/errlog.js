@@ -36,10 +36,13 @@ window.__errlog = {
   add: function(msg, where_){ add('app', msg, where_ || '', 0, 0, ''); }
 };
 
-/* boot watchdog: if the app has not drawn its first screen after 9 s, show a way out instead of a blank page */
-setTimeout(function(){
+/* boot watchdog: if the app has not drawn its first screen, show a way out instead of a blank page —
+   after 9 s when a script error was logged, otherwise after 25 s (a slow phone is still loading, not broken) */
+var started = Date.now();
+setTimeout(function watchdog(){
   try{
     if(window.M && window.M.curTab) return;
+    if(!load().length && Date.now() - started < 25000){ setTimeout(watchdog, 2000); return; }
     var errs = load().slice(-3).map(function(x){ return '• ' + x.msg + (x.src ? ' (' + x.src + ':' + x.line + ')' : ''); }).join('\n');
     var box = document.createElement('div');
     box.setAttribute('role', 'alert');
