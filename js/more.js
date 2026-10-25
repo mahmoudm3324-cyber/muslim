@@ -17,44 +17,29 @@ M.screens.more = {
     el.append(h('div.sec-sticky.more-bar', h('div.more-qw', h('span.more-qi', {html:M.icon('search')}), q), h('button.icon-btn.tonal', {'aria-label':'جميع الأقسام', onclick:()=>M.openAllSections()}, M.ic('grid'))));
     const box = h('div.more-box'); el.append(box);
     const SEC = id=>(M.SECTIONS || []).find(x=>x[0] === id);
-    const grid = secs=>h('div.grid3.more-grid', ...secs.map(s=>M.secTile(s)));
-    const row = (title, secs, cls)=>[h('div.section-h', title, h('span.small.muted.num', M.n(secs.length))), (()=>{ const g = grid(secs); if(cls) g.classList.add(cls); return g; })()];
-    /* the groups fold: tap a heading to hide or show its sections (remembered). The first group, your own worship, always stays open */
-    const FOLD = 'moreFold';
-    const folded = ()=>new Set(M.store.get(FOLD, null) || []);
-    const fold = (title, secs, fixed)=>{
-      const shut = !fixed && folded().has(title);
-      const g = grid(secs); g.hidden = shut;
-      const peek = h('span.more-peek', {'aria-hidden':'true'}, ...secs.slice(0, 5).map(s=>h('i', {html:M.icon(s[2])})));
-      const head = fixed ? h('div.section-h.more-gh.fixed', h('span.grow', title), h('span.small.muted.num', M.n(secs.length)))
-        : h('button.section-h.more-gh'+(shut ? '.shut' : ''), {'aria-expanded':shut ? 'false' : 'true', onclick:()=>{
-            const f = folded(); const now = !f.has(title); now ? f.add(title) : f.delete(title); M.store.set(FOLD, [...f]);
-            g.hidden = now; head.classList.toggle('shut', now); head.setAttribute('aria-expanded', now ? 'false' : 'true'); allBtn.refresh(); }},
-          h('span.grow', title), peek, h('span.small.muted.num', M.n(secs.length)), h('span.more-chev', M.ic('fwd')));
-      return [head, g];
-    };
-    const allBtn = h('button.more-all', {onclick:()=>{ const groups = M.orgGroups().slice(1).map(x=>x[0]); const anyOpen = groups.some(t=>!folded().has(t)); M.store.set(FOLD, anyOpen ? groups : []); draw(); }});
-    allBtn.refresh = ()=>{ const groups = M.orgGroups().slice(1).map(x=>x[0]); allBtn.textContent = groups.some(t=>!folded().has(t)) ? 'طيّ كل الأقسام' : 'فتح كل الأقسام'; };
+    /* each group is one card with a plain grid of icons. Not listed here: the Mushaf and Prayer tabs (in the bottom bar) and the
+       settings group (behind the gear above); all of them are still found by the search */
+    const SKIP = new Set(['quran', 'prayer', 'search', 'notifs', 'health', 'look', 'navbar_cfg', 'settings', 'v2_security']);
+    const group = (title, secs, cls)=>h('section.card.mg'+(cls ? '.'+cls : ''), h('div.mg-h', h('span', title), h('span.mg-n.num', M.n(secs.length))),
+      h('div.mg-grid', ...secs.map(s=>M.secTile(s, {noStar:true}))));
     function draw(){
       box.replaceChildren(); const v = q.value.trim();
       if(v){
         const r = M.secFind(v);
-        if(!r.length) box.append(h('div.empty', 'لا نتائج'), h('button.btn.tonal.block', {onclick:()=>M.openSearch()}, M.ic('search'), 'ابحث في الآيات والأذكار'));
-        else box.append(h('div.section-h', 'النتائج', h('span.small.muted.num', M.n(r.length))), grid(r));
+        if(!r.length) box.append(h('div.empty', 'لا نتائج'), h('button.btn.tonal.block', {onclick:()=>M.openSearch(v)}, M.ic('search'), 'ابحث في الآيات والأذكار'));
+        else box.append(group('النتائج', r));
         return;
       }
       const pins = M.secPins().map(SEC).filter(Boolean);
-      const rec = M.secRecent().map(SEC).filter(Boolean);
-      if(pins.length) box.append(...row('المثبّتة', pins));
-      if(rec.length) box.append(...row('استخدمتها مؤخرًا', rec));
-      if(!pins.length) box.append(h('div.small.muted.more-tip', M.ic('star'), 'اضغط مطولًا على أي قسم لتثبيته هنا'));
-      const org = M.orgGroups();
-      allBtn.refresh(); box.append(h('div.more-allrow', h('span.small.muted', 'اضغط عنوان أي مجموعة لإخفائها أو إظهارها'), allBtn));
-      org.forEach(([g, secs], k)=>box.append(...fold(g, secs, k === 0)));
+      if(pins.length) box.append(group('المثبّتة', pins, 'mg-pins'));      // long press any icon to pin or unpin it
+      // the summer-time switch is a tool, not a season: it joins أدوات (which would otherwise hold only two)
+      const org = M.orgGroups().map(([g, secs])=>[g, secs.filter(s=>!SKIP.has(s[0]))]), tools = org.find(x=>x[0] === 'أدوات');
+      if(tools) org.forEach(x=>{ if(x !== tools){ const i = x[1].findIndex(s=>s[0] === 'dst'); if(i >= 0) tools[1].push(...x[1].splice(i, 1)); } });
+      org.forEach(([g, l])=>{ if(l.length) box.append(group(g, l)); });
     }
     draw();
     if(el._moreUn) el._moreUn.forEach(f=>f());
-    el._moreUn = [M.on('secpins', ()=>{ if(el.isConnected && !q.value.trim()) draw(); }), M.on('viewclose', ()=>{ if(el.isConnected && M.curTab === 'more' && !q.value.trim()){ const y = el.scrollTop; draw(); el.scrollTop = y; } })];
+    el._moreUn = [M.on('secpins', ()=>{ if(el.isConnected && !q.value.trim()){ const y = el.scrollTop; draw(); el.scrollTop = y; } })];
   }
 };
 

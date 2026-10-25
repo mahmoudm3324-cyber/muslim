@@ -146,7 +146,7 @@ html[data-theme=dark] .ob-play,html[data-theme=amoled] .ob-play{color:color-mix(
 /* footer */
 .ob-foot{position:relative;padding:10px 20px calc(var(--sab,0px) + 14px);display:flex;flex-direction:column;gap:8px}
 .ob-go{box-shadow:0 14px 30px -14px var(--p)}.ob-go:disabled{opacity:.5}
-.ob .btn.ghost.ob-sec{color:var(--ob-fg);opacity:1}
+html[data-skin] .ob .btn.ghost.ob-sec,.ob .btn.ghost.ob-sec{color:var(--ob-fg);opacity:1;background:transparent;box-shadow:inset 0 0 0 1.5px color-mix(in oklab,var(--ob-fg) 30%,transparent)}
 .ob-legal{text-align:center;font-size:.72rem;color:var(--ob-mut)}.ob-legal a{text-decoration:underline;cursor:pointer}
 @media (max-height:680px){.ob-big{font-size:2.3rem}.ob-arch.big{width:100px;height:120px}.ob-h{font-size:1.36rem}.ob-arch{width:44px;height:53px}.ob-arch-ic svg{width:20px;height:20px}.ob-page{gap:9px}}
 @media (max-width:350px){.ob-bento{grid-template-columns:1fr}.ob-tnum{gap:10px}}

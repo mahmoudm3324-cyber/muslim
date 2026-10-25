@@ -131,7 +131,7 @@ M.screens.prayer = {
       isToday ? h('div', nxName, nxTime) : h('div', h('div.nx-n.title-font', M.WEEKDAYS[ps.date.getDay()]), h('div.nx-t', hj ? M.n(hj.d)+' '+M.HMONTHS[hj.m-1]+' '+M.n(hj.y)+' هـ' : '')),
       isToday ? h('div.cd-wrap', h('span.small.muted', 'بعد'), cd) : null,
       isToday ? h('div.bar.hero-bar', pbar) : null,
-      M.heroImg('prayer'));
+      (M.heroImg ? M.heroImg('prayer') : null));
     el.append(hero);
     function tickHero(){
       if(!isToday) return;

@@ -56,7 +56,7 @@ M.screens.home = {
       let focus = null, focusT = null; // a prayer picked from the row below: the card shows it for a few seconds
       const hero = h('button.card.accent.prayer-hero.home-prayer', {onclick:()=>M.setTab('prayer')},
         h('div.hero-top', h('div.hero-nm', cap, nm), h('div.cd-wrap', cd)), tm,
-        h('div.bar.hero-bar', bar), M.heroImg('home'));
+        h('div.bar.hero-bar', bar), (M.heroImg ? M.heroImg('home') : null));
       const tick = ()=>{
         const g = el.querySelector('.greet'); if(g){ const gt = greet(); if(g.textContent !== gt) g.textContent = gt; }
         if(focus){
@@ -234,6 +234,8 @@ function boot(){
   M.syncNative && M.syncNative();
   M.maybeOnboard && M.maybeOnboard();
   try{ M.autoBackup && M.autoBackup(); M.myDuaReminder && setTimeout(M.myDuaReminder, 1500); if(M.cfg.startRandom && M.openRandom) setTimeout(M.openRandom, 400); }catch(e){}
+  // the iPhone app serves its files itself: a leftover service worker there would keep old files after an update
+  if(window.isIOSApp && 'serviceWorker' in navigator){ try{ navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{}); }catch(e){} }
   if('serviceWorker' in navigator && location.protocol.startsWith('http') && !window.Android){ try{ navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).then(function(r){ try{ r.update(); }catch(e){} }).catch(function(){}); var hadSW = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener('controllerchange', function(){ try{ if(hadSW && !sessionStorage.getItem('swReloaded')){ sessionStorage.setItem('swReloaded','1'); location.reload(); } }catch(e){} }); }catch(e){} }
   // let the native splash know we're ready
   try{ window.Android && window.Android.ready && window.Android.ready(); }catch(e){}

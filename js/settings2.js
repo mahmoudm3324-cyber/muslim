@@ -44,6 +44,7 @@ S.alarm = {title:'منبّه الصلاة', build(b){
       h('span.lead', {html:M.icon('play')}), h('div.grow', h('div.t', 'استماع للصوت'), h('div.s', 'اضغط مرة أخرى للإيقاف'))));
   b.append(sndCard);
 
+  if(!android) b.append(h('div.list.card', {style:'margin-top:12px'}, row('الاهتزاز', 'آبل لا تسمح للتطبيقات بالتحكم في اهتزاز المنبّه. لإيقافه: الإعدادات ← الأصوات والحس اللمسي ← الحس اللمسي ← «عدم التشغيل مطلقًا»، أو الإعدادات ← تسهيلات الاستخدام ← اللمس ← الاهتزاز.', null)));
   if(android){
     /* how it rings: volume, a gradual start, vibration, how long, snooze */
     b.append(sec('طريقة الرنين'));
