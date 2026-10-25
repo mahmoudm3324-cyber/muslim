@@ -299,6 +299,7 @@ M.openOnboarding = function(mode){
 /* what changed, shown once after an update (edit together with the version) */
 // what's new: plain text for everyone, or [text, capability, text where that capability is missing (optional)]
 M.WHATS_NEW = [
+  'نسخة الأندرويد موقّعة بمفتاح التطبيق الأصلي: تُحدَّث فوق النسخة المثبّتة دون حذفها ودون فقد بياناتك',
   ['على الآيفون: المصحف أصلي بخطه نفسه (خطوط مصحف المدينة)، مع تقليب الصفحات والتفسير بالضغط المطوّل، والبث والزكاة والمظهر وتصميم البطاقات أصلية كذلك', 'siri', ''],
   ['على الآيفون: المصحف وكل صفحات الأقسام والنوافذ صارت أصلية بنفس التصميم، مع السحب للرجوع', 'siri', ''],
   ['على الآيفون: الرئيسية والأذكار والمزيد صارت أصلية أيضًا، بكل بطاقاتها وأزرارها وبنفس التصميم', 'siri', ''],
