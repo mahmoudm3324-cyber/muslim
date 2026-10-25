@@ -528,4 +528,6 @@ function openQibla(){
   start();
 }
 M.openQiblaMap = qiblaMap; M.openQibla = openQibla; M.prayerSettings = prayerSettings; M.locationSheet = locationSheet;
+/* for the iPhone's native prayer screen (v2-native.js): the day shown, and the sheets it opens */
+M.prayerUI = {ps, openSchedule, prayerSheet, refresh, shift(d){ ps.date = d ? M.addDays(ps.date, d) : new Date(); refresh(); }};
 })();

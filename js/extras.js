@@ -299,6 +299,7 @@ M.openOnboarding = function(mode){
 /* what changed, shown once after an update (edit together with the version) */
 // what's new: plain text for everyone, or [text, capability, text where that capability is missing (optional)]
 M.WHATS_NEW = [
+  ['على الآيفون: الشريط السفلي وصفحة الصلاة صارا أصليين بلغة تصميم التطبيق نفسها — أسرع وأنعم', 'siri', ''],
   'صفحة «المزيد» أبسط: كل مجموعة في بطاقة واحدة، دون تكرار أو شروح زائدة',
   'منبّه الصلاة: مستوى الصوت، والبدء الهادئ، وأنماط الاهتزاز أو إيقافه، ومدة الرنين، والغفوة',
   'واجهة أسرع وتنقّل وسحب للرجوع أكثر سلاسة، وتباين أوضح في الوضع الزجاجي',

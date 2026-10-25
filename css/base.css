@@ -242,3 +242,7 @@ svg.ic.chev{stroke-width:2.15}
   .sheet{inset-inline:max(0px,calc((100% - 640px) / 2));border-radius:var(--sheet-r,28px) var(--sheet-r,28px) 0 0}
   .more-grid{grid-template-columns:repeat(6,minmax(0,1fr))}
 }
+
+/* iPhone native shell (js/v2-native.js): the bar is native; a screen the native layer is showing stays empty underneath it */
+html[data-native] #tabbar{display:none!important}
+html[data-native][data-native-show] #screen-prayer{visibility:hidden}

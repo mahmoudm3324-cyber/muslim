@@ -136,6 +136,14 @@ function dayRow(dk, opts){
 }
 
 /* card on the prayer tab for the day being shown there */
+/* for the iPhone's native prayer screen: the day's five prayers as data, and the same picker */
+M.plogDay = function(date){
+  const dk = keyOf(date || new Date()), day = PL.day(dk), now = Date.now(), d = M.parseKey(dk); d.setHours(12, 0, 0, 0);
+  let t = null; try{ t = M.prayerTimes(d); }catch(e){}
+  return {dk, today:dk === M.dkey(), count:PL.dayCount(dk), items:P.map(([k])=>{ const st = day[k] || '', future = !!(t && t[k] && t[k].getTime() > now);
+    return {k, label:lbl(k, dk), st, ic:st ? ST[st].ic : future ? 'clock' : 'plus', sub:st ? ST[st].s : future && t ? M.fmt(t[k]) : 'سجّل', future:future && !st}; })};
+};
+M.plogPick = (dk, k, done)=>pick(dk, k, done);
 M.plogCard = function(date){
   const dk = keyOf(date || new Date());
   const isToday = dk === M.dkey();

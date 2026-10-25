@@ -18,7 +18,7 @@ const M = window.M = window.M || {};
   if(window.visualViewport) visualViewport.addEventListener('resize', function(){ setTimeout(back, 60); });
   document.addEventListener('focusout', function(){ setTimeout(back, 120); });
 }catch(e){} })();
-M.VERSION = '3.2.0';
+M.VERSION = '3.3.0';
 M.$ = (s,r)=>(r||document).querySelector(s);
 M.$$ = (s,r)=>Array.from((r||document).querySelectorAll(s));
 
