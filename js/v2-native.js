@@ -240,8 +240,15 @@ function convert(el, depth){
     const disp = cs.display;
     let k = 'v';
     if(disp.indexOf('flex') >= 0) k = cs.flexDirection.startsWith('row') ? 'h' : 'v';
-    else if(disp.indexOf('grid') >= 0){ const cols = cs.gridTemplateColumns.split(/\s+(?![^(]*\))/).filter(Boolean).length; k = cols > 1 ? 'g' : 'v'; if(k === 'g') n = {cols}; }
+    else if(disp.indexOf('grid') >= 0){
+      const tracks = cs.gridTemplateColumns.split(/\s+(?![^(]*\))/).filter(Boolean), cols = tracks.length;
+      k = cols > 1 ? 'g' : 'v'; if(k === 'g') n = {cols};
+      // one row of unequal columns (icon · text · button): a row where the widest column takes the rest
+      const px = tracks.map(t=>parseFloat(t) || 0), uneven = Math.max(...px) - Math.min(...px) > 4;
+      if(k === 'g' && uneven && el.children.length <= cols){ k = 'h'; n = {colw:px}; }
+    }
     n = Object.assign(n || {}, {k, c:kids});
+    if(n.colw){ const mx = Math.max(...n.colw); kids.forEach((ch, i)=>{ const w = n.colw[i]; if(w == null) return; if(w >= mx - 1) ch.grow = 1; else if(!ch.w) ch.w = Math.round(w); }); delete n.colw; if(!n.ai) n.ai = 'c'; }
     if(k === 'h' && (cs.overflowX === 'auto' || cs.overflowX === 'scroll') && el.scrollWidth > el.clientWidth + 2) n.k = 'hs';   // a strip that scrolls sideways
     const gap = parseFloat(cs.columnGap) || parseFloat(cs.gap) || 0, rgap = parseFloat(cs.rowGap) || 0;
     if(gap) n.gap = Math.round(gap); if(rgap && k !== 'h') n.rgap = Math.round(rgap);
@@ -317,7 +324,8 @@ function layers(){
     if(unsupported(top.body)) { out.web = true; return out; }
     const head = top.head && top.head.isConnected ? top.head : null;
     const acts = head ? [...head.children].slice(2).map(c=>convert(c, 0)).filter(Boolean) : [];
-    const vbg = top.el.style.background ? rgb(getComputedStyle(top.el).backgroundColor) : null;
+    let vbg = top.el.style.background ? rgb(getComputedStyle(top.el).backgroundColor) : null;
+    if(vbg && vbg[3] < 0.6) vbg = null;      // a see-through or gradient background: the native page keeps the app's own (opaque) one
     out.view = {id:top.el.id || '', title:(top.title && top.title.textContent) || '', actions:acts, body:tree(top.body), depth:vs.length, bg:vbg, nohead:!head};
   }
   const ss = liveSheets(), sh = ss[ss.length - 1];
