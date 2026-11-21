@@ -205,13 +205,17 @@ function bubble(on){
 }
 M.popupBubble = bubble;
 function placeBub(root){ const b = root.querySelector('.pop-bubble'); if(!b || FLOAT()) return; const y = Math.max(.08, Math.min(.86, +ucfg().by || .62)); b.style.top = (y * 100).toFixed(2) + '%'; }
+/* the circle's emblems: the Mushaf open on its stand (رحل) for the khatma, the word «أذكار» for the adhkar */
+const REHAL = '<svg viewBox="0 0 64 40" aria-hidden="true" fill="currentColor"><path d="M3 8.5c10-4.5 20-3 28.2 6.3v8.6C22.8 15 13 13.6 3 16.8z"/><path d="M61 8.5c-10-4.5-20-3-28.2 6.3v8.6C41.2 15 51 13.6 61 16.8z"/>'
+  + '<path d="M9 7.2c8.6-2.6 16 .2 22 6.4M55 7.2c-8.6-2.6-16 .2-22 6.4" fill="none" stroke="currentColor" stroke-width=".9" opacity=".55"/>'
+  + '<path d="M1.5 19.6 31 33.8l1.8-2.9L4 17z"/><path d="M62.5 19.6 33 33.8l-1.8-2.9L60 17z"/><path d="M12.5 37.6 24 30.4l3 1.8-12.6 7z"/><path d="M51.5 37.6 40 30.4l-3 1.8 12.6 7z"/></svg>';
 function bubBtn(){ return h('button.icon-btn.pop-x.pop-tobub', {'aria-label':'تصغير إلى دائرة', title:'دائرة', onclick:()=>bubble(true)}, h('i.pop-tobub-i')); }
 function shell(kind){
   const root = h('div.pop-root.popk-'+kind+'.pz-'+SZ(), {role:'dialog', 'aria-modal':'true'});
   const scrim = h('div.pop-scrim', {onclick:()=>close('scrim')});
   const card = h('div.pop-card');
   const bub = h('div.pop-bubble',
-    h('button.pop-bub-main', {'aria-label':kind === 'wird' ? 'افتح ورد الختمة' : 'افتح الذكر'}, h('span.pop-bub-ic', {html:M.icon(kind === 'wird' ? 's:khatma' : 's:beads')}), h('i.pop-bub-dot')),
+    h('button.pop-bub-main', {'aria-label':kind === 'wird' ? 'افتح ورد الختمة' : 'افتح الذكر'}, kind === 'wird' ? h('span.pop-bub-ic.rehal', {html:REHAL}) : h('span.pop-bub-ic.athkar', 'أذكار'), h('i.pop-bub-dot')),
     h('button.pop-bub-x', {'aria-label':'إغلاق', onclick:e=>{ e.stopPropagation(); close('x'); }}, M.ic('close')));
   root.append(scrim, card, bub);
   /* the circle: tap = open the card; drag (in the app) = move it up or down */

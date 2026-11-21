@@ -465,3 +465,6 @@ html.pop-float .pop-bub-x{top:-4px;inset-inline-start:-4px}
 /* over other apps the window is only a little larger than the circle: no pulse or wide shadow to be cut at its edges */
 html.pop-float .pop-bub-main::before{display:none}
 html.pop-float .pop-bub-main{box-shadow:0 3px 8px -2px rgba(0,0,0,.45),0 0 0 3px color-mix(in oklab,var(--gold,#d9b863) 75%,transparent),inset 0 1px 0 rgba(255,255,255,.35)}
+.pop-bub-ic.rehal svg{width:40px;height:26px;margin-top:4px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+.pop-bub-ic.athkar{font-family:var(--font-title,inherit);font-weight:800;font-size:1.02rem;line-height:1;letter-spacing:0;margin-top:2px;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+html.pop-float .pop-bub-ic.athkar{font-size:1.1rem}
