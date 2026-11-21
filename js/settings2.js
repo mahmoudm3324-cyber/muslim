@@ -403,6 +403,11 @@ S.widgets = {title:'الودجت (الأدوات)', build(b){
   const PRE = [['ليلي ذهبي','#20261F','#FFFFFF','#D9B863'],['فحمي','#23262B','#FFFFFF','#FFFFFF'],['زمردي','#0F5A47','#FFFFFF','#CCE9DD'],['كحلي','#0f172a','#FFFFFF','#93c5fd'],['أبيض','#FFFFFF','#14342b','#0F8A6D'],['أسود','#000000','#FFFFFF','#D9B863']];
   const SW = {bg:['#20261F','#23262B','#000000','#0F5A47','#0f172a','#3b1d2a','#4a3423','#FFFFFF'], tx:['#FFFFFF','#F5EFE0','#CFE6CF','#14342b','#111111'], ac:['#D9B863','#FFFFFF','#CCE9DD','#93c5fd','#f0abfc','#fca5a5','#0F8A6D']};
   let st = Object.assign({bg:'#20261F', tx:'#FFFFFF', ac:'#D9B863', alpha:100}, M.cfg.wdg || {});
+  /* «adapt to the system» (default for anyone who never picked colours): the widgets take the phone's colours, light or dark with it */
+  const auto = ()=>M.cfg.wdgAuto === undefined ? !M.cfg.wdg : !!M.cfg.wdgAuto;
+  const sysCols = ()=>{ try{ const c = JSON.parse(window.Android.getWidgetColors()); if(c.length === 3) return {bg:c[0], tx:c[1], ac:c[2]}; }catch(e){}
+    return matchMedia('(prefers-color-scheme: dark)').matches ? {bg:'#14292F', tx:'#EAF2F3', ac:'#7FD1E6'} : {bg:'#E8F3F5', tx:'#111A1C', ac:'#21778C'}; };
+  const eff = ()=>auto() ? Object.assign({}, st, sysCols()) : st;
   const bgSrc = ()=>M.cfg.wdgBg || '';
   const same = (a, c)=>String(a).toLowerCase() === String(c).toLowerCase();
   const lum = c=>{ const n = parseInt(c.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000; };
@@ -410,10 +415,11 @@ S.widgets = {title:'الودجت (الأدوات)', build(b){
   const sv = (name, cls)=>h('span.wg-ic'+(cls || ''), {html:M.icon(name)});
   const card = (title, cls, ...kids)=>{
     const img = bgSrc(), src = img === 'custom' ? (M.cfg.wdgBgData || '') : img;
-    const tx = img ? '#FFFFFF' : st.tx;
-    const w = h('div.wg'+cls, {style:img ? 'background:linear-gradient(rgba(0,0,0,'+(M.cfg.wdgFade ? .25 : .5)+'),rgba(0,0,0,'+(M.cfg.wdgFade ? .25 : .5)+')),url("'+src+'") center/cover' : 'background:'+st.bg+';opacity:'+Math.max(.3, st.alpha / 100)}, ...kids);
+    const E = eff();
+    const tx = img ? '#FFFFFF' : E.tx;
+    const w = h('div.wg'+cls, {style:img ? 'background:linear-gradient(rgba(0,0,0,'+(M.cfg.wdgFade ? .25 : .5)+'),rgba(0,0,0,'+(M.cfg.wdgFade ? .25 : .5)+')),url("'+src+'") center/cover' : 'background:'+E.bg+';opacity:'+Math.max(.3, E.alpha / 100)}, ...kids);
     if(img && M.cfg.wdgFade) w.prepend(h('div.wg-fade', {dataset:{d:M.cfg.wdgFade}}));
-    w.style.color = tx; w.style.setProperty('--ac', st.ac); w.style.setProperty('--wbg', img ? 'rgba(0,0,0,.45)' : st.bg); w.style.setProperty('--mint', lum(tx) > 150 ? '#CFE6CF' : st.ac);
+    w.style.color = tx; w.style.setProperty('--ac', E.ac); w.style.setProperty('--wbg', img ? 'rgba(0,0,0,.45)' : E.bg); w.style.setProperty('--mint', lum(tx) > 150 ? '#CFE6CF' : E.ac);
     return h('div.wg-slide', w, h('div.small.muted.center', title));
   };
   /* live sample cards that follow the colours / background chosen below */
@@ -442,8 +448,8 @@ S.widgets = {title:'الودجت (الأدوات)', build(b){
   };
   const apply = ()=>{
     M.cfg.wdg = st; M.save();
-    try{ if(window.Android && Android.setWidgetStyle) Android.setWidgetStyle(st.bg, st.tx, st.ac, st.alpha); }catch(e){}
-    draw(); paint();
+    try{ if(window.Android && Android.setWidgetStyle) Android.setWidgetStyle(st.bg, st.tx, st.ac, st.alpha); if(window.Android && Android.setWidgetAuto) Android.setWidgetAuto(auto()); }catch(e){}
+    draw(); paint(); autoUi();
   };
   const setBg = (src, data)=>{
     M.cfg.wdgBg = src; if(src === 'custom') M.cfg.wdgBgData = data; else delete M.cfg.wdgBgData; M.save();
@@ -565,10 +571,15 @@ S.widgets = {title:'الودجت (الأدوات)', build(b){
     tabs, list,
     h('div.card.pad.wgc-how', h('div.bold', 'طريقة الإضافة اليدوية'), h('ol.small', {style:'line-height:2;margin:6px 0 0;padding-inline-start:20px'}, h('li', 'اضغط مطولًا على الشاشة الرئيسية'), h('li', 'اختر «الأدوات / Widgets»'), h('li', 'ابحث عن «المسلم» واختر الشكل الذي تريده'), h('li', 'اضغط مطولًا على الودجت واسحب حوافه لتغيير حجمه؛ يعيد ترتيب محتواه حسب المساحة'))),
     note(window.Android ? 'كل شكل يأخذ ألوانك وخلفيتك المختارة من تبويب «المظهر والألوان».' : 'الودجت متاح في تطبيق الأندرويد فقط؛ الصور أعلاه معاينة حقيقية للشكل.'));
+  const manual = h('div', h('div.section-h', 'ألوان جاهزة'), themes, h('div.section-h', 'ألوان مخصصة'), custom);
+  const autoRow = h('div.list.card', {style:'margin-bottom:10px'}, h('div.item.static', h('span.lead', {html:M.icon('palette')}), h('div.grow', h('div.t', 'لون متكيف مع النظام'),
+    h('div.s', 'تأخذ الودجت ألوان هاتفك (ألوان الخلفية على أندرويد ١٢ وما بعده) وتتحول مع الوضع الفاتح والداكن')),
+    M.switchEl(auto(), v=>{ M.save('wdgAuto', v); try{ if(window.Android && Android.setWidgetAuto) Android.setWidgetAuto(v); }catch(e){} draw(); autoUi(); })));
+  const autoUi = ()=>{ manual.hidden = auto(); };
   const look = h('div.wgc-pane', {hidden:true},
+    autoRow,
     h('div.section-h', 'معاينة فورية — اسحب لتتصفحها'), prev,
-    h('div.section-h', 'ألوان جاهزة'), themes,
-    h('div.section-h', 'ألوان مخصصة'), custom,
+    manual,
     h('div.section-h', 'خلفية الودجت'), gal, file,
     h('div.row-flex.gap-s', {style:'margin-top:10px;flex-wrap:wrap'}, h('button.btn.sm', {onclick:()=>M.openOnlineBg(async url=>{ let small = url; try{ const bl = await (await fetch(url)).blob(); small = await M.imageToDataURL(bl, 720, .82); }catch(e){} setBg('custom', small); })}, M.ic('download'), 'تنزيل خلفيات'),
       h('button.btn.tonal.sm', {onclick:()=>file.click()}, M.ic('image'), 'صورة من جهازي')), fadeBox,
@@ -578,7 +589,7 @@ S.widgets = {title:'الودجت (الأدوات)', build(b){
   [['g', 'الأشكال'], ['l', 'المظهر والألوان']].forEach(([id, name])=>main.append(h('button.wgc-mt', {type:'button', role:'tab', dataset:{p:id}, onclick:()=>showPane(id)}, name)));
   b.append(main, gallery, look);
   if(window.Android && !M.cfg.wdg) apply(); else { draw(); paint(); }
-  mark(); fadeUi(); showPane('g');
+  mark(); fadeUi(); autoUi(); showPane('g');
 }};
 
 /* ---- help ---- */
