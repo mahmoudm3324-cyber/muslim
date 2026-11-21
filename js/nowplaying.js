@@ -125,16 +125,21 @@ function build(){
   loadPos();
   const eq = ()=>h('div.np-eq', h('i'), h('i'), h('i'), h('i'));
   /* the classic expanded pill (v1.0.5 look and behaviour) + the stop-scheduling row */
-  pill = h('div.nowplaying.hide',
-    h('button.np-art', {'aria-label':'تصغير المشغّل', onclick:()=>setOpen(false)}, eq()),
-    h('div.np-tx', h('div.np-t'), h('div.np-s')),
-    h('div.np-ctl',
-      h('button.icon-btn.np-prev', {'aria-label':'السابق', onclick:()=>cur && cur.prev && cur.prev()}, M.ic('prev')),
-      h('button.np-pp', {'aria-label':'تشغيل / إيقاف', onclick:()=>{ cur && cur.toggle && cur.toggle(); setTimeout(render, 60); }}, M.ic('pause')),
-      h('button.icon-btn.np-next', {'aria-label':'التالي', onclick:()=>cur && cur.next && cur.next()}, M.ic('next'))),
-    h('button.icon-btn.np-x', {'aria-label':'إيقاف وإغلاق المشغّل', onclick:()=>{ const c = cur; setOpen(false); c && c.stop && c.stop(); setTimeout(render, 60); }}, M.ic('close')),
-    h('div.np-tmr', h('button.np-chip', {'aria-label':'إيقاف تلقائي', onclick:timerSheet}, M.ic('clock'), h('span.np-chip-t', 'إيقاف تلقائي')),
-      h('button.np-chip-x.hide', {'aria-label':'إلغاء الإيقاف التلقائي', onclick:cancelStop}, M.ic('close'))));
+  /* 3.10: the open player is a small card — what is playing, its progress, and the controls in the middle */
+  pill = h('div.nowplaying.np2.hide',
+    h('div.np2-top',
+      h('button.np-art', {'aria-label':'تصغير المشغّل', onclick:()=>setOpen(false)}, h('span.np2-gl'), eq()),
+      h('div.np-tx', h('div.np-t'), h('div.np-s')),
+      h('button.icon-btn.np2-min', {'aria-label':'تصغير المشغّل', onclick:()=>setOpen(false)}, M.ic('chevDown')),
+      h('button.icon-btn.np-x', {'aria-label':'إيقاف وإغلاق المشغّل', onclick:()=>{ const c = cur; setOpen(false); c && c.stop && c.stop(); setTimeout(render, 60); }}, M.ic('close'))),
+    h('div.np2-prog', h('i')),
+    h('div.np2-bot',
+      h('div.np-tmr', h('button.np-chip', {'aria-label':'إيقاف تلقائي', onclick:timerSheet}, M.ic('clock'), h('span.np-chip-t', 'إيقاف تلقائي')),
+        h('button.np-chip-x.hide', {'aria-label':'إلغاء الإيقاف التلقائي', onclick:cancelStop}, M.ic('close'))),
+      h('div.np-ctl',
+        h('button.icon-btn.np-prev', {'aria-label':'السابق', onclick:()=>cur && cur.prev && cur.prev()}, M.ic('prev')),
+        h('button.np-pp', {'aria-label':'تشغيل / إيقاف', onclick:()=>{ cur && cur.toggle && cur.toggle(); setTimeout(render, 60); }}, M.ic('pause')),
+        h('button.icon-btn.np-next', {'aria-label':'التالي', onclick:()=>cur && cur.next && cur.next()}, M.ic('next')))));
   pill.addEventListener('pointerdown', ()=>armAuto(), true);
   /* the collapsed circle */
   el = h('div.nbnp.hide', {dataset:{side:S.s}},
@@ -188,6 +193,7 @@ function progress(){
   if(!el || !cur) return;
   const c = el.querySelector('.nbnp-prog'), p = cur.prog ? cur.prog() : null;
   el.classList.toggle('ind', p == null);
+  if(pill){ const bar = pill.querySelector('.np2-prog'); bar.classList.toggle('ind', p == null); if(p != null) bar.firstChild.style.width = (clamp(p, 0, 1) * 100).toFixed(1) + '%'; }
   if(p == null){ c.style.strokeDashoffset = ''; return; }
   c.style.strokeDashoffset = String(RING * (1 - clamp(p, 0, 1)));
 }
@@ -211,6 +217,7 @@ function render(){
   pill.querySelector('.np-t').textContent = cur.title;
   pill.querySelector('.np-s').textContent = cur.sub;
   el.querySelector('.nbnp-gl').innerHTML = M.icon(cur.playing ? 'pause' : 'play');
+  pill.querySelector('.np2-gl').innerHTML = M.icon(cur.glyph || 's:mushaf');
   pill.querySelector('.np-pp').innerHTML = M.icon(cur.playing ? 'pause' : 'play');
   pill.querySelector('.np-pp').classList.toggle('hide', !cur.toggle);
   pill.querySelector('.np-prev').classList.toggle('hide', !cur.prev);

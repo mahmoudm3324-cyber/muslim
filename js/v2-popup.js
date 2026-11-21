@@ -25,9 +25,17 @@ const wcfg = ()=>Object.assign({}, W_DEF, M.store.get('pw', {}) || {});
 const zcfg = ()=>Object.assign({}, Z_DEF, M.store.get('pz', {}) || {});
 const wset = p=>{ if('s' in p || 'a' in p || 'khatmas' in p) p.ts = Date.now(); M.store.set('pw', Object.assign(wcfg(), p)); syncNative(); try{ wirdPush(); }catch(e){} };
 const zset = p=>{ M.store.set('pz', Object.assign(zcfg(), p)); syncNative(); if(!IS_PAGE && ['morning', 'evening', 'after', 'between', 'offM', 'offE', 'offA'].some(k=>k in p)){ try{ M.syncNative && M.syncNative(); }catch(e){} try{ M.popupPlan && M.popupPlan(); }catch(e){} } };
-const U_DEF = {sz:'md', big:'md', dy:0};
+const U_DEF = {sz:'md', big:'md', dy:0, bubble:false, by:.62, win:{on:false, from:'08:00', to:'22:00'}};
 const ucfg = ()=>Object.assign({}, U_DEF, M.store.get('popui', {}) || {});
-const uset = p=>M.store.set('popui', Object.assign(ucfg(), p));
+const uset = p=>{ M.store.set('popui', Object.assign(ucfg(), p)); if('win' in p || 'bubble' in p) syncNative(); };
+/* «في ساعات محددة»: the cards appear only between these two times (overnight ranges allowed) */
+const hm = t=>{ const m = /^(\d{1,2}):(\d{2})/.exec(t || ''); return m ? (+m[1]) * 60 + (+m[2]) : 0; };
+function inWin(){
+  const W = ucfg().win; if(!W || !W.on) return true;
+  const d = new Date(), x = d.getHours() * 60 + d.getMinutes(), a = hm(W.from || '08:00'), b = hm(W.to || '22:00');
+  return a === b ? true : a < b ? x >= a && x < b : x >= a || x < b;
+}
+M.popupInWin = inWin;
 const SZ = ()=>{ const s = ucfg().sz; return s === 'sm' || s === 'lg' ? s : 'md'; };
 const lastShown = ()=>M.store.get('pop:last', {}) || {};
 const markShown = k=>{ const l = lastShown(); l[k] = now(); M.store.set('pop:last', l); try{ A() && A().popupShown && A().popupShown(k); }catch(e){} };
@@ -38,7 +46,7 @@ function syncNative(extra){
   const w = wcfg(), z = zcfg();
   let ov = false; try{ ov = !A().canOverlay || !!A().canOverlay(); }catch(e){}
   // the background listener (and its quiet notification) runs only once the card can actually appear
-  try{ A().popupConfig(JSON.stringify({wird:{on:!!(ov && w.on && w.unlock), every:+w.every || 0}, dhikr:{on:!!(ov && z.on && z.unlock), every:+z.every || 0}, sched:!!(ov && (z.morning || z.evening || z.after || z.between)), ...(extra || {})})); }catch(e){}
+  try{ A().popupConfig(JSON.stringify({wird:{on:!!(ov && w.on && w.unlock), every:+w.every || 0}, dhikr:{on:!!(ov && z.on && z.unlock), every:+z.every || 0}, sched:!!(ov && (z.morning || z.evening || z.after || z.between)), win:(()=>{ const W = ucfg().win || {}; return {on:!!W.on, from:hm(W.from || '08:00'), to:hm(W.to || '22:00')}; })(), ...(extra || {})})); }catch(e){}
 }
 M.popupSync = syncNative;
 
@@ -187,11 +195,34 @@ function sizeBtn(){
   const small = SZ() === 'sm';
   return h('button.icon-btn.pop-x.pop-sz', {'aria-label':small ? 'تكبير النافذة' : 'تصغير النافذة', onclick:()=>setSize(small ? (ucfg().big === 'lg' ? 'lg' : 'md') : 'sm')}, M.ic(small ? 'enlarge' : 'shrink'));
 }
+function bubble(on){
+  if(!open) return;
+  open.bub = !!on; open.el.classList.toggle('pop-bub', !!on);
+  if(on){ stopAudio(); placeBub(open.el); }
+  if(FLOAT()){ try{ A().popupBubble && A().popupBubble(!!on); }catch(e){} if(!on) setTimeout(()=>M.popupResize && M.popupResize(), 30); }
+  if(!on) requestAnimationFrame(()=>open && fitDy(open.el, open.card));
+  M.haptic && M.haptic(8);
+}
+M.popupBubble = bubble;
+function placeBub(root){ const b = root.querySelector('.pop-bubble'); if(!b || FLOAT()) return; const y = Math.max(.08, Math.min(.86, +ucfg().by || .62)); b.style.top = (y * 100).toFixed(2) + '%'; }
+function bubBtn(){ return h('button.icon-btn.pop-x.pop-tobub', {'aria-label':'تصغير إلى دائرة', title:'دائرة', onclick:()=>bubble(true)}, h('i.pop-tobub-i')); }
 function shell(kind){
   const root = h('div.pop-root.popk-'+kind+'.pz-'+SZ(), {role:'dialog', 'aria-modal':'true'});
   const scrim = h('div.pop-scrim', {onclick:()=>close('scrim')});
   const card = h('div.pop-card');
-  root.append(scrim, card);
+  const bub = h('div.pop-bubble',
+    h('button.pop-bub-main', {'aria-label':kind === 'wird' ? 'افتح ورد الختمة' : 'افتح الذكر'}, h('span.pop-bub-ic', {html:M.icon(kind === 'wird' ? 's:khatma' : 's:beads')}), h('i.pop-bub-dot')),
+    h('button.pop-bub-x', {'aria-label':'إغلاق', onclick:e=>{ e.stopPropagation(); close('x'); }}, M.ic('close')));
+  root.append(scrim, card, bub);
+  /* the circle: tap = open the card; drag (in the app) = move it up or down */
+  const main = bub.querySelector('.pop-bub-main');
+  let b0 = null, bm = false;
+  main.addEventListener('pointerdown', e=>{ if(FLOAT() || e.button > 0) return; b0 = {y:e.clientY, t:bub.offsetTop}; bm = false; try{ main.setPointerCapture(e.pointerId); }catch(_){} });
+  main.addEventListener('pointermove', e=>{ if(!b0) return; const dy = e.clientY - b0.y; if(!bm && Math.abs(dy) < 8) return; bm = true;
+    const H = root.clientHeight || innerHeight; bub.style.top = Math.max(H * .08, Math.min(H * .86, b0.t + dy)) + 'px'; });
+  const up = ()=>{ if(!b0) return; const was = bm; b0 = null; if(was){ const H = root.clientHeight || innerHeight; uset({by:bub.offsetTop / H}); placeBub(root); } };
+  main.addEventListener('pointerup', up); main.addEventListener('pointercancel', up);
+  main.addEventListener('click', ()=>{ if(bm){ bm = false; return; } bubble(false); });
   (document.getElementById('app') || document.body).append(root);
   requestAnimationFrame(()=>{ root.classList.add('in'); fitDy(root, card); });
   try{ new ResizeObserver(()=>fitDy(root, card)).observe(card); }catch(e){}
@@ -224,6 +255,7 @@ async function showWird(o){
   if(open) close('replace');
   const {root, card, key} = shell('wird');   // root: the card's layer (gets .pop-mini when folded)
   open = {el:root, card, kind:'wird', key, onClose:o.onClose, redraw:()=>draw()};
+  if(o.auto && ucfg().bubble) bubble(true);
   markShown('wird');
   let tafsirOn = false, statsOn = false, playing = false, added = 0, shareTxt = '', mini = false;
   function draw(dir){
@@ -250,7 +282,7 @@ async function showWird(o){
     card.append(h('div.pop-head.pw-head',
       h('div.pop-badge.pw-ring', M.ring(pct, sz === 'sm' ? 34 : 40, 3.5, h('span.num', n(Math.floor(pct * 100))+'٪'))),
       h('div.grow', h('div.pw-kick', 'ورد الختمة'+(c.khatmas ? ' • الختمة '+n(c.khatmas + 1) : '')), h('div.pw-sura.title-font', 'سورة '+M.sname(s))),
-      minBtn(()=>{ mini = true; stopAudio(); playing = false; draw(); }), sizeBtn(),
+      bubBtn(), minBtn(()=>{ mini = true; stopAudio(); playing = false; draw(); }), sizeBtn(),
       h('button.icon-btn.pop-x', {'aria-label':'إغلاق', onclick:()=>close('x')}, M.ic('close'))));
     if(shareTxt){ card.append(sharePanel(shareTxt, ()=>{ shareTxt = ''; draw(); })); return; }
     if(statsOn){ card.append(statsPanel(st)); card.append(h('div.pop-acts', h('button.btn.tonal.grow', {onclick:()=>{ statsOn = false; draw(); }}, M.ic('back'), 'رجوع إلى الآيات'), h('button.btn.tonal', {'aria-label':'الختمة', onclick:()=>goApp('khatma')}, M.ic('settings')))); return; }
@@ -392,6 +424,7 @@ async function showDhikr(o){
   if(open) close('replace');
   const {root, card, key} = shell('dhikr');
   open = {el:root, card, kind:'dhikr', key, onClose:o.onClose, redraw:()=>draw()};
+  if(o.auto && ucfg().bubble) bubble(true);
   markShown('dhikr');
   let i = 0, cnt = 0, finished = false, mini = false;
   if(!items){   // a short dhikr, a different one each time
@@ -416,7 +449,7 @@ async function showDhikr(o){
     const sub = multi ? (finished ? 'تمّت' : n(i + 1)+' من '+n(items.length)+(pr ? ' • صلاة '+(PR_AR[pr] || '') : '')) : 'اضغط الدائرة مع كل مرة';
     card.append(h('div.pop-head', h('div.pop-badge.z', M.ic(meta.ic)),
       h('div.grow', h('div.pop-kicker', multi ? meta.t : (o.set === 'between' ? meta.t : 'ذكرٌ لك الآن')), h('div.pop-pos', sub)),
-      finished ? null : minBtn(()=>{ mini = true; stopAudio(); draw(); }), sizeBtn(),
+      finished ? null : bubBtn(), finished ? null : minBtn(()=>{ mini = true; stopAudio(); draw(); }), sizeBtn(),
       h('button.icon-btn.pop-x', {'aria-label':'إغلاق', onclick:()=>close('x')}, M.ic('close'))));
     if(multi) card.append(h('div.pop-bar.pop-setbar', h('i', {style:'width:'+((finished ? items.length : i) / items.length * 100).toFixed(1)+'%'})));
     if(finished){
@@ -498,7 +531,7 @@ if(!IS_PAGE){
 /* ---------------- when to show (inside the app) ---------------- */
 function due(kind){
   const c = kind === 'wird' ? wcfg() : zcfg();
-  if(!c.on || !c.open) return false;
+  if(!c.on || !c.open || !inWin()) return false;
   const l = lastShown()[kind] || 0;
   return now() - l >= Math.max(2, +c.every || 0) * 60e3;   // never twice within two minutes
 }
@@ -514,8 +547,8 @@ function maybeShow(){
   if(blocked()){ setTimeout(maybeShow, 4000); return; }
   /* both due (the khatma card is often set to «every time»): take turns — the one shown longer ago goes first */
   const dw = due('wird'), dz = due('dhikr'), l = lastShown();
-  if(dw && dz){ if((l.dhikr || 0) <= (l.wird || 0)) showDhikr(); else showWird(); }
-  else if(dw) showWird(); else if(dz) showDhikr();
+  if(dw && dz){ if((l.dhikr || 0) <= (l.wird || 0)) showDhikr({auto:true}); else showWird({auto:true}); }
+  else if(dw) showWird({auto:true}); else if(dz) showDhikr({auto:true});
 }
 if(!IS_PAGE){
   /* widget readings come back into the app (log, khatma pages, position) when it opens or comes back to the front */
@@ -544,6 +577,24 @@ if(!IS_PAGE){
 
 /* ---------------- settings screen ---------------- */
 /* the card's size and place (one setting for both cards) */
+const fmtT = t=>{ const [a, b] = String(t).split(':'); const d = new Date(); d.setHours(+a || 0, +b || 0, 0, 0); try{ return M.n(M.fmt(d)); }catch(e){ return t; } };
+function quietBlock(){
+  const box = h('div.col-flex.pops-quiet');
+  const paint = ()=>{
+    const u = ucfg(), W = u.win || {};
+    const t = (k, v)=>h('input.field', {type:'time', value:v, onchange:e=>{ uset({win:Object.assign({from:'08:00', to:'22:00'}, ucfg().win, {[k]:e.target.value || v})}); }});
+    box.replaceChildren(...[
+      h('div.item.static.pops-qrow', h('span.pops-qi.c1', h('i.pop-tobub-i')), h('div.grow', h('div.t', 'تظهر كدائرة صغيرة'), h('div.s', 'تظهر دائرة هادئة على جانب الشاشة، وتضغطها لتفتح النافذة. يمكنك دائمًا تصغير النافذة إلى دائرة بزر ◯ في أعلاها.')),
+        M.switchEl(!!u.bubble, v=>{ uset({bubble:v}); paint(); })),
+      h('div.item.static.pops-qrow', h('span.pops-qi.c2', M.ic('clock')), h('div.grow', h('div.t', 'في ساعات محددة فقط'), h('div.s', W.on ? 'تظهر من ' + fmtT(W.from || '08:00') + ' إلى ' + fmtT(W.to || '22:00') : 'تظهر في أي وقت')),
+        M.switchEl(!!W.on, v=>{ uset({win:Object.assign({from:'08:00', to:'22:00'}, ucfg().win, {on:v})}); paint(); })),
+      W.on ? h('div.pops-win', h('label', h('small', 'من'), t('from', W.from || '08:00')), h('label', h('small', 'إلى'), t('to', W.to || '22:00'))) : null,
+      W.on ? h('div.tiny.muted', {style:'line-height:1.8'}, 'أذكار الصباح والمساء وبعد الصلاة المجدولة تظهر في مواعيدها حتى خارج هذه الساعات.') : null].filter(Boolean));
+  };
+  paint();
+  return box;
+}
+M.popupCfg = {w:wcfg, z:zcfg, wset, zset, u:ucfg, uset};
 function sizeBlock(){
   const opts = h('div.pops-sizes', {role:'radiogroup', 'aria-label':'حجم النافذة'});
   const paint = ()=>opts.replaceChildren(...[['sm', 'صغيرة', 'الآية وزر «قرأتها»'], ['md', 'متوسطة', 'مع الأدوات'], ['lg', 'كبيرة', 'كل شيء بخط أكبر']].map(([k, t, d])=>
@@ -616,6 +667,7 @@ M.openPopups = function(part){
           recs.length ? h('select.field', {onchange:e=>wset({rec:e.target.value})}, h('option', {value:''}, 'قارئ التطبيق الافتراضي'), ...recs.map(([v, l])=>h('option', {value:v, selected:v === w.rec}, l))) : null));
         /* 4 — the look */
         wc.append(sec('image', 'شكل النافذة', sizeBlock()));
+        wc.append(sec('clock', 'هدوء النافذة', quietBlock()));
         wc.append(h('button.btn.tonal.block', {onclick:()=>{ if(M.openKhatma){ M.openKhatma(); } else M.openWirdStats(); }}, M.ic('s:stats'), 'إحصائياتك في صفحة الختمة'));
       }
       if(only !== 'dhikr') root.append(wc);
@@ -643,6 +695,7 @@ M.openPopups = function(part){
         if(w.on) zc.append(h('div.tiny.muted', 'إذا حان الاثنان معًا يظهر ورد الختمة أولًا، والذكر في المرة التالية.'));
       }
       zc.append(sizeBlock());
+      zc.append(quietBlock());
       zc.append(h('div.row-flex.pops-btns', h('button.btn.tonal.grow', {onclick:()=>showDhikr({set:'morning'})}, 'جرّب الصباح'), h('button.btn.tonal.grow', {onclick:()=>showDhikr()}, 'جرّب ذكرًا قصيرًا')));
       if(only !== 'wird') root.append(zc);
       if(nat) root.append(h('div.tiny.muted', {style:'line-height:1.8;margin:0 4px'}, 'يعمل ذلك بخدمة صغيرة يظهر لها إشعار ثابت هادئ (يطلبه أندرويد لأي تطبيق يعمل في الخلفية). يمكنك إخفاء هذا الإشعار من إعدادات إشعارات التطبيق ← «نافذة الورد».'));
@@ -749,14 +802,15 @@ if(IS_PAGE){
   if(floating){
     const de = document.documentElement; de.classList.add('pop-float'); de.style.setProperty('--sh', (screen.height || 800)+'px');
     let last = 0;
-    const report = ()=>{ const c = document.querySelector('.pop-card'); if(!c) return; const hh = Math.ceil(c.getBoundingClientRect().height + 16); if(Math.abs(hh - last) > 2){ last = hh; try{ A().popupSize(hh); }catch(e){} } };
+    M.popupResize = ()=>{ last = 0; report(); };
+    const report = ()=>{ const c = document.querySelector('.pop-card'); if(!c || (open && open.bub)) return; const hh = Math.ceil(c.getBoundingClientRect().height + 16); if(Math.abs(hh - last) > 2){ last = hh; try{ A().popupSize(hh); }catch(e){} } };
     try{ new MutationObserver(()=>requestAnimationFrame(report)).observe(document.body, {childList:true, subtree:true, characterData:true}); }catch(e){}
     try{ new ResizeObserver(()=>report()).observe(document.body); }catch(e){}
     setInterval(report, 600);
   }
   const kind = (new URLSearchParams(location.search).get('kind') || 'wird');
   const q = new URLSearchParams(location.search), set = (q.get('set') || '').split(':');
-  const start = async()=>{ try{ await wirdPull(); }catch(e){} const ok = kind === 'dhikr' ? await showDhikr({set:set[0], pr:set[1]}) : await showWird(); if(!ok){ try{ A().closePopup(); }catch(e){} } };
+  const start = async()=>{ try{ await wirdPull(); }catch(e){} const ok = kind === 'dhikr' ? await showDhikr({set:set[0], pr:set[1], auto:true}) : await showWird({auto:true}); if(!ok){ try{ A().closePopup(); }catch(e){} } };
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 }
 })();

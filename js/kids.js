@@ -35,22 +35,39 @@ M.openKids = function(){
   const go = p=>{ S.page = p; paint(); try{ content.closest('.view-body').scrollTop = 0; }catch(e){} };
   const back = t=>h('div.kd-top', h('button.chip', {onclick:()=>go('home')}, M.ic('back'), 'الركن'), h('div.bold.title-font.grow', t));
   const TILES = [['wudu', 'أتعلّم الوضوء', 'خطوة خطوة', 's:crescent', 1], ['salah', 'أتعلّم الصلاة', 'من التكبير إلى السلام', 's:rug', 2], ['quiz', 'المسابقة', 'أسئلة ونجوم', 's:rosette', 3],
-    ['stories', 'قصص الأنبياء', 'حكايات وعِبَر', 's:lantern', 4], ['adhkar', 'أذكاري', 'أحفظها وأقولها', 's:beads', 5], ['surahs', 'سور قصيرة', 'أقرأ وأستمع', 's:mushaf', 6], ['learn', 'أتعلّم ديني', 'الأركان والعبادات', 's:crescent', 2]];
+    ['stories', 'قصص الأنبياء', 'حكايات وعِبَر', 's:lantern', 4], ['adhkar', 'أذكاري', 'أحفظها وأقولها', 's:beads', 5], ['surahs', 'سور قصيرة', 'أقرأ وأستمع', 's:mushaf', 6], ['learn', 'أتعلّم ديني', 'الأركان والطهارة والصلاة والصيام والزكاة والحج', 's:mosque', 7]];
 
   function paint(){ content.replaceChildren(); ({home, wudu:()=>lesson('wudu', 'أتعلّم الوضوء'), salah:()=>lesson('salah', 'أتعلّم الصلاة'), quiz, stories, adhkar, surahs, learn:()=>M.kidsLearn({content, back, go, once, S}, S.learn)})[S.page](); }
 
   function home(){
     const st = stars(), li = LEVELS.filter(l=>st >= l[0]).length - 1, nxt = LEVELS[li + 1];
     const done = M.store.get('kidDay', {}), today = done.k === M.dkey() ? done.v : {};
-    const list = h('div.kd-daily');
-    DAILY.forEach(([k, l])=>list.append(h('button.kd-chk'+(today[k] ? '.on' : ''), {'aria-pressed':!!today[k], onclick:function(){ const on = !today[k]; if(on) today[k] = 1; else delete today[k]; M.store.set('kidDay', {k:M.dkey(), v:today}); this.classList.toggle('on', on); this.setAttribute('aria-pressed', on); M.haptic && M.haptic(20);
-      if(on){ addStar(1); M.toast('أحسنت! نجمة لك ★'); } else { M.store.set('kidStars', Math.max(0, stars() - 1)); starEl.textContent = '★ '+M.n(stars()); const b = content.querySelector('.kd-big b'); if(b) b.textContent = M.n(stars()); } }}, h('span.kd-star', '★'), h('span', l))));
+    const name = M.store.get('kidName', '');
+    const pct = nxt ? Math.min(100, (st - LEVELS[li][0]) / (nxt[0] - LEVELS[li][0]) * 100) : 100;
+    const nDone = DAILY.filter(([k])=>today[k]).length;
+    const list = h('div.kd2-daily');
+    const dayHead = h('div.kd2-dh', h('b', 'نجوم اليوم'), h('span.kd2-dn', M.n(nDone) + ' / ' + M.n(DAILY.length)));
+    DAILY.forEach(([k, l])=>list.append(h('button.kd2-chk'+(today[k] ? '.on' : ''), {'aria-pressed':!!today[k], onclick:function(){ const on = !today[k]; if(on) today[k] = 1; else delete today[k]; M.store.set('kidDay', {k:M.dkey(), v:today}); this.classList.toggle('on', on); this.setAttribute('aria-pressed', on);
+      dayHead.querySelector('.kd2-dn').textContent = M.n(DAILY.filter(([x])=>today[x]).length) + ' / ' + M.n(DAILY.length);
+      if(on){ addStar(1); M.toast('أحسنت! نجمة لك ★'); } else { M.store.set('kidStars', Math.max(0, stars() - 1)); starEl.textContent = '★ '+M.n(stars()); const b = content.querySelector('.kd-big b'); if(b) b.textContent = M.n(stars()); } }},
+      h('span.kd2-star', '★'), h('span.grow', l))));
+    const mascot = h('div.kd2-mascot', {'aria-hidden':'true', html:'<svg viewBox="0 0 120 120"><defs><linearGradient id="kdm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#f4bf4f"/></linearGradient></defs><path d="M78 14a46 46 0 1 0 28 72A40 40 0 1 1 78 14z" fill="url(#kdm)"/><circle cx="52" cy="58" r="5" fill="#5a3b00"/><circle cx="72" cy="62" r="5" fill="#5a3b00"/><path d="M52 76q11 10 22 2" stroke="#5a3b00" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="44" cy="70" r="5" fill="#f39b7d" opacity=".55"/><path d="M100 22l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" fill="#fff"/></svg>'});
+    const nameBtn = h('button.kd2-name', {onclick:()=>{
+      const inp = h('input.field', {value:name, placeholder:'اسم البطل', maxlength:20});
+      const sh = M.sheet({title:'ما اسمك يا بطل؟', content:h('div.col-flex', inp, h('button.btn.block', {onclick:()=>{ M.store.set('kidName', inp.value.trim()); sh.close(); paint(); }}, 'حفظ'))});
+      setTimeout(()=>inp.focus(), 200);
+    }}, 'مرحبًا يا ' + (name || 'بطل'), M.ic('t:writing'));
+    const tile = ([p, t, s, ic, c], wide)=>h('button.kd2-tile.c'+c+(wide ? '.wide' : ''), {onclick:()=>go(p)}, h('i.kd2-bub'), h('i.kd2-bub.b2'), h('span.kd2-ic', {html:M.icon(ic)}), h('span.kd2-tt', h('b', t), h('small', s)));
+    const learn = TILES.find(x=>x[0] === 'learn');
     content.append(
-      h('div.card.accent.kd-hero', h('div.kd-hero-t', h('div', h('div.small', 'مرحبًا يا بطل'), h('div.title-font.bold.kd-lvl', LEVELS[li][1])), h('div.kd-big', h('b.num', M.n(st)), h('small', 'نجمة'))),
-        h('div.bar.kd-bar', h('i', {style:'width:'+(nxt ? Math.min(100, (st - LEVELS[li][0]) / (nxt[0] - LEVELS[li][0]) * 100) : 100)+'%'})),
-        h('div.tiny', nxt ? 'بقي '+M.n(nxt[0] - st)+' نجمة لتصير «'+nxt[1]+'»' : 'وصلت إلى أعلى مستوى، ما شاء الله!')),
-      h('div.kd-grid', ...TILES.map(([p, t, s, ic, c])=>h('button.kd-tile.c'+c, {onclick:()=>go(p)}, h('span.kd-ic', {html:M.icon(ic)}), h('b', t), h('small', s)))),
-      h('div.section-h', 'نجوم اليوم — اضغط ما فعلته'), list);
+      h('div.kd2-hero',
+        h('div.kd2-sky', h('i'), h('i'), h('i'), h('i'), h('i')),
+        h('div.kd2-hrow', mascot, h('div.grow', nameBtn, h('div.kd2-lvl.title-font', LEVELS[li][1]), h('div.kd2-sub', nxt ? 'بقي ' + M.n(nxt[0] - st) + ' نجمة لتصير «' + nxt[1] + '»' : 'وصلت إلى أعلى مستوى، ما شاء الله!')),
+          h('div.kd-big.kd2-big', h('b.num', M.n(st)), h('small', '★ نجمة'))),
+        h('div.kd2-bar', h('i', {style:'width:' + pct + '%'}))),
+      learn ? tile(learn, true) : null,
+      h('div.kd2-grid', ...TILES.filter(x=>x[0] !== 'learn').map(x=>tile(x))),
+      h('div.kd2-day', dayHead, list));
   }
   /* one step at a time */
   function lesson(kind, title){

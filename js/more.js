@@ -10,20 +10,28 @@ M.screens.more = {
   icon:'s:grid', label:'المزيد',
   build(el){
     el.innerHTML = '';
-    el.append(h('div.page-top', h('div', h('h1', 'المزيد'), h('div.sub', 'كل ما تحتاجه في مكان واحد')),
+    /* 3.10: a header with the tour and the settings, the search, a strip of the group names (tap to jump), the pinned
+       sections as large tiles, then one card per group with its own colour and icon */
+    const GI = {'عباداتي':['s:tracker', 0], 'القرآن والتلاوة':['s:mushaf', 1], 'الأذكار والأدعية':['s:beads', 2], 'الصلاة والمواسم':['s:mosque', 3],
+      'تعلّم وكتب':['s:lantern', 4], 'الصوتيات والبث':['s:radio', 5], 'أدوات':['s:zakat', 6], 'النتائج':['search', 1], 'المثبّتة':['star', 2]};
+    const gi = g=>GI[g] || ['s:grid', 1];
+    el.append(h('div.mr-top',
+      h('div.grow', h('h1.title-font', 'المزيد'), h('div.mr-sub', 'كل أقسام التطبيق في مكان واحد')),
+      h('button.mr-tour', {'aria-label':'جولة في التطبيق', onclick:()=>M.startTour && M.startTour()}, M.ic('t:hand-click'), h('span', 'جولة')),
       h('button.icon-btn.tonal', {'aria-label':'الإعدادات', onclick:()=>M.openSettings()}, M.ic('settings'))));
-    /* sticky search over every section (title + keywords) and a button to the full, grouped list */
     const q = h('input.field.more-q', {type:'search', placeholder:'ابحث في كل الأقسام…', 'aria-label':'بحث في الأقسام', autocomplete:'off', oninput:()=>draw()});
-    el.append(h('div.sec-sticky.more-bar', h('div.more-qw', h('span.more-qi', {html:M.icon('search')}), q), h('button.icon-btn.tonal', {'aria-label':'جميع الأقسام', onclick:()=>M.openAllSections()}, M.ic('grid'))));
-    const box = h('div.more-box'); el.append(box);
+    const jump = h('div.mr-jump');
+    el.append(h('div.sec-sticky.more-bar.mr-bar', h('div.more-qw', h('span.more-qi', {html:M.icon('search')}), q), h('button.icon-btn.tonal', {'aria-label':'جميع الأقسام', onclick:()=>M.openAllSections()}, M.ic('grid'))), jump);
+    const box = h('div.more-box.mr-box'); el.append(box);
     const SEC = id=>(M.SECTIONS || []).find(x=>x[0] === id);
-    /* each group is one card with a plain grid of icons. Not listed here: the Mushaf and Prayer tabs (in the bottom bar) and the
-       settings group (behind the gear above); all of them are still found by the search */
     const SKIP = new Set(['quran', 'prayer', 'search', 'notifs', 'health', 'look', 'navbar_cfg', 'settings', 'v2_security']);
-    const group = (title, secs, cls)=>h('section.card.mg'+(cls ? '.'+cls : ''), h('div.mg-h', h('span', title), h('span.mg-n.num', M.n(secs.length))),
-      h('div.mg-grid', ...secs.map(s=>M.secTile(s, {noStar:true}))));
+    const group = (title, secs, cls)=>{ const [ic, hue] = gi(title);
+      return h('section.mr-g.mg.mr-c'+hue+(cls ? '.'+cls : ''), {dataset:{g:title}},
+        h('div.mr-gh', h('span.mr-gi', {html:M.icon(ic)}), h('b', title), h('span.mr-gn.num', M.n(secs.length))),
+        h('div.mg-grid.mr-grid', ...secs.map(s=>M.secTile(s, {noStar:true})))); };
     function draw(){
-      box.replaceChildren(); const v = q.value.trim();
+      box.replaceChildren(); jump.replaceChildren(); const v = q.value.trim();
+      jump.hidden = !!v;
       if(v){
         const r = M.secFind(v);
         if(!r.length) box.append(h('div.empty', 'لا نتائج'), h('button.btn.tonal.block', {onclick:()=>M.openSearch(v)}, M.ic('search'), 'ابحث في الآيات والأذكار'));
@@ -31,11 +39,16 @@ M.screens.more = {
         return;
       }
       const pins = M.secPins().map(SEC).filter(Boolean);
-      if(pins.length) box.append(group('المثبّتة', pins, 'mg-pins'));      // long press any icon to pin or unpin it
-      // the summer-time switch is a tool, not a season: it joins أدوات (which would otherwise hold only two)
+      if(pins.length) box.append(h('section.mr-pins',
+        h('div.mr-ph', h('b', 'المثبّتة'), h('small', 'اضغط مطولًا على أي قسم لتثبيته')),
+        h('div.mr-pgrid', ...pins.map(s=>{ const t = M.secTile(s, {noStar:true}); t.classList.add('mr-pin'); return t; }))));
       const org = M.orgGroups().map(([g, secs])=>[g, secs.filter(s=>!SKIP.has(s[0]))]), tools = org.find(x=>x[0] === 'أدوات');
       if(tools) org.forEach(x=>{ if(x !== tools){ const i = x[1].findIndex(s=>s[0] === 'dst'); if(i >= 0) tools[1].push(...x[1].splice(i, 1)); } });
-      org.forEach(([g, l])=>{ if(l.length) box.append(group(g, l)); });
+      org.forEach(([g, l])=>{ if(!l.length) return; const sec = group(g, l); box.append(sec);
+        const [ic, hue] = gi(g);
+        jump.append(h('button.mr-chip.mr-c'+hue, {onclick:()=>{ const sc = el.closest('.screen') || el; const top = sec.getBoundingClientRect().top - (el.getBoundingClientRect().top) + (el.scrollTop || 0) - 120;
+          (el.scrollHeight > el.clientHeight ? el : sc).scrollTo({top, behavior:'smooth'}); sec.classList.remove('mr-flash'); void sec.offsetWidth; sec.classList.add('mr-flash'); }}, h('span', {html:M.icon(ic)}), g)); });
+      if(!pins.length) box.prepend(h('div.mr-tip', M.ic('star'), h('span', 'اضغط مطولًا على أي قسم لتثبيته في الأعلى')));
     }
     draw();
     if(el._moreUn) el._moreUn.forEach(f=>f());

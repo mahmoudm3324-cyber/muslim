@@ -242,32 +242,29 @@ function fanLayout(n, cx, cy, dir, L){
   /* reading order: top to bottom, then nearest ring first for ties */
   return pos;
 }
+/* 3.10: the circle opens a panel beside it (no more fan of loose icons): «تابع القراءة» on top, the shortcuts in a grid,
+   and the way to edit them. It opens above the circle when the circle is low on the screen, below it otherwise. */
 function openFan(){
   if(bub.open || bub.hidden) return;
   const list = entries(), p = bubXY(), L = p.L;
-  const cx = p.x + BS / 2, cy = p.y + BS / 2, dir = bub.side === 'l' ? 1 : -1;
-  let pos = fanLayout(list.length, cx, cy, dir, L);
   bub.open = true; root.classList.add('nb-fan-open'); clearTimeout(bub.dimT);
   bub.el.classList.remove('dim'); bub.el.classList.add('open'); bub.btn.setAttribute('aria-expanded', 'true');
   const layer = bub.layer; layer.innerHTML = ''; layer.classList.add('on');
-  const scrim = h('div.nb-scrim', {onclick:()=>closeFan()}); layer.append(scrim);
-  if(pos){
-    /* order top->bottom so the visual order matches the list order */
-    const idx = pos.map((q, i)=>i).sort((a, b)=>pos[a][1] - pos[b][1]);
-    const sorted = idx.map(i=>pos[i]);
-    list.forEach((it, i)=>{
-      const [x, y] = sorted[i];
-      const b = h('button.nb-fi'+(it.edit ? '.edit' : ''), {'aria-label':it.label, style:'left:'+Math.round(x)+'px;top:'+Math.round(y)+'px;--fx:'+Math.round(cx - x)+'px;--fy:'+Math.round(cy - y)+'px;transition-delay:'+(i * 16)+'ms',
-        onclick:()=>{ closeFan(); M.haptic(8); setTimeout(()=>{ try{ it.fn(); }catch(e){ console.error(e); } }, 120); }},
-        h('span.nb-fc', {html:M.icon(it.icon)}), h('span.nb-fl', it.label));
-      layer.append(b);
-    });
-  } else {
-    /* too cramped for a fan (tiny window): a plain grid card */
-    const g = h('div.nb-grid');
-    list.forEach(it=>g.append(h('button.nb-fi.flat', {onclick:()=>{ closeFan(); setTimeout(()=>{ try{ it.fn(); }catch(e){ console.error(e); } }, 120); }}, h('span.nb-fc', {html:M.icon(it.icon)}), h('span.nb-fl', it.label))));
-    layer.append(g);
-  }
+  layer.append(h('div.nb-scrim', {onclick:()=>closeFan()}));
+  const run = it=>()=>{ closeFan(); M.haptic(8); setTimeout(()=>{ try{ it.fn(); }catch(e){ console.error(e); } }, 120); };
+  const cont = list.find(x=>x.id === '__continue'), ed = list.find(x=>x.edit), items = list.filter(x=>x !== cont && x !== ed);
+  let sub = ''; try{ const l = M.QD.last; sub = (l.sura ? 'سورة ' + M.sname(l.sura) + ' • ' : '') + 'صفحة ' + M.n(l.page); }catch(e){}
+  const panel = h('div.nb-panel', {role:'menu', 'aria-label':'اختصاراتي'},
+    h('div.nb-ph', h('span.nb-ph-i', {html:M.icon('star')}), h('b.grow', 'اختصاراتي'),
+      ed ? h('button.nb-pe', {onclick:run(ed)}, M.ic('t:writing'), 'تعديل') : null),
+    cont ? h('button.nb-cont', {role:'menuitem', onclick:run(cont)}, h('span.nb-cont-i', {html:M.icon('s:mushaf')}), h('span.nb-cont-t', h('b', 'تابع القراءة'), h('small', sub)), M.ic('back')) : null,
+    items.length ? h('div.nb-pgrid', ...items.map((it, i)=>h('button.nb-pi', {role:'menuitem', style:'--i:' + i, onclick:run(it)}, h('span.nb-pc', {html:M.icon(it.icon)}), h('span.nb-pl', it.label))))
+      : h('div.nb-pempty', 'لم تختر اختصارات بعد — اضغط «تعديل» لتضيف أقسامك المفضلة'));
+  const low = p.y + BS / 2 > L.H * .45;
+  const sf = safe();
+  panel.style.cssText = (low ? 'bottom:' + Math.max(sf.b + 8, L.H - p.y + 10) + 'px;' : 'top:' + Math.max(sf.t + 8, p.y + BS + 10) + 'px;') +
+    'transform-origin:' + (bub.side === 'l' ? 'left ' : 'right ') + (low ? 'bottom' : 'top') + ';max-height:' + Math.round((low ? p.y - sf.t - 24 : L.H - p.y - BS - sf.b - 24)) + 'px';
+  layer.append(panel);
   requestAnimationFrame(()=>requestAnimationFrame(()=>layer.classList.add('go')));
   M.haptic(6);
 }

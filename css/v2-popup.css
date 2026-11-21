@@ -423,3 +423,45 @@ html.pop-float .pop-root.pop-mini{padding:4px 10px 12px}
 .pop-minok{flex:none;width:44px;height:44px;border-radius:50%;background:var(--p);color:var(--on-p,#fff);box-shadow:0 6px 16px color-mix(in oklab,var(--p) 35%,transparent)}
 .pop-minok svg{width:20px;height:20px}
 .pop-mincnt b{font-size:.95rem}
+
+/* ===== 3.10 redesign: a calmer card, and the circle it can fold into ===== */
+.pop-card{border-radius:32px;border:0;padding:4px 16px 14px;
+  background:linear-gradient(180deg,color-mix(in oklab,var(--p) 10%,var(--sheet-bg,var(--s0))) 0,var(--sheet-bg,var(--s0)) 150px);
+  box-shadow:0 34px 70px -26px rgba(0,0,0,.6),inset 0 0 0 1px color-mix(in oklab,var(--on-s) 8%,transparent),inset 0 1px 0 rgba(255,255,255,.35)}
+.pop-scrim{background:radial-gradient(120% 80% at 50% 100%,rgba(6,14,12,.62),rgba(6,14,12,.42))}
+.pop-head .pop-x{background:color-mix(in oklab,var(--on-s) 6%,transparent);box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--on-s) 6%,transparent)}
+.pop-head .pop-x:active{transform:scale(.9)}
+.pop-ok{border-radius:20px;background:linear-gradient(150deg,color-mix(in oklab,var(--p) 78%,#fff),var(--p));box-shadow:0 12px 24px -10px var(--p),inset 0 1px 0 rgba(255,255,255,.3)}
+.pw-folio{border-radius:22px;box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--gold,#c9a443) 35%,transparent),0 10px 24px -18px rgba(120,90,20,.6)}
+.pop-grab i{width:36px;height:5px}
+/* the «fold into a circle» glyph: a ring with a dot */
+.pop-tobub-i{display:block;width:16px;height:16px;border-radius:50%;border:2px solid currentColor;position:relative}
+.pop-tobub-i::after{content:'';position:absolute;inset:3px;border-radius:50%;background:currentColor}
+/* the circle */
+.pop-bubble{display:none}
+.pop-root.pop-bub{pointer-events:none;padding:0}
+.pop-root.pop-bub .pop-scrim,.pop-root.pop-bub .pop-card{display:none}
+.pop-root.pop-bub .pop-bubble{display:block;position:absolute;inset-inline-end:12px;top:62%;width:64px;height:64px;pointer-events:auto;animation:popBubIn .45s var(--sp,ease)}
+@keyframes popBubIn{from{transform:scale(.3);opacity:0}}
+.pop-bub-main{position:absolute;inset:0;border:0;border-radius:50%;display:grid;place-items:center;color:#fff;cursor:pointer;touch-action:none;
+  background:radial-gradient(circle at 32% 28%,color-mix(in oklab,var(--p) 55%,#fff),var(--p) 62%,color-mix(in oklab,var(--p) 70%,#000));
+  box-shadow:0 12px 26px -8px color-mix(in oklab,var(--p) 70%,#000),0 0 0 3px color-mix(in oklab,var(--gold,#d9b863) 75%,transparent),inset 0 1px 0 rgba(255,255,255,.35)}
+.pop-bub-main::before{content:'';position:absolute;inset:-7px;border-radius:50%;border:2px solid color-mix(in oklab,var(--gold,#d9b863) 60%,transparent);animation:popBubPulse 2.4s ease-out infinite}
+@keyframes popBubPulse{0%{transform:scale(.92);opacity:.9}100%{transform:scale(1.25);opacity:0}}
+.pop-bub-ic{display:grid}.pop-bub-ic svg{width:30px;height:30px}
+.pop-bub-dot{position:absolute;top:6px;inset-inline-end:6px;width:12px;height:12px;border-radius:50%;background:var(--gold,#e0b84c);box-shadow:0 0 0 2px #fff}
+.pop-bub-x{position:absolute;top:-8px;inset-inline-start:-8px;width:24px;height:24px;border:0;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(20,28,30,.78);box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.pop-bub-x svg{width:13px;height:13px}
+/* over other apps the window itself is the circle */
+html.pop-float .pop-root.pop-bub{position:fixed;inset:0;height:100%}
+html.pop-float .pop-root.pop-bub .pop-bubble{inset:10px;width:auto;height:auto;top:10px}
+html.pop-float .pop-bub-x{top:-4px;inset-inline-start:-4px}
+/* settings: the circle and the hours */
+.pops-quiet .item{padding-inline:0}
+.pops-qi{width:36px;height:36px;flex:none;border-radius:12px;display:grid;place-items:center;color:#fff;background:var(--p)}
+.pops-qi.c2{background:#c4840f}.pops-qi svg{width:18px;height:18px}
+.pops-win{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pops-win label{display:flex;flex-direction:column;gap:4px}.pops-win small{color:var(--on-sv);font-size:.76rem}
+/* over other apps the window is only a little larger than the circle: no pulse or wide shadow to be cut at its edges */
+html.pop-float .pop-bub-main::before{display:none}
+html.pop-float .pop-bub-main{box-shadow:0 3px 8px -2px rgba(0,0,0,.45),0 0 0 3px color-mix(in oklab,var(--gold,#d9b863) 75%,transparent),inset 0 1px 0 rgba(255,255,255,.35)}

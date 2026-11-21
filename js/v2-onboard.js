@@ -52,12 +52,25 @@ function build(mode){
   const view = M.openView({title:'', id:'onboarding', noHead:true, nopad:true, build:b=>b.append(root), onClose:()=>{ try{ M.stopSound && M.stopSound(); }catch(e){} pageOff.forEach(f=>f()); off.forEach(f=>f()); }});
   view.onBack = ()=>{ if(step > 0 && !busy){ go(step - 1); } return true; };
 
-  function finish(){ try{ M.stopSound && M.stopSound(); }catch(e){} M.store.set('onboarded', 1); M.store.set('seenVersion', M.VERSION); M.store.set('nfDefaults2', 1); M.store.set('nfDefaults3', 1); M.store.del && M.store.del('onbResume'); notifApply(); view.close(); M.refreshScreen && M.refreshScreen(); }
+  function finish(){ if(!upd && !M.store.get('tourDone', 0)) setTimeout(offerTour, 700); try{ M.stopSound && M.stopSound(); }catch(e){} M.store.set('onboarded', 1); M.store.set('seenVersion', M.VERSION); M.store.set('nfDefaults2', 1); M.store.set('nfDefaults3', 1); M.store.del && M.store.del('onbResume'); notifApply(); view.close(); M.refreshScreen && M.refreshScreen(); }
   function go(n){
     if(busy || n < 0) return; if(n >= pages.length) return finish();
     dir = n >= step ? 1 : -1; step = n; draw(true);
   }
   const card = (...k)=>h('div.ob-card.ob-st', ...k);
+  /* «ابدأ مباشرة»: the suggested settings (the location when allowed), then the app */
+  async function quick(){
+    if(!M.cfg.loc){ try{ const l = await Promise.race([M.detectLocation(), new Promise((_, no)=>setTimeout(no, 6000))]); M.save('loc', l); }catch(e){} }
+    finish();
+  }
+  function offerTour(){
+    if(!M.sheet || !M.startTour) return;
+    const sh = M.sheet({title:'جولة سريعة؟', content:h('div.col-flex.ob-tour',
+      h('div.ob-tour-ic', {html:M.icon('t:hand-click')}),
+      h('p', 'نعرّفك بأقسام التطبيق في أقل من دقيقة، خطوة بخطوة على الشاشة.'),
+      h('button.btn.block', {onclick:()=>{ sh.close(); setTimeout(()=>M.startTour(), 300); }}, 'ابدأ الجولة'),
+      h('button.btn.tonal.block', {onclick:()=>{ M.store.set('tourDone', 1); sh.close(); M.toast('تجد الجولة في «المزيد» متى شئت'); }}, 'لاحقًا'))});
+  }
   const lab = t=>h('div.ob-lab.ob-st', t);
   /* page header: small arch emblem beside the title */
   const head = (ic, t, d)=>[h('div.ob-hd.ob-st', archIc(ic), h('div.ob-hd-t', h('h1.ob-h.title-font', t), d ? h('p.ob-p', d) : null))];
@@ -74,13 +87,15 @@ function build(mode){
     const el = h('div.ob-page.ob-wel'+(upd ? '.upd' : ''), sparks,
       h('div.ob-st.ob-wel-em', rings, arch(h('img', {src:'img/icons/'+icon+'.jpg', alt:''}), true)),
       h('h1.ob-h.ob-big.title-font.ob-st.ob-shine', 'المسلم'), h('div.ob-rule', {'aria-hidden':'true'}, h('i'), h('b'), h('i')),
+      !upd ? h('div.ob-tag.ob-st', (()=>{ const hr = new Date().getHours(); return hr < 4 ? 'مساء الخير' : hr < 12 ? 'صباح الخير' : hr < 18 ? 'نهارك سعيد' : 'مساء الخير'; })() + ' • أهلًا بك') : null,
       h('p.ob-p.ob-st', upd ? 'تم تحديث التطبيق إلى الإصدار '+M.n(M.VERSION)+'. هذا أبرز ما أضفناه لك.' : 'رفيقك اليومي للقرآن والصلاة والذكر. نجهّزه على ذوقك في خطوات قصيرة.'),
       upd ? card(h('b.ob-ul-h', 'الجديد في هذا الإصدار'), h('ul.ob-ul', ...(M.whatsNew ? M.whatsNew() : M.WHATS_NEW).map(t=>h('li', t)))) : null,
+      !upd ? h('div.ob-wfeat.ob-st', ...[['s:mushaf', 'المصحف'], ['s:mosque', 'المواقيت'], ['s:beads', 'الأذكار'], ['s:khatma', 'الختمة']].map(([ic, t])=>h('div', h('span', {html:M.icon(ic)}), h('small', t)))) : null,
       !upd ? h('div.ob-promise.ob-st', ...[['s:shield', 'بلا إعلانات'], ['lock', 'بلا حسابات'], ['download', 'يعمل دون إنترنت']].map(([ic, t])=>h('span', {html:M.icon(ic)}, t))) : null);
     /* a long "what's new" list scrolls: fade the bottom edge while there is more below */
     const more = ()=>el.classList.toggle('more', el.scrollHeight - el.scrollTop - el.clientHeight > 8);
     el.addEventListener('scroll', more, {passive:true}); requestAnimationFrame(()=>requestAnimationFrame(more)); setTimeout(more, 700); setTimeout(more, 1600);
-    return {el, primary: upd ? 'متابعة' : 'ابدأ', onPrimary: upd ? finish : null, second: upd ? 'إعادة تخصيص التطبيق' : null, onSecond: ()=>go(1), noSkip: true};
+    return {el, primary: upd ? 'متابعة' : 'لنجهّزه على ذوقك', onPrimary: upd ? finish : null, second: upd ? 'إعادة تخصيص التطبيق' : 'ابدأ مباشرة بالإعدادات المقترحة', onSecond: upd ? ()=>go(1) : quick, noSkip: true};
   });
 
   /* 2 features summary: a bento of what is inside, with today's next prayer live */
@@ -107,6 +122,21 @@ function build(mode){
     }}, h('b', n), h('small', e), h('span.ob-ck', {html:M.icon('check')}))));
     const dg = M.seg([['hindi', '​١٢٣ عربية'], ['latin', '​123 English']], M.cfg.digits === 'latin' ? 'latin' : 'hindi', v=>{ M.save('digits', v); });
     return {el: h('div.ob-page', ...head('globe', 'اللغة والأرقام', 'اختر لغة الواجهة وشكل الأرقام.'), langs, ...((M.lang || 'ar') === 'ar' ? [lab('شكل الأرقام'), h('div.ob-st', dg)] : [])), primary:'متابعة'};
+  });
+
+  /* 3b about you: the name for the greeting + the text size */
+  pages.push(()=>{
+    const hello = h('div.ob-hello.title-font', 'السلام عليكم' + (M.cfg.userName ? ' يا ' + M.cfg.userName : ''));
+    const name = h('input.field', {type:'text', maxlength:24, placeholder:'اسمك (اختياري)', value:M.cfg.userName || '', oninput:e=>{ const v = e.target.value.trim(); M.save('userName', v); hello.textContent = 'السلام عليكم' + (v ? ' يا ' + v : ''); }});
+    const sample = h('div.ob-sample.qfont', 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ');
+    const sizes = [[0.9, 'صغير'], [1, 'متوسط'], [1.12, 'كبير'], [1.28, 'أكبر']];
+    const cur = M.cfg.fontScale || 1;
+    const paintS = v=>{ sample.style.fontSize = (1.5 * v) + 'rem'; };
+    paintS(cur);
+    const near = sizes.reduce((a, b)=>Math.abs(b[0] - cur) < Math.abs(a[0] - cur) ? b : a)[0];
+    const seg = M.seg(sizes.map(([v, l])=>[String(v), l]), String(near), v=>{ M.save('fontScale', +v); paintS(+v); });
+    return {el: h('div.ob-page', ...head('t:user', 'نتعرّف عليك', 'نحيّيك باسمك في الرئيسية، ونضبط حجم الخط على راحتك.'),
+      card(hello, name), lab('حجم الخط في التطبيق'), card(sample), h('div.ob-st', seg)), primary:'متابعة'};
   });
 
   /* 4 location */
@@ -193,6 +223,44 @@ function build(mode){
     return {el: h('div.ob-page', ...head('volume', 'أذكار بصوت جميل', 'اختر ما يذكّرك به التطبيق بصوت مسجّل خلال اليوم، واستمع إليه قبل التفعيل.'),
       ...cards, h('p.ob-note.ob-st', 'التكرار من ٨ صباحًا إلى ١٠ مساءً، ويمكنك تغيير الأوقات والأصوات لاحقًا من «الإشعارات».')),
       primary:'متابعة', onPrimary:()=>{ notifApply(); go(step + 1); }};
+  });
+
+  /* 7b the home screen: the shortcuts shown there and in the floating circle */
+  pages.push(()=>{
+    const all = (M.SECTIONS || []).filter(x=>!['settings', 'look', 'navbar_cfg', 'health', 'v2_security', 'notifs', 'tour', 'search'].includes(x[0]));
+    const sel = (M.shortcuts ? M.shortcuts() : []).slice();
+    const count = h('span.ob-cnt');
+    const grid = h('div.ob-pick.ob-st');
+    const paint = ()=>{ count.textContent = M.n(sel.length) + ' / ' + M.n(8);
+      grid.querySelectorAll('.ob-pk').forEach(b=>{ const on = sel.includes(b.dataset.id); b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); }); };
+    all.forEach(x=>grid.append(h('button.ob-pk', {dataset:{id:x[0]}, onclick:()=>{
+      const i = sel.indexOf(x[0]);
+      if(i >= 0) sel.splice(i, 1); else { if(sel.length >= 8){ M.toast('اختر ٨ أقسام على الأكثر'); return; } sel.push(x[0]); }
+      M.save('shortcuts', sel.slice()); paint(); M.haptic && M.haptic(6);
+    }}, h('span.ob-pk-i', {html:M.icon(x[2])}), h('span.ob-pk-t', x[1]), h('span.ob-ck', {html:M.icon('check')}))));
+    paint();
+    return {el: h('div.ob-page', ...head('s:grid', 'اختصاراتك', 'اختر الأقسام التي تستخدمها كثيرًا؛ تظهر في الرئيسية وفي الدائرة العائمة.'),
+      h('div.ob-lab.ob-st.ob-lab-row', h('span', 'اختياراتك'), count), grid), primary:'متابعة'};
+  });
+
+  /* 7c the floating card (verse khatma): on or off, as a small circle, and the hours it may appear in */
+  if(M.popupCfg) pages.push(()=>{
+    const P = M.popupCfg, nat = !!(window.Android && window.Android.popupConfig);
+    const w = P.w(), u = P.u();
+    const row = (ic, t, d, sw)=>h('div.ob-row.ob-st', h('span.ob-fi', {html:M.icon(ic)}), h('div.grow', h('b', t), h('small', d)), sw);
+    const winBox = h('div.ob-win');
+    const paintWin = ()=>{ const W = P.u().win || {};
+      winBox.hidden = !W.on;
+      winBox.replaceChildren(h('label', h('small', 'من'), h('input.field', {type:'time', value:W.from || '08:00', onchange:e=>P.uset({win:Object.assign({}, P.u().win, {from:e.target.value || '08:00'})})})),
+        h('label', h('small', 'إلى'), h('input.field', {type:'time', value:W.to || '22:00', onchange:e=>P.uset({win:Object.assign({}, P.u().win, {to:e.target.value || '22:00'})})}))); };
+    paintWin();
+    return {el: h('div.ob-page', ...head('s:khatma', 'النافذة العائمة', nat ? 'تعرض لك آيات من ختمتك عند فتح الهاتف. اجعلها هادئة كما تحب.' : 'تعرض لك آيات من ختمتك عند فتح التطبيق. اجعلها هادئة كما تحب.'),
+      h('div.ob-group.ob-st',
+        row('s:khatma', 'ورد الآيات العائم', 'آيات من ختمتك تقرؤها وتنتقل إلى ما بعدها', M.switchEl(!!w.on, v=>P.wset({on:v}))),
+        row('t:hand-click', 'تظهر كدائرة صغيرة', 'بدل النافذة الكاملة: دائرة تضغطها لتفتح الورد، فلا تقاطعك', M.switchEl(!!u.bubble, v=>P.uset({bubble:v}))),
+        row('clock', 'في ساعات محددة فقط', 'لا تظهر خارج الوقت الذي تختاره', M.switchEl(!!(u.win && u.win.on), v=>{ P.uset({win:Object.assign({from:'08:00', to:'22:00'}, P.u().win, {on:v})}); paintWin(); })),
+        winBox),
+      h('p.ob-note.ob-st', 'تغيّر ذلك لاحقًا من «الختمة» ← إعدادات النافذة.')), primary:'متابعة'};
   });
 
   /* 8 theme / skin with live preview */
