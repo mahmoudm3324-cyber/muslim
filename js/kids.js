@@ -35,9 +35,9 @@ M.openKids = function(){
   const go = p=>{ S.page = p; paint(); try{ content.closest('.view-body').scrollTop = 0; }catch(e){} };
   const back = t=>h('div.kd-top', h('button.chip', {onclick:()=>go('home')}, M.ic('back'), 'الركن'), h('div.bold.title-font.grow', t));
   const TILES = [['wudu', 'أتعلّم الوضوء', 'خطوة خطوة', 's:crescent', 1], ['salah', 'أتعلّم الصلاة', 'من التكبير إلى السلام', 's:rug', 2], ['quiz', 'المسابقة', 'أسئلة ونجوم', 's:rosette', 3],
-    ['stories', 'قصص الأنبياء', 'حكايات وعِبَر', 's:lantern', 4], ['adhkar', 'أذكاري', 'أحفظها وأقولها', 's:beads', 5], ['surahs', 'سور قصيرة', 'أقرأ وأستمع', 's:mushaf', 6]];
+    ['stories', 'قصص الأنبياء', 'حكايات وعِبَر', 's:lantern', 4], ['adhkar', 'أذكاري', 'أحفظها وأقولها', 's:beads', 5], ['surahs', 'سور قصيرة', 'أقرأ وأستمع', 's:mushaf', 6], ['learn', 'أتعلّم ديني', 'الأركان والعبادات', 's:crescent', 2]];
 
-  function paint(){ content.replaceChildren(); ({home, wudu:()=>lesson('wudu', 'أتعلّم الوضوء'), salah:()=>lesson('salah', 'أتعلّم الصلاة'), quiz, stories, adhkar, surahs})[S.page](); }
+  function paint(){ content.replaceChildren(); ({home, wudu:()=>lesson('wudu', 'أتعلّم الوضوء'), salah:()=>lesson('salah', 'أتعلّم الصلاة'), quiz, stories, adhkar, surahs, learn:()=>M.kidsLearn({content, back, go, once, S}, S.learn)})[S.page](); }
 
   function home(){
     const st = stars(), li = LEVELS.filter(l=>st >= l[0]).length - 1, nxt = LEVELS[li + 1];
