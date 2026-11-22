@@ -601,13 +601,13 @@ html[data-theme=dark] .cl3-th,html[data-theme=amoled] .cl3-th{background:#1b2226
 .iq-step button{width:32px;height:32px;border:0;border-radius:50%;display:grid;place-items:center;color:var(--on-s);background:var(--card-bg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .iq-step button svg{width:16px;height:16px}
 .iq-step b{min-width:28px;text-align:center;font-size:1rem}
-.ob3-dotr{fill:none;stroke:#fff;stroke-width:1;opacity:.45}
-.ob3-sunc{fill:#ffe08a;filter:drop-shadow(0 0 6px rgba(255,214,110,.9))}
-.ob3-rays line{stroke:#ffe08a;stroke-width:2.4;stroke-linecap:round}
 .ob3-rays{animation:ob3Spin 12s linear infinite;transform-box:fill-box;transform-origin:center}
 @keyframes ob3Spin{to{transform:rotate(360deg)}}
-.ob3-mkh.m{fill:rgba(220,228,255,.22)}
-.ob3-moonc{fill:#eef1ff;filter:drop-shadow(0 0 6px rgba(220,228,255,.85))}
-.ob3-st{fill:#fff}
 .ob3-mk .ob3-moon{opacity:0;transition:opacity .6s}.ob3-mk .ob3-sun{transition:opacity .6s}
 .ob3-mk.night .ob3-moon{opacity:1}.ob3-mk.night .ob3-sun{opacity:0}
+
+.ob3-dot{fill:#fff;opacity:.95}
+.ob3-halo{fill:rgba(255,255,255,.16);stroke:rgba(255,255,255,.35);stroke-width:1}
+.ob3-rays line{stroke:#ffd26a;stroke-width:2.2;stroke-linecap:round}
+.ob3-sun circle{filter:drop-shadow(0 0 5px rgba(255,205,90,.9))}
+.ob3-moon circle:first-child{filter:drop-shadow(0 0 5px rgba(225,232,255,.9))}
