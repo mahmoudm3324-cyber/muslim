@@ -431,6 +431,11 @@ S.perf = {title:'الأداء والشاشة', build(b){
   b.append(h('div.section-h', 'الشاشة المنحنية الحواف'));
   b.append(M.seg([['auto', 'تلقائي'], [0, 'بدون'], [8, 'خفيف'], [14, 'متوسط'], [22, 'واسع']], M.cfg.edge == null ? 'auto' : M.cfg.edge, v=>M.save('edge', v)));
   b.append(note('يُبعد المحتوى (والمصحف) عن الجانبين المنحنيين حتى لا يُقصّ النص أو تُلمس الحافة بالخطأ. «تلقائي» يأخذ القياس من الهاتف إن أعلنه، وإن لم يتغيّر شيء فاختر عرضًا يدويًا.'));
+  b.append(h('div.list.card', {style:'margin-top:12px'},
+    row('إضاءة الحواف', 'ضوء هادئ يسري على الجانبين المنحنيين عند فتح التطبيق وعند الأذان', M.switchEl(M.cfg.edgeLight !== false, v=>M.save('edgeLight', v))),
+    h('button.item', {onclick:()=>M.edgeLight && M.edgeLight.test()}, h('div.grow', h('div.t', 'تجربة الإضاءة')), M.ic('play'))));
+  b.append(h('div.section-h', 'الشاشات العريضة'));
+  b.append(h('div.list.card', row('عمودان على التابلت بالعرض', 'تُرتَّب البطاقات في عمودين على الشاشة العريضة، وتنتقل بحركة عند تدوير الجهاز', M.switchEl(M.cfg.wideBoard !== false, v=>M.save('wideBoard', v)))));
 }};
 
 /* ---- widgets: gallery of every widget by category (real preview + pin button) and an appearance tab (colours, background) ---- */

@@ -1245,3 +1245,43 @@ html[data-theme=dark] .badge,html[data-theme=amoled] .badge{filter:none}
 .qcf .qbis-m{justify-content:center;align-items:center}
 .qbm{background:var(--rt-fg,#1f261f);flex:none}
 .vbism-m{display:flex;justify-content:center}
+
+/* 4.6 wide screens — a tablet on its side, a wide computer window (js/v46-wide.js puts the cards on a two-column board) */
+html[data-wide] .screen{padding-inline:max(24px,calc((100% - 1120px) / 2))}
+html[data-wide] .screen.wb.active,html[data-wide] .mr-box.wb{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px;row-gap:0;grid-auto-rows:4px;align-items:start}
+html[data-wide] .wb>*{margin-block:0!important;min-width:0;align-self:start}
+html[data-wide] #screen-more .mr-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+html[data-wide] #screen-adhkar .catgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+html[data-wide] #screen-quran .q-list>.card.list{columns:2;column-gap:0;column-rule:1px solid var(--card-border)}
+html[data-wide] #screen-quran .q-list>.card.list>.item{break-inside:avoid}
+html[data-wide] .view-body{padding-inline:max(20px,calc((100% - 860px) / 2))}
+/* pages drawn edge to edge keep their controls in a readable column */
+@media (min-width:760px){
+  .qb-top,.qb-c>*{width:100%;max-width:720px;margin-inline:auto}
+  .qb-c>.qb-dial,.qb-c>[class*=dial]{width:auto}
+}
+/* nearby mosques on a wide landscape screen: the map beside the list */
+@media (min-width:900px) and (orientation:landscape){
+  .mq-body{flex-direction:row!important}
+  .mq-stage{flex:1 1 auto;height:auto;min-height:0}
+  .mq-sheet{flex:0 0 min(420px,40%);order:-1;margin-top:0;border-radius:0;box-shadow:-10px 0 26px -12px rgba(0,0,0,.18);padding-top:12px}
+}
+
+/* 4.6 the edge light: a soft glow runs down both bent sides of a curved screen (on opening, on return, and at the adhan) */
+.edge-light{position:fixed;inset:0;pointer-events:none;z-index:2147483000;contain:strict}
+.edge-light i{position:absolute;top:0;bottom:0;overflow:hidden;opacity:0;animation:el-fade 1.9s ease-in-out forwards}
+.edge-light .el-l{left:0;width:max(5px,calc(var(--edge-l,0px) + 3px))}
+.edge-light .el-r{right:0;width:max(5px,calc(var(--edge-r,0px) + 3px))}
+.edge-light i::before{content:'';position:absolute;inset-inline:0;top:0;height:45%;border-radius:99px;
+  background:linear-gradient(180deg,transparent,color-mix(in oklab,var(--p) 70%,#fff) 40%,var(--p) 60%,transparent);
+  box-shadow:0 0 14px 2px color-mix(in oklab,var(--p) 60%,transparent);transform:translateY(-110%);animation:el-run 1.9s cubic-bezier(.45,.05,.3,1) forwards}
+.edge-light .el-r::before{animation-delay:.08s}
+.edge-light.strong i{animation:el-fade 3.3s ease-in-out forwards}
+.edge-light.strong i::before{animation:el-run 1.1s cubic-bezier(.45,.05,.3,1) 3 forwards}
+@keyframes el-run{to{transform:translateY(240%)}}
+@keyframes el-fade{0%{opacity:0}15%{opacity:1}80%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.edge-light{display:none}}
+/* the content moves in and out of the curved margin smoothly when the width changes */
+#screens,#tabbar,#views,#sheet-root,#toast-root{transition:left .35s var(--ease,ease),right .35s var(--ease,ease)}
+/* the pop-up cards and their circle keep off the bent sides too */
+html:not(.pop-float) .pop-root{left:var(--edge-l,0px);right:var(--edge-r,0px)}
