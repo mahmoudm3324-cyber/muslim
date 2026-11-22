@@ -524,10 +524,7 @@ html[data-theme=dark] .cl3-th,html[data-theme=amoled] .cl3-th{background:#1b2226
 .ob3-arc{width:100%;max-width:360px;margin:6px auto 0}
 .ob3-arc svg{width:100%;overflow:visible}
 .ob3-path{fill:none;stroke:rgba(255,255,255,.7);stroke-width:2.2;stroke-dasharray:2 6;stroke-linecap:round}
-.ob3-dot{fill:#fff;opacity:.9}
 .ob3-mk{transition:transform 1s cubic-bezier(.45,0,.2,1)}
-.ob3-mkh{fill:rgba(255,236,170,.35)}.ob3-mkc{fill:#fff3cf}
-.ob[data-sky=isha] .ob3-mkc,.ob[data-sky=fajr] .ob3-mkc{fill:#e8ecff}
 .ob3-scene{display:flex;flex-direction:column;align-items:center;margin-top:-6px}
 .ob3-kick{font-size:.72rem;letter-spacing:.12em;font-weight:700;opacity:.8}
 .ob3-pn{font-size:3.4rem;line-height:1.25;font-weight:800;text-shadow:0 4px 18px rgba(0,0,0,.2)}
@@ -601,13 +598,36 @@ html[data-theme=dark] .cl3-th,html[data-theme=amoled] .cl3-th{background:#1b2226
 .iq-step button{width:32px;height:32px;border:0;border-radius:50%;display:grid;place-items:center;color:var(--on-s);background:var(--card-bg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .iq-step button svg{width:16px;height:16px}
 .iq-step b{min-width:28px;text-align:center;font-size:1rem}
-.ob3-rays{animation:ob3Spin 12s linear infinite;transform-box:fill-box;transform-origin:center}
 @keyframes ob3Spin{to{transform:rotate(360deg)}}
-.ob3-mk .ob3-moon{opacity:0;transition:opacity .6s}.ob3-mk .ob3-sun{transition:opacity .6s}
-.ob3-mk.night .ob3-moon{opacity:1}.ob3-mk.night .ob3-sun{opacity:0}
 
-.ob3-dot{fill:#fff;opacity:.95}
-.ob3-halo{fill:rgba(255,255,255,.16);stroke:rgba(255,255,255,.35);stroke-width:1}
-.ob3-rays line{stroke:#ffd26a;stroke-width:2.2;stroke-linecap:round}
-.ob3-sun circle{filter:drop-shadow(0 0 5px rgba(255,205,90,.9))}
-.ob3-moon circle:first-child{filter:drop-shadow(0 0 5px rgba(225,232,255,.9))}
+
+/* the timeline scene: sun, moon, clouds and stars (3.11.2) */
+.ob.ob3[data-sky=sunrise]{--sky1:#5f7fc0;--sky2:#f2a48a;--sky3:#ffd39a}
+.ob3-tl{position:relative}
+.ob3-path{fill:none;stroke:rgba(255,255,255,.55);stroke-width:1.6;stroke-dasharray:1.5 6;stroke-linecap:round}
+.ob3-hz{stroke:rgba(255,255,255,.28);stroke-width:1}
+.ob3-mk{transition:transform 1.2s cubic-bezier(.45,0,.2,1)}
+.ob3-sunb{fill:url(#ob3sg);filter:drop-shadow(0 0 7px rgba(255,200,90,.95))}
+.ob3-rays line{stroke:#ffd166;stroke-width:2.4;stroke-linecap:round}
+.ob3-rays{animation:ob3Spin 14s linear infinite;transform-box:fill-box;transform-origin:center}
+.ob3-mk.low .ob3-sunb{fill:url(#ob3sl);filter:drop-shadow(0 0 10px rgba(255,130,60,.95))}
+.ob3-mk.low .ob3-rays line{stroke:#ffab5c}
+.ob3-glow{transition:opacity .8s}
+.ob3-mk.night .ob3-glow{opacity:.35}
+.ob3-moon{opacity:0;transition:opacity .7s}.ob3-sun{transition:opacity .7s}
+.ob3-mk.night .ob3-moon{opacity:1}.ob3-mk.night .ob3-sun{opacity:0}
+.ob3-moon circle:first-child{filter:drop-shadow(0 0 6px rgba(225,232,255,.9))}
+.ob3-clouds{position:absolute;inset:0 0 auto;height:220px;pointer-events:none;overflow:hidden;z-index:0}
+.ob3-clouds svg{position:absolute;fill:rgba(255,255,255,.82);filter:drop-shadow(0 4px 8px rgba(0,0,0,.06));transition:fill 1s,opacity 1s}
+.ob3-clouds .c1{top:40px;left:-120px;animation:ob3Cloud 38s linear infinite}
+.ob3-clouds .c2{top:110px;left:-80px;opacity:.7;animation:ob3Cloud 52s linear -18s infinite}
+.ob3-clouds .c3{top:150px;left:-140px;opacity:.55;animation:ob3Cloud 64s linear -40s infinite}
+.ob3-clouds .c4{top:70px;left:-70px;opacity:.6;animation:ob3Cloud 46s linear -30s infinite}
+@keyframes ob3Cloud{to{transform:translateX(calc(100vw + 200px))}}
+.ob[data-sky=fajr] .ob3-clouds svg,.ob[data-sky=isha] .ob3-clouds svg{fill:rgba(190,200,235,.28)}
+.ob[data-sky=maghrib] .ob3-clouds svg,.ob[data-sky=sunrise] .ob3-clouds svg{fill:rgba(255,214,190,.75)}
+.ob3-stars{position:absolute;inset:0 0 auto;height:240px;pointer-events:none;opacity:0;transition:opacity 1s;
+  background-image:radial-gradient(1.3px 1.3px at 12% 18%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 28% 44%,#fff 50%,transparent 51%),radial-gradient(1.4px 1.4px at 46% 12%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 63% 36%,#fff 50%,transparent 51%),radial-gradient(1.2px 1.2px at 80% 20%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 92% 46%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 38% 70%,#fff 50%,transparent 51%),radial-gradient(1.2px 1.2px at 70% 64%,#fff 50%,transparent 51%)}
+.ob[data-sky=fajr] .ob3-stars{opacity:.55}.ob[data-sky=isha] .ob3-stars{opacity:.9}
+.ob3-arc,.ob3-scene,.ob3-city,.ob3-tx{position:relative;z-index:1}
+@media (prefers-reduced-motion:reduce){.ob3-clouds svg,.ob3-rays{animation:none}}

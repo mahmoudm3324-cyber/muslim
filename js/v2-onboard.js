@@ -97,25 +97,42 @@ function build(mode){
     return {el, primary: upd ? 'متابعة' : 'لنجهّزه على ذوقك', onPrimary: upd ? finish : null, second: upd ? 'إعادة تخصيص التطبيق' : 'ابدأ مباشرة بالإعدادات المقترحة', onSecond: upd ? ()=>go(1) : quick, noSkip: true};
   });
 
-  /* 2 the prayer timeline: the day's five prayers on an arc, the sky and the name changing from one to the next */
+  /* 2 the prayer timeline: the sun rises, crosses the sky and sets, the moon comes at Fajr and Isha; clouds drift by and the sky
+     changes colour with every prayer (no dots or rings: only the sun, the moon and the clouds) */
   pages.push(()=>{
-    const PR = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+    const PR = [['fajr', 0, 1], ['sunrise', .1, 0], ['dhuhr', .5, 0], ['asr', .72, 0], ['maghrib', .9, 0], ['isha', 1, 1]];
     let tt = null; try{ tt = M.prayerTimes(new Date()); }catch(e){}
-    const P = (t)=>{ const x = 296 - t * 272, y = 92 - Math.sin(t * Math.PI) * 70; return [x, y]; };   // the day runs from the east (right) to the west
-    const dots = PR.map((k, i)=>{ const [x, y] = P(i / 4); return '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="4.2" class="ob3-dot"/>'; }).join('');
-    const arc = h('div.ob3-arc', {html:'<svg viewBox="0 0 320 110"><path d="M24 92 Q160 -48 296 92" class="ob3-path"/>' + dots + '<defs><mask id="ob3cm"><rect x="-20" y="-20" width="40" height="40" fill="#000"/><circle r="10" fill="#fff"/><circle cx="4.6" cy="-3.4" r="9.2" fill="#000"/></mask><radialGradient id="ob3sg"><stop offset="0" stop-color="#fff6d6"/><stop offset="1" stop-color="#ffc94d"/></radialGradient></defs><g class="ob3-mk"><circle r="21" class="ob3-halo"/><g class="ob3-sun"><g class="ob3-rays"><line x1="0" y1="-13.5" x2="0" y2="-17" transform="rotate(0)"/><line x1="0" y1="-13.5" x2="0" y2="-17" transform="rotate(45)"/><line x1="0" y1="-13.5" x2="0" y2="-17" transform="rotate(90)"/><line x1="0" y1="-13.5" x2="0" y2="-17" transform="rotate(135)"/><line x1="0" y1="-13.5" x2="0" y2="-17" transform="rotate(180)"/><line x1="0" y1="-13.5" x2="0" y2="-17" transform="rotate(225)"/><line x1="0" y1="-13.5" x2="0" y2="-17" transform="rotate(270)"/><line x1="0" y1="-13.5" x2="0" y2="-17" transform="rotate(315)"/></g><circle r="9.5" fill="url(#ob3sg)"/></g><g class="ob3-moon"><circle r="10" fill="#f1f3ff" mask="url(#ob3cm)"/><path d="M10 -12l.9 2 2 .9-2 .9-.9 2-.9-2-2-.9 2-.9z" fill="#fff"/><circle cx="13" cy="2" r=".9" fill="#fff" opacity=".8"/></g></g></svg>'});
+    const P = (t)=>{ const x = 296 - t * 272, y = 96 - Math.sin(t * Math.PI) * 74; return [x, y]; };   // the day runs from the east (right) to the west
+    const arc = h('div.ob3-arc', {html:'<svg viewBox="0 0 320 112"><defs>' +
+      '<mask id="ob3cm"><rect x="-24" y="-24" width="48" height="48" fill="#000"/><circle r="11" fill="#fff"/><circle cx="5" cy="-3.8" r="10" fill="#000"/></mask>' +
+      '<radialGradient id="ob3sg"><stop offset="0" stop-color="#fff7da"/><stop offset=".6" stop-color="#ffd166"/><stop offset="1" stop-color="#ffb236"/></radialGradient>' +
+      '<radialGradient id="ob3sl"><stop offset="0" stop-color="#ffe3a3"/><stop offset=".6" stop-color="#ff9e45"/><stop offset="1" stop-color="#f0642f"/></radialGradient>' +
+      '<radialGradient id="ob3glow"><stop offset="0" stop-color="#ffe9a8" stop-opacity=".75"/><stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/></radialGradient>' +
+      '<clipPath id="ob3hz"><rect x="-40" y="-60" width="400" height="156"/></clipPath></defs>' +
+      '<path d="M24 96 Q160 -52 296 96" class="ob3-path"/><line x1="0" y1="96" x2="320" y2="96" class="ob3-hz"/>' +
+      '<g clip-path="url(#ob3hz)"><g class="ob3-mk">' +
+      '<circle r="30" fill="url(#ob3glow)" class="ob3-glow"/>' +
+      '<g class="ob3-sun"><g class="ob3-rays"><line x1="0" y1="-14" x2="0" y2="-18.5" transform="rotate(0)"/><line x1="0" y1="-14" x2="0" y2="-18.5" transform="rotate(45)"/><line x1="0" y1="-14" x2="0" y2="-18.5" transform="rotate(90)"/><line x1="0" y1="-14" x2="0" y2="-18.5" transform="rotate(135)"/><line x1="0" y1="-14" x2="0" y2="-18.5" transform="rotate(180)"/><line x1="0" y1="-14" x2="0" y2="-18.5" transform="rotate(225)"/><line x1="0" y1="-14" x2="0" y2="-18.5" transform="rotate(270)"/><line x1="0" y1="-14" x2="0" y2="-18.5" transform="rotate(315)"/></g><circle r="11" class="ob3-sunb"/></g>' +
+      '<g class="ob3-moon"><circle r="11" fill="#f1f3ff" mask="url(#ob3cm)"/><path d="M11 -13l1 2.2 2.2 1-2.2 1-1 2.2-1-2.2-2.2-1 2.2-1z" fill="#fff"/><circle cx="14" cy="2" r="1" fill="#fff" opacity=".8"/></g>' +
+      '</g></g></svg>'});
     const mk = arc.querySelector('.ob3-mk');
+    const cl = (cls, w)=>'<svg class="' + cls + '" viewBox="0 0 80 36" width="' + w + '"><path d="M14 34h52a14 14 0 0 0 0-28 20 20 0 0 0-37-6A15 15 0 0 0 14 34z"/></svg>';
+    const clouds = h('div.ob3-clouds', {'aria-hidden':'true', html:cl('c1', 96) + cl('c2', 64) + cl('c3', 120) + cl('c4', 54)});
+    const stars = h('div.ob3-stars', {'aria-hidden':'true'});
     const name = h('div.ob3-pn.title-font'), when = h('div.ob3-pt');
     const scene = h('div.ob3-scene', h('div.ob3-kick', 'مواقيت الصلاة'), name, when);
     const city = h('div.ob3-city', {html:'<svg viewBox="0 0 400 120" preserveAspectRatio="xMidYMax slice"><path d="M0 120V92h28v-8h10v8h22V70a26 26 0 0 1 52 0v22h14V40l4-10 4 10v52h20V80a40 40 0 0 1 80 0v12h20V40l4-10 4 10v52h14V74a24 24 0 0 1 48 0v18h30v-6h12v6h34v28z"/></svg>'});
     let i = 0, iv = null;
-    const show = ()=>{ const k = PR[i]; name.textContent = M.prayerLabel(k); when.textContent = tt ? M.n(M.fmt(tt[k])) : '';
-      const [x, y] = P(i / 4); mk.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')');
-      el.dataset.sky = k; root.dataset.sky = k; mk.classList.toggle('night', k === 'fajr' || k === 'isha'); name.classList.remove('in'); void name.offsetWidth; name.classList.add('in'); };
-    const el = h('div.ob-page.ob3-tl', arc, scene, city,
-      h('div.ob3-tx.ob-st', h('h1.ob-h.title-font', 'مشاهد حيّة لمواقيتك'), h('p.ob-p', 'تتغيّر ألوان السماء مع كل صلاة، وتتابع يومك من الفجر إلى العشاء.')));
+    const show = ()=>{ const [k, t, night] = PR[i]; name.textContent = M.prayerLabel(k); when.textContent = tt ? M.n(M.fmt(tt[k])) : '';
+      const [x, y] = P(t); mk.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + (y + (k === 'sunrise' || k === 'maghrib' ? 4 : night ? -22 : 0)).toFixed(1) + ')');
+      el.dataset.sky = k; root.dataset.sky = k;
+      mk.classList.toggle('night', !!night); mk.classList.toggle('low', k === 'sunrise' || k === 'maghrib');
+      name.classList.remove('in'); void name.offsetWidth; name.classList.add('in'); };
+    const el = h('div.ob-page.ob3-tl', stars, clouds, arc, scene, city,
+      h('div.ob3-tx.ob-st', h('h1.ob-h.title-font', 'مشاهد حيّة لمواقيتك'), h('p.ob-p', 'تشرق الشمس وتغرب، ويطلع القمر، وتتغيّر ألوان السماء مع كل صلاة من الفجر إلى العشاء.')));
     show();
-    if(!reduced()){ iv = setInterval(()=>{ i = (i + 1) % PR.length; show(); }, 1700); pageOff.push(()=>{ clearInterval(iv); delete root.dataset.sky; }); }
+    el.addEventListener('click', e=>{ if(e.target.closest('button')) return; i = (i + 1) % PR.length; show(); M.haptic && M.haptic(6); });   // a tap moves on too
+    if(!reduced()){ iv = setInterval(()=>{ i = (i + 1) % PR.length; show(); }, 1900); pageOff.push(()=>{ clearInterval(iv); delete root.dataset.sky; }); }
     return {el, primary:'متابعة'};
   });
 
