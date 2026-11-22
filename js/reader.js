@@ -118,6 +118,31 @@ M.openReader = async function(opts){
     nameMemo.set(mk, d.style.cssText);
     return d;
   }
+  /* 4.5.4 the Basmala line: one very large compound glyph that some browsers (Edge / Chrome on Windows) draw broken —
+     squeezed, doubled, with stray strokes. Like the surah name banner, it is drawn once on a canvas and shown as a mask in the
+     text colour: the same shape on every device, in every edition. */
+  const bisMemo = new Map();
+  function bisMask(parts, fs, H){
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const key = parts.map(x=>x.join('|')).join('/') + '|' + fs.toFixed(1) + '|' + H.toFixed(1) + '|' + dpr;
+    let m = bisMemo.get(key);
+    if(!m){
+      const c0 = document.createElement('canvas').getContext('2d');
+      const gap = fs * .18, ws = parts.map(([t, f])=>{ c0.font = fs + 'px "' + f + '"'; const mt = c0.measureText(t); return {w:mt.width, asc:mt.actualBoundingBoxAscent || fs * .7, dsc:mt.actualBoundingBoxDescent || fs * .3}; });
+      const W = Math.ceil(ws.reduce((a, x)=>a + x.w, 0) + gap * (parts.length - 1) + 4);
+      if(!(W > 8)) return null;
+      const cv = document.createElement('canvas'); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      const c = cv.getContext('2d'); c.scale(dpr, dpr); c.fillStyle = '#000'; c.textBaseline = 'alphabetic'; c.textAlign = 'left';
+      let x = W - 2;   // right to left: the first part is the rightmost
+      parts.forEach(([t, f], i)=>{ const g = ws[i]; x -= g.w; c.font = fs + 'px "' + f + '"'; c.fillText(t, x, H / 2 + (g.asc - g.dsc) / 2); x -= gap; });
+      m = {u:'url(' + cv.toDataURL('image/png') + ')', W};
+      if(bisMemo.size > 30) bisMemo.delete(bisMemo.keys().next().value);
+      bisMemo.set(key, m);
+    }
+    const d = h('div.qbm', {'aria-label':'بسم الله الرحمن الرحيم', role:'img'});
+    d.style.cssText = 'width:' + m.W + 'px;max-width:100%;height:' + H.toFixed(1) + 'px;-webkit-mask:' + m.u + ' center/contain no-repeat;mask:' + m.u + ' center/contain no-repeat';
+    return d;
+  }
   function buildQcfPage(p){
     const pg = EP(p), fn = pg[0], lines = pg[1], kind = edKind();
     const fam = M.qcf.fam(fn);
@@ -140,7 +165,9 @@ M.openReader = async function(opts){
       if(l[0] === 'h'){
         body.append(h('div.ml.qh', {dataset:{s:l[1]}, style:'height:'+bh.toFixed(1)+'px'}, h('div.qbn', nameCanvas(l[2], bodyW, bh))));
       } else if(l[0] === 'b'){
-        body.append(h('div.ml.qbis'+(kind === 'c' ? '.qcc' : ''), ...(Array.isArray(l[1]) ? l[1] : [l[1]]).map(t=>h('span', {style:'font-family:'+(l[3] ? M.qcf.fam(l[3]) : fam)}, t))));
+        const bt = Array.isArray(l[1]) ? l[1] : [l[1]], bf = l[3] ? M.qcf.fam(l[3]) : fam;
+        const bm = bisMask(bt.map(t=>[t, bf]), fs, bh);   // every edition: the same safe drawing
+        body.append(bm ? h('div.ml.qbis.qbis-m', bm) : h('div.ml.qbis'+(kind === 'c' ? '.qcc' : ''), ...bt.map(t=>h('span', {style:'font-family:'+bf}, t))));
       } else {
         const row = h('div.ml.mw.qw'+(kind === 'c' ? '.qcc' : ''), {style:'font-family:'+fam});
         const full = l[1] / mx >= 0.9;
@@ -846,7 +873,9 @@ M.openReader = async function(opts){
       const b = h('section.vs', {dataset:{s}},
         h('div.sh', ban,
           h('div.sh-meta', h('span', meta.mk ? 'مكية' : 'مدنية'), h('i'), h('span', M.cnt(meta.n, 'آية')), h('i'), h('span', 'الصفحة '+arNum(meta.page)))));
-      if(s !== 1 && s !== 9){ ayahQcf(1, 1); if(bisG){ M.qcf.ensure(bisG[0]); b.append(h('div.vbism', {style:'font-family:'+M.qcf.fam(bisG[0])}, bisG[1])); } }
+      if(s !== 1 && s !== 9){ ayahQcf(1, 1); if(bisG){ const vb = h('div.vbism', {style:'font-family:'+M.qcf.fam(bisG[0])}, bisG[1]); b.append(vb);
+        /* the same safe drawing as on the pages, once its font is in */
+        M.qcf.ensure(bisG[0]).then(ok=>{ if(!ok || !vb.isConnected) return; const px = parseFloat(getComputedStyle(vb).fontSize) || 28, m = bisMask([[bisG[1], M.qcf.fam(bisG[0])]], px, Math.round(px * 1.7)); if(m){ vb.replaceChildren(m); vb.classList.add('vbism-m'); } }); } }
       for(let a = 1; a <= meta.n; a++){
         const id = Q.starts[s-1] + a - 1, k = KEY(s, a);
         const el = h('article.va', {dataset:{k, s, a}},

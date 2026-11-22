@@ -1240,3 +1240,8 @@ html[data-theme=dark] .mr-chip,html[data-theme=amoled] .mr-chip,html[data-theme=
 .ch-stats span{background:rgba(0,0,0,.14)!important}
 .sur-tr{color:color-mix(in oklab,var(--on-s) 62%,transparent)!important}
 html[data-theme=dark] .badge,html[data-theme=amoled] .badge{filter:none}
+
+/* 4.5.4 the Basmala drawn once (see bisMask): a mask in the page's text colour */
+.qcf .qbis-m{justify-content:center;align-items:center}
+.qbm{background:var(--rt-fg,#1f261f);flex:none}
+.vbism-m{display:flex;justify-content:center}
