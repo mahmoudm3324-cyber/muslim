@@ -160,6 +160,40 @@ M.bgScopeApply = function(){
   img.style.opacity = show && bg.classList.contains('has-img') ? '1' : '0';
   const vv = M.$('#bg-vid'); if(vv) vv.style.opacity = img.style.opacity;
   if(!show){ dim.style.opacity = '0'; } else { dim.style.opacity = bg.classList.contains('has-img') ? String(M.cfg.bgDim) : '0'; }
+  document.documentElement.toggleAttribute('data-bgon', show && bg.classList.contains('has-img'));
+  M.bgTone();
+};
+/* 4.4.1 — how bright the picture behind the home screen really is (the part under the header, after the dim layer),
+   so the header's words are light on a dark picture and dark on a light one; read once per picture and remembered */
+const toneMemo = {};
+function bgSrc(){
+  const t = M.cfg.bg || '';
+  if(t === 'image') return M.cfg.bgImage || '';
+  if(t.startsWith('photo:')) return 'img/bg/bg' + t.slice(6) + '.jpg';
+  if(t.startsWith('live:')) return 'img/live/v' + t.slice(5) + '.jpg';
+  if(t === 'video') return 'img/bg/bg9.jpg';
+  return '';
+}
+M.bgTone = function(){
+  const r = document.documentElement, src = bgSrc();
+  if(!src || !r.hasAttribute('data-bgon')){ delete r.dataset.bglum; return; }
+  const set = L=>{
+    const d = Math.max(0, Math.min(1, +M.cfg.bgDim || 0)), s0 = M.resolveTheme && M.resolveTheme() === 'light' ? .96 : .08;
+    const top = L.top * (1 - d) + s0 * d, all = L.all * (1 - d) + s0 * d;
+    r.dataset.bglum = top < .56 ? 'dark' : 'light';
+    r.dataset.bgbody = all < .56 ? 'dark' : 'light';
+  };
+  const key = src.length > 200 ? src.slice(0, 64) + src.length : src;
+  if(toneMemo[key]){ set(toneMemo[key]); return; }
+  const im = new Image();
+  im.onload = ()=>{ try{
+    const c = document.createElement('canvas'); c.width = 24; c.height = 42; const x = c.getContext('2d', {willReadFrequently:true});
+    x.drawImage(im, 0, 0, 24, 42); const p = x.getImageData(0, 0, 24, 42).data;
+    let a = 0, b = 0, na = 0, nb = 0;
+    for(let i = 0; i < p.length; i += 4){ const l = (.2126 * p[i] + .7152 * p[i + 1] + .0722 * p[i + 2]) / 255, row = (i / 4) / 24 | 0; if(row < 12){ a += l; na++; } b += l; nb++; }
+    toneMemo[key] = {top:a / na, all:b / nb}; set(toneMemo[key]);
+  }catch(e){} };
+  im.src = src;
 };
 // material skin: subtle tonal gradient behind aurora
 M.on('settings', k=>{ if(['skin','theme','accent','bg','bgImage','bgDim','bgBlur','bgScope','anim','fontScale','solid','contrast'].includes(k) || typeof k === 'object') M.applyTheme(); });

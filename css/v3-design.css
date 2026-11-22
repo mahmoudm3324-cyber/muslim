@@ -985,9 +985,8 @@ html[data-theme=dark] .pop-root.zen,html[data-theme=amoled] .pop-root.zen{--z-ca
 
 /* ===================================================================== 4.4 لمسات بصرية عامة (هادئة، لا تغيّر ترتيب أي صفحة) */
 .section-h{font-weight:800;letter-spacing:-.005em}
-.section-h::before{content:'';width:4px;height:16px;border-radius:4px;background:var(--p);opacity:.75;margin-inline-end:8px;flex:none}
-.section-h{justify-content:flex-start}
-.section-h>:last-child:not(:first-child){margin-inline-start:auto}
+.section-h{position:relative;padding-inline-start:12px}
+.section-h::before{content:'';position:absolute;inset-inline-start:0;top:50%;width:4px;height:16px;margin-top:-8px;border-radius:4px;background:var(--p);opacity:.75}
 .view-head h2{font-weight:800}
 .empty:not(:empty){display:flex;flex-direction:column;align-items:center;gap:8px;font-size:.92rem;line-height:1.8}
 .empty:not(:empty)::before{content:'';width:54px;height:54px;border-radius:18px;background:color-mix(in oklab,var(--p) 10%,transparent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 15.6 7.1 18.2l.9-5.5-4-3.9 5.5-.8z'/%3E%3C/svg%3E") center/26px no-repeat}
@@ -1002,3 +1001,31 @@ html[data-skin] .card.pad,html[data-skin][data-theme] .card.pad{border-radius:22
 .tiny.muted,.small.muted{line-height:1.75}
 /* headers of the inner screens: a soft line under them while the page scrolls */
 .view-head{box-shadow:0 1px 0 color-mix(in oklab,var(--on-s) 6%,transparent)}
+
+/* ===================================================================== 4.4.1 التباين فوق الصور والفيديو
+   the header reads on any picture: light words with a soft shadow on a dark one, dark words with a light halo on a light one;
+   the home cards become more solid while a picture is behind them, so their text never sinks into it */
+html[data-bgon][data-bglum=dark] #screen-home .home-top .sub,
+html[data-bgon][data-bglum=dark] #screen-home .home-top .greet,
+html[data-bgon][data-bglum=dark] #screen-home .home-top .date-line{color:#fff!important;text-shadow:0 1px 2px rgba(0,0,0,.45),0 2px 14px rgba(0,0,0,.45)}
+html[data-bgon][data-bglum=dark] #screen-home .home-top .sub{opacity:.92}
+html[data-bgon][data-bglum=dark] #screen-home .home-top .date-line>*{color:#fff!important}
+html[data-bgon][data-bglum=dark] #screen-home .home-top .date-line .badge{background:rgba(0,0,0,.32)!important;color:#fff!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);text-shadow:none}
+html[data-bgon][data-bglum=light] #screen-home .home-top .sub,
+html[data-bgon][data-bglum=light] #screen-home .home-top .greet,
+html[data-bgon][data-bglum=light] #screen-home .home-top .date-line{color:#0e1416!important;text-shadow:0 1px 10px rgba(255,255,255,.75)}
+html[data-bgon] #screen-home .home-top .icon-btn.tonal{background:rgba(255,255,255,.78)!important;color:#1b2326!important;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+html[data-bgon] #screens .card:not(.accent):not(.hero2):not([class*=hero]){--card-bg:color-mix(in oklab,var(--s0,#fff) 84%,transparent)}
+html[data-bgon][data-theme=dark] #screens .card:not(.accent):not(.hero2):not([class*=hero]),html[data-bgon][data-theme=amoled] #screens .card:not(.accent):not(.hero2):not([class*=hero]){--card-bg:color-mix(in oklab,#12181b 84%,transparent)}
+html[data-bgon] #screens .card:not(.accent):not(.hero2):not([class*=hero]),html[data-bgon] #screens .dd-card{background:var(--card-bg)!important;-webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4)}
+html[data-bgon] #screens .dd-card{background:linear-gradient(165deg,color-mix(in oklab,var(--gold,#d9b863) 14%,var(--card-bg)),var(--card-bg))!important}
+html[data-bgon] #screens .dd-card .dd-h small,html[data-bgon] #screens .card .small.muted,html[data-bgon] #screens .card .tiny.muted{color:var(--on-sv)!important;opacity:1}
+/* 4.4.1 the khatma card's own size control: three bars, as many lit as the size */
+.zen-sz{display:inline-flex;align-items:flex-end;gap:2px;height:14px}
+.zen-sz i{display:block;width:3px;border-radius:2px;background:currentColor;opacity:.3}
+.zen-sz i:nth-child(1){height:6px}.zen-sz i:nth-child(2){height:10px}.zen-sz i:nth-child(3){height:14px}
+.zen-sz[data-s=sm] i:nth-child(1),.zen-sz[data-s=md] i:nth-child(-n+2),.zen-sz[data-s=lg] i{opacity:1}
+/* the khatma header has four small buttons now: their column sizes to them, the place line takes what is left */
+.zen-head,.pop-root.zen.pz-sm .zen-head{grid-template-columns:auto minmax(0,1fr) auto!important}
+.zen-head .zen-kicker{text-align:center;min-width:0}
+.zen-win-icons .zen-close{width:28px;height:28px}

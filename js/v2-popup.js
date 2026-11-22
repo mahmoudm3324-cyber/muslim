@@ -354,6 +354,7 @@ async function showWird(o){
       h('span.zen-pct.num', n(Math.floor(pct * 100)) + '٪'),
       h('div.zen-kicker', {id:'zenMeta'}, where),
       h('div.zen-win-icons',
+        zbtn('حجم النافذة: ' + ({sm:'صغير', md:'متوسط', lg:'كبير'})[SZ()], h('span.zen-sz', {dataset:{s:SZ()}}, h('i'), h('i'), h('i')), ()=>{ setSize(({sm:'md', md:'lg', lg:'sm'})[SZ()]); M.haptic && M.haptic(8); M.toast && M.toast('حجم النافذة: ' + ({sm:'صغير', md:'متوسط', lg:'كبير'})[SZ()]); }),
         zbtn('تصغير إلى دائرة', h('i.zen-bub-ico'), ()=>bubble(true)),
         zbtn('تصغير إلى شريط', svgI('M5 12h14'), ()=>{ mini = true; stopAudio(); playing = false; draw(); }),
         zbtn('إغلاق', svgI('M18 6L6 18M6 6l12 12'), ()=>close('x')))));
