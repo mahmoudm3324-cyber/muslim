@@ -61,9 +61,11 @@ M.share = function(text){
   const mark = ()=>M.$$('.shr-th', strip).forEach(b=>b.classList.toggle('on', b.dataset.src === src));
   strip.append(h('button.shr-th.none', {dataset:{src:''}, 'aria-label':'بدون صورة', onclick:()=>pick('')}, 'لون'),
     ...BGS.map((s, i)=>h('button.shr-th', {dataset:{src:s}, 'aria-label':'خلفية '+(i + 1), style:'background-image:url("'+M.bgThumb(s)+'")', onclick:()=>pick(s)})));
-  const body = h('div.col-flex.shr', box, h('div.small.muted', 'اختر الخلفية'), strip,
+  const mode = h('div.shr-mode', h('button.on', {onclick:()=>{}}, M.ic('image'), 'صورة'), h('button', {onclick:()=>{ sh.close(); shareText(text); }}, M.ic('note'), 'نص'));
+  const save = window.Android && window.Android.saveImage ? h('button.icon-btn.tonal', {'aria-label':'حفظ في الصور', onclick:()=>{ if(!canvas) return; try{ window.Android.saveImage(canvas.toDataURL('image/png').split(',')[1], 'muslim-card.png'); M.toast('تم حفظ الصورة'); }catch(e){} }}, M.ic('download')) : null;
+  const body = h('div.col-flex.shr', mode, box, h('div.small.muted', 'اختر الخلفية'), strip,
     h('div.row-flex.gap-s.shr-acts', h('button.btn.grow', {onclick:async ()=>{ if(!canvas) return; await sendCanvas(canvas, text); }}, M.ic('share'), 'مشاركة الصورة'),
-      h('button.btn.tonal', {onclick:()=>{ sh.close(); shareText(text); }}, 'نص فقط'), h('button.icon-btn.tonal', {'aria-label':'نسخ النص', onclick:()=>M.copy(text)}, M.ic('copy'))));
+      save, h('button.icon-btn.tonal', {'aria-label':'نسخ النص', onclick:()=>M.copy(text)}, M.ic('copy'))));
   const sh = M.sheet({title:'مشاركة', content:body}); if(sh && sh.el) sh.el.style.maxHeight = '94%';
   mark(); paint();
   setTimeout(()=>{ const on = strip.querySelector('.on'); if(on) try{ on.scrollIntoView({inline:'center', block:'nearest'}); }catch(e){} }, 60);

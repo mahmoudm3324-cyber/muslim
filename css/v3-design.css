@@ -251,8 +251,6 @@ html.has-np .screen{padding-bottom:calc(var(--tabbar-h) + var(--sab) + 150px)}
 .np2 .np-chip-x.hide,.np2 .np-pp.hide,.np2 .np-prev.hide,.np2 .np-next.hide{display:none}
 
 /* ---------------------------------------------------------------- الترحيب والإعداد الأول */
-.ob-wel .ob-big{font-size:2.6rem;letter-spacing:.5px}
-.ob-tag{align-self:center;padding:5px 14px;border-radius:99px;font-size:.8rem;font-weight:700;color:var(--ob-gold);background:color-mix(in oklab,var(--ob-gold) 14%,transparent);box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--ob-gold) 30%,transparent)}
 .ob-hello{font-size:1.3rem;font-weight:800;color:var(--ob-fg)}
 .ob-sample{text-align:center;line-height:2;color:var(--ob-fg);transition:font-size .25s var(--ease,ease)}
 .ob-lab-row{display:flex;align-items:center;justify-content:space-between}
@@ -274,12 +272,6 @@ html.has-np .screen{padding-bottom:calc(var(--tabbar-h) + var(--sab) + 150px)}
 .ob-tour-ic{width:64px;height:64px;border-radius:22px;display:grid;place-items:center;color:#fff;background:linear-gradient(150deg,color-mix(in oklab,var(--p) 70%,#fff),var(--p))}
 .ob-tour-ic svg{width:32px;height:32px}
 .ob-tour p{margin:4px 0 6px;line-height:1.9}
-.ob-wfeat{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;max-width:360px;margin:2px auto 0;width:100%}
-.ob-wfeat>div{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 2px;border-radius:18px;background:var(--ob-card);box-shadow:inset 0 0 0 1px var(--ob-line)}
-.ob-wfeat span{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;color:#fff;background:linear-gradient(150deg,var(--ob-a1),var(--ob-a2))}
-.ob-wfeat svg{width:21px;height:21px}
-.ob-wfeat small{font-size:.74rem;font-weight:700;color:var(--ob-fg)}
-.ob-wel .ob-arch-svg{filter:drop-shadow(0 14px 22px color-mix(in oklab,var(--p) 40%,transparent))}
 
 /* ---------------------------------------------------------------- الترحيب (3.10.2): هادئ وثابت */
 .ob-w2{justify-content:center;gap:16px;text-align:start}
@@ -299,7 +291,6 @@ html[data-theme=dark] .ob-w2-ic,html[data-theme=amoled] .ob-w2-ic{color:color-mi
 .ob-w2 .ob-promise{justify-content:flex-start}
 .ob-w2>:last-child{margin-bottom:auto}
 /* no glowing background on any onboarding page */
-.ob .ob-glow,.ob .ob-sparks,.ob .ob-rings{display:none!important}
 .ob .ob-lattice{opacity:.07!important;animation:none!important}
 .ob-w2 .ob-promise span{opacity:1!important;transform:none!important;animation:none!important}
 
@@ -523,7 +514,6 @@ html[data-theme=dark] .cl3-th,html[data-theme=amoled] .cl3-th{background:#1b2226
 .ob3-tl{gap:6px!important;justify-content:flex-start!important;text-align:center}
 .ob3-arc{width:100%;max-width:360px;margin:6px auto 0}
 .ob3-arc svg{width:100%;overflow:visible}
-.ob3-path{fill:none;stroke:rgba(255,255,255,.7);stroke-width:2.2;stroke-dasharray:2 6;stroke-linecap:round}
 .ob3-mk{transition:transform 1s cubic-bezier(.45,0,.2,1)}
 .ob3-scene{display:flex;flex-direction:column;align-items:center;margin-top:-6px}
 .ob3-kick{font-size:.72rem;letter-spacing:.12em;font-weight:700;opacity:.8}
@@ -647,3 +637,23 @@ html[data-theme=dark] .cl3-th,html[data-theme=amoled] .cl3-th{background:#1b2226
 .hal-txt{font-family:var(--font-quran,inherit);font-size:calc(1.08rem * var(--fs,1));line-height:2.1;white-space:pre-line}
 .hal-meta{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
 .hal-from{margin:12px 4px 4px}
+.shr-mode{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:999px;background:color-mix(in oklab,var(--on-s) 7%,transparent)}
+.shr-mode button{display:flex;align-items:center;justify-content:center;gap:6px;height:38px;border:0;border-radius:999px;font:inherit;font-weight:700;color:var(--on-s);background:transparent}
+.shr-mode button svg{width:18px;height:18px}
+.shr-mode button.on{background:var(--card-bg);box-shadow:0 2px 8px -2px rgba(0,0,0,.2);color:var(--p)}
+
+/* 4.1: the welcome takes the colour of the chosen app icon */
+.ob.ob3:not([data-sky]){--sky1:color-mix(in oklab,var(--ic,#1d6f7a) 62%,#fff);--sky2:var(--ic,#1d6f7a);--sky3:color-mix(in oklab,var(--ic,#1d6f7a) 55%,#000)}
+.ob.ob3 .ob-pk.on .ob-pk-i,.ob.ob3 .ob-pk .ob-ck{color:var(--ic,#b4573f)!important}
+.ob-icons{display:flex;flex-direction:column;gap:6px}
+.ob-icons small{font-size:.76rem;opacity:.85}
+.ob-icrow{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 6px;scrollbar-width:none}.ob-icrow::-webkit-scrollbar{display:none}
+.ob-ic{flex:none;width:46px;height:46px;padding:0;border:0;border-radius:14px;overflow:hidden;background:none;box-shadow:0 0 0 2px rgba(255,255,255,.25);transition:transform .25s var(--sp,ease),box-shadow .2s}
+.ob-ic img{width:100%;height:100%;object-fit:cover;display:block}
+.ob-ic.on{box-shadow:0 0 0 3px #fff,0 8px 16px -8px rgba(0,0,0,.5);transform:scale(1.08)}
+
+/* 4.1 touch: no double-tap wait on anything you press, scroll areas keep their own momentum and never drag the page */
+button,a,[role=button],.tile,.item,.chip,.seg button,.tab,input,select,label{touch-action:manipulation}
+body{text-rendering:auto}
+.view-body,.screen,.sheet .sh-body,.ob-stage{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+html,body{overscroll-behavior:none}

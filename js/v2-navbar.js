@@ -210,38 +210,6 @@ function entries(){
   out.push({id:'__edit', label:'تعديل الاختصارات', icon:'note', fn:()=>(M.openShortcutsEditor ? M.openShortcutsEditor() : M.openNavbarCfg('bub')), edit:true});
   return out;
 }
-/* fan layout: concentric arcs opening towards the middle of the screen; each ring is clipped to the app area */
-function fanLayout(n, cx, cy, dir, L){
-  // an item's box runs from 36px either side and 22px above its centre to ~50px below (circle + a two-line label): keep it all on screen
-  const sf = safe(), bx = 40;
-  const x0 = L.minX - L.pad + bx, x1 = L.maxX + BS + L.pad - bx;
-  const y0 = sf.t + 26, y1 = L.H - sf.b - 54 - Math.round((Math.max(1, +M.cfg.fontScale || 1) - 1) * 36);
-  // larger text (settings → font size) makes two-line labels taller: the rings move apart to match
-  const gap = Math.round(76 + (Math.max(1, +M.cfg.fontScale || 1) - 1) * 40), radii = [96, 96 + gap, 96 + 2 * gap, 96 + 3 * gap], pitch = gap, pos = [];
-  let left = n;
-  for(const R of radii){
-    if(left <= 0) break;
-    const ok = [];
-    for(let a = -90; a <= 90; a += 2){
-      const t = a * Math.PI / 180, x = cx + dir * R * Math.cos(t), y = cy + R * Math.sin(t);
-      if(x >= x0 && x <= x1 && y >= y0 && y <= y1) ok.push(a);
-    }
-    if(!ok.length) continue;
-    // neighbours are spaced by the straight distance between them (the chord), never less than one item
-    const a0 = ok[0], a1 = ok[ok.length - 1], minStep = 2 * Math.asin(Math.min(1, pitch / 2 / R)) * 180 / Math.PI;
-    const cap = Math.max(1, Math.floor((a1 - a0) / minStep + 1e-9) + 1);
-    const k = Math.min(cap, left), mid = (a0 + a1) / 2;
-    const step = k > 1 ? Math.min((a1 - a0) / (k - 1), minStep * 1.25) : 0;
-    for(let i = 0; i < k; i++){
-      const a = (mid + (i - (k - 1) / 2) * step) * Math.PI / 180;
-      pos.push([cx + dir * R * Math.cos(a), cy + R * Math.sin(a)]);
-    }
-    left -= k;
-  }
-  if(left > 0) return null;
-  /* reading order: top to bottom, then nearest ring first for ties */
-  return pos;
-}
 /* 3.10: the circle opens a panel beside it (no more fan of loose icons): «تابع القراءة» on top, the shortcuts in a grid,
    and the way to edit them. It opens above the circle when the circle is low on the screen, below it otherwise. */
 function openFan(){

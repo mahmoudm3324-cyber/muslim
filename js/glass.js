@@ -64,16 +64,18 @@ document.addEventListener('touchstart', e=>{
   if(rtl ? t.clientX < W - 24 : t.clientX > 24) return;
   const v = M.views[M.views.length - 1]; if(!v || v.closed || v.onBack) return;
   sw = {v, x0:t.clientX, y0:t.clientY, dx:0, on:false, rtl, t0:Date.now()};
+  document.addEventListener('touchmove', move, {passive:false});   // only while an edge swipe may start: scrolling elsewhere never waits for us
 }, {passive:true});
-document.addEventListener('touchmove', e=>{
+const move = e=>{
   if(!sw) return; const t = e.touches[0], dx = t.clientX - sw.x0, dy = t.clientY - sw.y0;
-  if(!sw.on){ if(Math.abs(dy) > 14 && Math.abs(dy) > Math.abs(dx)){ sw = null; return; } if(Math.abs(dx) < 10) return; sw.on = true; sw.v.el.style.animation = 'none'; sw.v.el.style.transition = 'none'; }
+  if(!sw.on){ if(Math.abs(dy) > 14 && Math.abs(dy) > Math.abs(dx)){ sw = null; document.removeEventListener('touchmove', move, {passive:false}); return; } if(Math.abs(dx) < 10) return; sw.on = true; sw.v.el.style.animation = 'none'; sw.v.el.style.transition = 'none'; }
   window.__jsSwipeAt = Date.now();   // the iPhone's own edge gesture leaves this swipe alone
   const k = sw.rtl ? Math.min(0, dx) : Math.max(0, dx); sw.dx = k;
   sw.v.el.style.transform = 'translateX('+k+'px)';
   if(e.cancelable) e.preventDefault();
-}, {passive:false});
+};
 const end = ()=>{
+  document.removeEventListener('touchmove', move, {passive:false});
   if(!sw) return; const s = sw; sw = null; if(!s.on) return;
   const W = innerWidth, el = s.v.el, fast = Math.abs(s.dx) / Math.max(1, Date.now() - s.t0) > .6;
   window.__jsSwipeAt = Date.now();

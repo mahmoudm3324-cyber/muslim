@@ -44,11 +44,13 @@ function build(mode){
   let step = 0, dir = 1, busy = false, off = [], pageOff = [];
   const pages = [];
   const root = h('div.ob.ob3');
+  const tint = i=>{ try{ root.style.setProperty('--ic', M.iconAccent(i || M.cfg.appIcon || 10)); }catch(e){} };
+  tint();
   const barW = h('div.ob-bar', {role:'progressbar', 'aria-valuemin':0, 'aria-valuemax':100});
   const back = h('button.ob-back', {'aria-label':'رجوع', onclick:()=>go(step - 1)}, M.ic('back'));
   const skipB = h('button.ob-skip', {onclick:()=>go(step + 1)}, 'تخطَّ');
   const stage = h('div.ob-stage'); const foot = h('div.ob-foot');
-  root.append(h('div.ob-bgx', h('i.ob-lattice'), h('i.ob-glow')), h('div.ob-top', back, barW, skipB), stage, foot);
+  root.append(h('div.ob-bgx', h('i.ob-lattice')), h('div.ob-top', back, barW, skipB), stage, foot);
   const view = M.openView({title:'', id:'onboarding', noHead:true, nopad:true, build:b=>b.append(root), onClose:()=>{ try{ M.stopSound && M.stopSound(); }catch(e){} pageOff.forEach(f=>f()); off.forEach(f=>f()); }});
   view.onBack = ()=>{ if(step > 0 && !busy){ go(step - 1); } return true; };
 
@@ -100,6 +102,11 @@ function build(mode){
       h('p.ob-p.ob-st.ob-w2-p', upd ? 'تم تحديث التطبيق إلى الإصدار '+M.n(M.VERSION)+'. هذا أبرز ما أضفناه لك.' : 'رفيقك اليومي للقرآن والصلاة والذكر. نجهّزه على ذوقك في خطوات قصيرة.'),
       upd ? card(h('b.ob-ul-h', 'الجديد في الإصدار ' + M.n(M.VERSION)), h('ul.ob-ul', ...(M.WHATS_LATEST || (M.whatsNew ? M.whatsNew() : M.WHATS_NEW).slice(0, 3)).map(t=>h('li', t)))) : null,
       upd ? quickSet() : null,
+      !upd ? h('div.ob-icons.ob-st', h('small', 'اختر أيقونة التطبيق — يتلوّن التطبيق بلونها'), h('div.ob-icrow', ...Array.from({length:10}, (_, k)=>{ const i = k + 1;
+        return h('button.ob-ic' + ((M.cfg.appIcon || 10) === i ? '.on' : ''), {'aria-label':'الأيقونة ' + M.n(i), onclick:function(){
+          try{ window.Android && Android.setAppIcon && Android.setAppIcon(i); }catch(e){} try{ M.setIconAccent(i); }catch(e){}
+          tint(i); const im = el.querySelector('.ob-w2-icon'); if(im) im.src = 'img/icons/' + i + '.jpg';
+          this.parentNode.querySelectorAll('.ob-ic').forEach(x=>x.classList.toggle('on', x === this)); M.haptic && M.haptic(8); }}, h('img', {src:'img/icons/' + i + '.jpg', alt:'', decoding:'async'})); }))) : null,
       !upd ? h('div.ob-w2-list.ob-st', ...FEAT.map(([ic, t, d])=>h('div.ob-w2-row', h('span.ob-w2-ic', {html:M.icon(ic)}), h('div.grow', h('b', t), h('small', d))))) : null,
       !upd ? h('div.ob-promise.ob-st', ...[['s:shield', 'بلا إعلانات'], ['lock', 'بلا حسابات'], ['download', 'يعمل دون إنترنت']].map(([ic, t])=>h('span', {html:M.icon(ic)}, t))) : null);
     /* a long "what's new" list scrolls: fade the bottom edge while there is more below */

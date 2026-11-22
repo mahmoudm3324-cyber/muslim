@@ -152,12 +152,7 @@ function openV2(startTab){
   root.append(h('div.qb-top', segEl), cPane, mPane);
 
   /* compass pane */
-  const ticks = Array.from({length:72}, (_, i)=>{ const big = i % 6 === 0, l = big ? 16 : 8; return '<line x1="160" y1="12" x2="160" y2="'+(12 + l)+'" stroke="currentColor" stroke-opacity="'+(big ? .7 : .28)+'" stroke-width="'+(big ? 2.4 : 1.2)+'" transform="rotate('+(i * 5)+' 160 160)"/>'; }).join('');
-  const dialSvg = h('div.qb-dial', {html:'<svg viewBox="0 0 320 320"><circle cx="160" cy="160" r="152" class="qb-ring"/><circle cx="160" cy="160" r="104" fill="none" stroke="currentColor" stroke-opacity=".1"/>'+ticks+
-    '<text x="160" y="58" text-anchor="middle" class="qb-n">ش</text><text x="160" y="276" text-anchor="middle" class="qb-l">ج</text><text x="268" y="166" text-anchor="middle" class="qb-l">ق</text><text x="52" y="166" text-anchor="middle" class="qb-l">غ</text>'+
-    '<g class="qb-kg"><defs><linearGradient id="qbBeam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e6c35c" stop-opacity="0"/><stop offset="1" stop-color="#e6c35c" stop-opacity=".75"/></linearGradient></defs><path d="M160 160 135.7 22A140 140 0 0 1 184.3 22Z" fill="url(#qbBeam)" class="qb-beam"/><circle cx="160" cy="42" r="26" class="qb-kdisc"/><g transform="translate(160 42)"><rect x="-13" y="-14" width="26" height="28" rx="3" fill="#15130f" stroke="#e6c35c" stroke-width="2"/><rect x="-13" y="-8" width="26" height="5" fill="#e6c35c"/><rect x="-3" y="3" width="6" height="11" rx="1.5" fill="#e6c35c" opacity=".85"/></g></g></svg>'});
-  const kg = dialSvg.querySelector('.qb-kg');
-  const cardG = dialSvg.querySelector('svg');
+  /* the ring (ringDial, above) replaced the older dial drawn here */
   const headTxt = h('div.qb-h', '—'), headSub = h('div.qb-hs', 'اتجاه جهازك');
   const RING = ringDial(qd);
   const dialBox = h('div.qb-dbox.qb-ringbox', RING.el, h('div.qb-center', headTxt, headSub));
@@ -190,7 +185,7 @@ function openV2(startTab){
     bearN.replaceChildren(h('b', deg(qd)), h('div.small.muted', cardinal(qd))); distN.textContent = fmtInt(dist) + ' كم';
     locN.textContent = (st.live ? 'موقعك الحالي' : st.name || 'الموقع المحفوظ') + (st.acc ? ' • دقة ±' + M.n(Math.round(st.acc)) + ' م' : '');
     mInfo.replaceChildren(h('div.qb-mi', h('div.qb-mb', deg(qd)), h('div.qb-mt', 'اتجاه القبلة')), h('div.qb-md'), h('div.qb-mi', h('div.qb-mb', fmtInt(dist)), h('div.qb-mt', 'كم إلى الكعبة')), h('div.qb-md'), h('div.qb-mi', h('div.qb-mb.qb-hd', hasSensor && disp != null ? deg(disp) : '—'), h('div.qb-mt', 'اتجاهك الآن')), mStatus);
-    kg.setAttribute('transform', 'rotate(' + qd.toFixed(2) + ' 160 160)'); RING.qibla(qd);
+    RING.qibla(qd);
   };
   const paintMode = ()=>{
     enableBtn.classList.toggle('hide', hasSensor || !noSensor);
@@ -224,7 +219,7 @@ function openV2(startTab){
   }
   function render(){
     if(tab === 'compass' || !noSensor){
-      dialSvg.style.transform = 'rotate(' + (-cum).toFixed(2) + 'deg)'; RING.set(disp);
+      RING.set(disp);
       headTxt.textContent = deg(disp); headSub.textContent = cardinal(disp);
     }
     const diff = delta(disp, qd), ok = Math.abs(diff) <= (aligned ? 5 : 3);
