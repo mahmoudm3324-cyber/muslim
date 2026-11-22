@@ -150,8 +150,8 @@ M.openCalendar = function(){
   function paint(){
     content.innerHTML = '';
     content.append(h('div.row-flex.gap-s', {style:'margin:4px 0 12px'}, h('div.grow', M.seg([['cal','التقويم'],['times','المواقيت'],['conv','المحوّل'],['occ','المناسبات']], S.tab, v=>{ S.tab = v; paint(); })), h('button.icon-btn.tonal', {'aria-label':'القمر', onclick:()=>M.openMoon()}, M.ic('moon'))));
-    content.append(banner());
     (S.tab === 'cal' ? month : S.tab === 'times' ? times : S.tab === 'conv' ? conv : occ)(content);
+    content.append(bannerMini());   // 4.4: the calculation method is a quiet line at the end, not a card on top
   }
   function month(el){
     const len = M.hijriMonthLen(S.y, S.m), first = M.hijriToGreg(S.y, S.m, 1);
@@ -237,6 +237,10 @@ M.openCalendar = function(){
   }
   const signed = n=>'\u2066'+(n > 0 ? '+' : n < 0 ? '−' : '')+M.n(Math.abs(n))+'\u2069';
   const fire = ()=>{ M.emit('settings', 'hijriAdj'); }; // refreshes home header + native widgets (they listen to hijriAdj)
+  function bannerMini(){
+    const I = M.hijriInfo(), tot = I.shift;
+    return h('button.hj-mini', {onclick:adjSheet}, M.ic('calendar'), h('span.grow', h('b', I.name), ' • ' + I.typeName + (tot ? ' • إزاحة ' + signed(tot) : '') + (I.auto ? ' • تلقائي' : '')), h('span.hj-mini-a', 'ضبط'), M.ic('fwd'));
+  }
   function banner(){
     const I = M.hijriInfo(), tot = I.shift;
     return h('div.card.pad.hj-banner', h('div.hj-b-t', M.ic('calendar'), h('div.grow', h('div.bold', I.name), I.auto ? h('div.small.muted', 'تلقائي حسب موقعك') : null, h('div.small.muted', 'الحساب: '+I.typeName+' • '+(tot ? 'الإزاحة: '+signed(tot)+' يوم' : 'بلا إزاحة')+(I.base ? ' (البلد '+signed(I.base)+'، ضبطك '+signed(I.adj)+')' : '')))),

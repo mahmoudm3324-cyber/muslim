@@ -223,7 +223,16 @@ function bubble(on){
   M.haptic && M.haptic(8);
 }
 M.popupBubble = bubble;
-function placeBub(root){ const b = root.querySelector('.pop-bubble'); if(!b || FLOAT()) return; const y = Math.max(.08, Math.min(.86, +ucfg().by || .62)); b.style.top = (y * 100).toFixed(2) + '%'; }
+/* the circle: its size from the settings, on the side it was left (left by default in Arabic), at the height it was left */
+const BSZ = {sm:48, md:56, lg:64};
+function placeBub(root){
+  const b = root.querySelector('.pop-bubble'); if(!b || FLOAT()) return;
+  const u = ucfg(), S = BSZ[u.bsz || 'sm'] || 48, W = root.clientWidth || innerWidth, H = root.clientHeight || innerHeight;
+  const side = u.bs || (getComputedStyle(root).direction === 'rtl' ? 'l' : 'r'), y = Math.max(.06, Math.min(.88, +u.by || .62));
+  b.style.width = b.style.height = S + 'px'; b.style.insetInlineEnd = 'auto'; b.style.right = 'auto';
+  b.style.left = (side === 'r' ? W - S - 10 : 10) + 'px'; b.style.top = Math.min(H - S - 8, y * H) + 'px';
+}
+M.popupBubbleSize = ()=>{ if(open && open.el) placeBub(open.el); };
 /* the circle's emblems: the Mushaf open on its stand (رحل) for the khatma, the word «أذكار» for the adhkar */
 const REHAL = '<svg viewBox="0 0 64 40" aria-hidden="true" fill="currentColor"><path d="M3 8.5c10-4.5 20-3 28.2 6.3v8.6C22.8 15 13 13.6 3 16.8z"/><path d="M61 8.5c-10-4.5-20-3-28.2 6.3v8.6C41.2 15 51 13.6 61 16.8z"/>'
   + '<path d="M9 7.2c8.6-2.6 16 .2 22 6.4M55 7.2c-8.6-2.6-16 .2-22 6.4" fill="none" stroke="currentColor" stroke-width=".9" opacity=".55"/>'
@@ -231,19 +240,29 @@ const REHAL = '<svg viewBox="0 0 64 40" aria-hidden="true" fill="currentColor"><
 function bubBtn(){ return h('button.icon-btn.pop-x.pop-tobub', {'aria-label':'تصغير إلى دائرة', title:'دائرة', onclick:()=>bubble(true)}, h('i.pop-tobub-i')); }
 function shell(kind){
   const root = h('div.pop-root.popk-'+kind+'.pz-'+SZ(), {role:'dialog', 'aria-modal':'true'});
-  const scrim = h('div.pop-scrim', {onclick:()=>close('scrim')});
+  const scrim = h('div.pop-scrim', {onclick:()=>{ if(open && open.el === root && !FLOAT()) bubble(true); else close('scrim'); }});
   const card = h('div.pop-card');
   const bub = h('div.pop-bubble',
     h('button.pop-bub-main', {'aria-label':kind === 'wird' ? 'افتح ورد الختمة' : 'افتح الذكر'}, kind === 'wird' ? h('span.pop-bub-ring', {html:'<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29"/></svg>'}) : null, kind === 'wird' ? h('span.pop-bub-ic.rehal', {html:REHAL}) : h('span.pop-bub-ic.athkar', 'أذكار'), h('i.pop-bub-dot')),
-    h('button.pop-bub-x', {'aria-label':'إغلاق', onclick:e=>{ e.stopPropagation(); close('x'); }}, M.ic('close')));
+    FLOAT() ? h('button.pop-bub-x', {'aria-label':'إغلاق', onclick:e=>{ e.stopPropagation(); close('x'); }}, M.ic('close')) : null);
   root.append(scrim, card, bub);
   /* the circle: tap = open the card; drag (in the app) = move it up or down */
   const main = bub.querySelector('.pop-bub-main');
   let b0 = null, bm = false;
-  main.addEventListener('pointerdown', e=>{ if(FLOAT() || e.button > 0) return; b0 = {y:e.clientY, t:bub.offsetTop}; bm = false; try{ main.setPointerCapture(e.pointerId); }catch(_){} });
-  main.addEventListener('pointermove', e=>{ if(!b0) return; const dy = e.clientY - b0.y; if(!bm && Math.abs(dy) < 8) return; bm = true;
-    const H = root.clientHeight || innerHeight; bub.style.top = Math.max(H * .08, Math.min(H * .86, b0.t + dy)) + 'px'; });
-  const up = ()=>{ if(!b0) return; const was = bm; b0 = null; if(was){ const H = root.clientHeight || innerHeight; uset({by:bub.offsetTop / H}); placeBub(root); } };
+  const KZ = ()=>M.killZone;
+  main.addEventListener('pointerdown', e=>{ if(FLOAT() || e.button > 0) return; b0 = {x:e.clientX, y:e.clientY, l:bub.offsetLeft, t:bub.offsetTop}; bm = false; try{ main.setPointerCapture(e.pointerId); }catch(_){} });
+  main.addEventListener('pointermove', e=>{ if(!b0) return; const dx = e.clientX - b0.x, dy = e.clientY - b0.y; if(!bm && Math.hypot(dx, dy) < 8) return;
+    if(!bm){ bm = true; bub.classList.add('drag'); KZ() && KZ().show(); }
+    const H = root.clientHeight || innerHeight, W = root.clientWidth || innerWidth, S = bub.offsetWidth || 50;
+    let x = Math.max(4, Math.min(W - S - 4, b0.l + dx)), y = Math.max(H * .05, Math.min(H - S - 6, b0.t + dy));
+    const t = KZ() && KZ().test(x + S / 2, y + S / 2); if(t){ x = t.x - S / 2; y = t.y - S / 2; }
+    bub.style.left = x + 'px'; bub.style.top = y + 'px'; });
+  const up = ()=>{ if(!b0) return; const was = bm; b0 = null; bub.classList.remove('drag');
+    if(!was) return;
+    if(KZ() && KZ().hot){ KZ().hide(); bub.classList.add('bye'); M.haptic && M.haptic(20); setTimeout(()=>close('drag'), 200); return; }
+    KZ() && KZ().hide();
+    const H = root.clientHeight || innerHeight, W = root.clientWidth || innerWidth, S = bub.offsetWidth || 50;
+    uset({by:Math.max(.06, Math.min(.88, bub.offsetTop / H)), bs:bub.offsetLeft + S / 2 < W / 2 ? 'l' : 'r'}); bub.classList.add('snap'); placeBub(root); setTimeout(()=>bub.classList.remove('snap'), 400); };
   main.addEventListener('pointerup', up); main.addEventListener('pointercancel', up);
   main.addEventListener('click', ()=>{ if(bm){ bm = false; return; } bubble(false); });
   (document.getElementById('app') || document.body).append(root);
@@ -362,12 +381,19 @@ async function showWird(o){
     /* the tools, hidden until «•••» */
     const chip = (lb, fn, on)=>h('button.zen-chip' + (on ? '.active' : ''), {onclick:fn}, lb);
     if(trayOn) card.append(h('div.zen-tray',
-      chip(playing ? 'إيقاف التلاوة' : 'استمع', ()=>play(list), playing),
       chip('التفسير', ()=>{ tafsirOn = !tafsirOn; draw(); }, tafsirOn),
       chip('المصحف', ()=>goApp('surah_' + s)),
       chip('مشاركة', ()=>{ const t = shareTextOf(list); stopAudio(); playing = false; shareTxt = t; draw(); }),
       chip('الإحصائيات', ()=>{ statsOn = !statsOn; draw(); }, statsOn)));
+    /* the figures that matter: verses today, the run of days, how far the khatma is, and when it ends at this pace */
+    const perDay = Math.max(st.week / 7, st.today, 1), leftV = TOTAL - id, days = Math.ceil(leftV / perDay);
+    card.append(h('div.zen-figs',
+      h('span', h('b.num', n(st.today)), 'آية اليوم'),
+      h('span', h('b.num', n(st.streak)), st.streak === 1 ? 'يوم متتالٍ' : 'أيام متتالية'),
+      h('span', h('b.num', n(Math.floor(pct * 100)) + '٪'), 'من الختمة'),
+      h('span', h('b.num', st.week ? n(days) : '—'), 'يومًا للختم')));
     card.append(h('div.zen-actions',
+      h('button.zen-listen' + (playing ? '.on' : ''), {'aria-label':playing ? 'إيقاف التلاوة' : 'استمع إلى الآية', onclick:()=>play(list)}, svgI(playing ? 'M7 5h3v14H7zM14 5h3v14h-3z' : 'M8 5v14l11-7z')),
       h('button.zen-cta', {onclick:confirm}, svgI('M5 13l4 4L19 7'), h('span', okLabel)),
       h('button.zen-more-btn' + (trayOn ? '.active' : ''), {'aria-label':'المزيد من الأدوات', 'aria-expanded':String(trayOn), onclick:()=>{ trayOn = !trayOn; draw(); }}, '•••')));
     if(statsOn) card.append(h('div.zen-stats-bar',
@@ -476,6 +502,7 @@ async function showDhikr(o){
   if(set){ try{ await M.loadQuran(); }catch(e){} items = setItems(set); }
   if(open) close('replace');
   const {root, card, key} = shell('dhikr');
+  root.classList.add('zen', 'zen-dh');
   open = {el:root, card, kind:'dhikr', key, onClose:o.onClose, redraw:()=>draw()};
   if(o.auto && ucfg().bubble) bubble(true);
   markShown('dhikr');

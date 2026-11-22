@@ -205,8 +205,9 @@ function build(){
     if(!d0) return;
     const dx = e.clientX - d0.x, dy = e.clientY - d0.y;
     if(!moved && Math.hypot(dx, dy) < 8) return;
-    if(!moved){ moved = true; dragging = true; el.classList.remove('nb-anim'); el.classList.add('drag'); }
-    const L = d0.p.L, x = clamp(d0.p.x + dx, L.minX, L.maxX), y = clamp(d0.p.y + dy, L.minY, L.maxY);
+    if(!moved){ moved = true; dragging = true; el.classList.remove('nb-anim'); el.classList.add('drag'); M.killZone && M.killZone.show(); }
+    const L = d0.p.L; let x = clamp(d0.p.x + dx, L.minX, L.maxX), y = clamp(d0.p.y + dy, L.minY, L.maxY + 120);
+    const t = M.killZone && M.killZone.test(x + SZ / 2, y + SZ / 2); if(t){ x = t.x - SZ / 2; y = t.y - SZ / 2; }
     el.style.transform = 'translate('+Math.round(x)+'px,'+Math.round(y)+'px)';
     el._cur = {x, y, L};
   });
@@ -214,6 +215,8 @@ function build(){
     if(!d0) return;
     const wasMoved = moved, c = el._cur; d0 = null; moved = false; dragging = false; el.classList.remove('drag');
     if(!wasMoved){ if(e.type === 'pointerup'){ setOpen(true); M.haptic(6); } return; }
+    if(M.killZone && M.killZone.hot){ M.killZone.hide(); M.haptic && M.haptic(20); try{ M.player && M.player.stop && M.player.stop(); }catch(_){} el.classList.add('hide'); place(false); return; }
+    M.killZone && M.killZone.hide();
     S.s = c.x + SZ / 2 < c.L.W / 2 ? 'l' : 'r'; S.y = c.y / c.L.H; save(); place(true);
     M.floaters && M.floaters.resolve('np');
   };

@@ -847,3 +847,158 @@ html[data-skin] .dua-card,html[data-skin][data-theme] .dua-card{position:relativ
 .la-tone small{font-size:.72rem}
 .la-tone.on{background:color-mix(in oklab,var(--p) 12%,transparent)}
 .la-tone.on i{outline:2px solid var(--p);outline-offset:3px}
+
+/* ===== 4.4 الرقية الموسّعة: ordered, nothing out of place ===== */
+.rq-note{border-radius:22px!important;background:linear-gradient(160deg,color-mix(in oklab,var(--p) 12%,var(--card-bg)),var(--card-bg))!important}
+.rq-tabs{gap:8px}
+.rq-det{border-radius:24px!important}
+.rq-det>summary .t{font-size:1.02rem}
+.rq-ayah{font-size:calc(1.32rem * var(--dhfs,1));line-height:2.35;text-align:justify;text-align-last:center;word-spacing:.04em;padding:6px 2px}
+.rq-orn{color:var(--gold,#b8892f);margin:0 .15em}
+.rq-tail{white-space:nowrap}
+.rq-an{display:inline-grid;place-items:center;min-width:1.55em;height:1.55em;margin-inline-start:.25em;padding:0 .2em;border-radius:50%;vertical-align:.15em;
+  font-family:var(--font);font-size:.62em;font-weight:800;line-height:1;color:var(--gold,#9c7426);background:color-mix(in oklab,var(--gold,#c9a24b) 14%,transparent);box-shadow:inset 0 0 0 1.5px color-mix(in oklab,var(--gold,#c9a24b) 55%,transparent);unicode-bidi:isolate}
+.rq-why{display:flex;gap:8px;align-items:flex-start;padding:9px 12px;border-radius:14px;font-size:.84rem;line-height:1.85;color:var(--on-s);background:color-mix(in oklab,var(--p) 8%,transparent);box-shadow:inset 3px 0 0 color-mix(in oklab,var(--p) 55%,transparent)}
+.rq-why b{flex:none;font-size:.72rem;padding:1px 8px;border-radius:99px;color:var(--p);background:color-mix(in oklab,var(--p) 14%,transparent)}
+.rq-bar{display:flex;align-items:center;gap:8px;border-top:1px solid color-mix(in oklab,var(--on-s) 8%,transparent);padding-top:10px}
+.rq-play{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border:0;border-radius:16px;font:inherit;font-weight:800;color:var(--on-p);background:var(--p)}
+.rq-play svg{width:20px;height:20px}
+.rq-ib{width:46px;height:46px;flex:none;border:0;border-radius:16px;display:grid;place-items:center;color:var(--on-s);background:color-mix(in oklab,var(--on-s) 7%,transparent)}
+.rq-ib svg{width:21px;height:21px}
+.rq-play:active,.rq-ib:active{transform:scale(.95)}
+.rq-dua{padding:14px 16px 12px!important;border-radius:24px!important;gap:10px}
+.rq-dh{display:flex;align-items:center;gap:8px}
+.rq-no{min-width:26px;height:26px;border-radius:9px;display:grid;place-items:center;font-size:.78rem;font-weight:800;color:var(--p);background:color-mix(in oklab,var(--p) 12%,transparent)}
+.rq-dt{text-align:center;text-align-last:center}
+.rq-srcp{align-self:flex-start;font-size:.74rem;font-weight:700;color:var(--gold,#a77d2a);background:color-mix(in oklab,var(--gold,#c9a24b) 13%,transparent);padding:3px 10px;border-radius:99px;line-height:1.6}
+
+/* ===== 4.4 الأزرار العائمة ===== */
+.kz{position:fixed;left:50%;bottom:calc(var(--sab,0px) + 26px);z-index:300;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;
+  opacity:0;transform:translate(-50%,40px) scale(.8);transition:opacity .2s,transform .32s cubic-bezier(.2,.9,.3,1.2)}
+.kz::before{content:'';position:fixed;left:-50vw;right:-50vw;bottom:calc(-1 * var(--sab,0px) - 26px);height:220px;background:linear-gradient(0deg,rgba(0,0,0,.42),transparent);z-index:-1;pointer-events:none}
+.kz.on{opacity:1;transform:translate(-50%,0) scale(1)}
+.kz-c{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(30,30,34,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.55),0 10px 24px -8px rgba(0,0,0,.5);transition:transform .22s cubic-bezier(.2,.9,.3,1.4),background .2s}
+.kz-c svg{width:26px;height:26px}
+.kz-t{font-size:.72rem;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.kz.hot .kz-c{transform:scale(1.28);background:#e0414f}
+.pop-bubble{transition:none}
+.pop-root.pop-bub .pop-bubble.snap{transition:left .38s cubic-bezier(.2,.9,.3,1.15),top .38s cubic-bezier(.2,.9,.3,1.15)}
+.pop-root.pop-bub .pop-bubble.drag .pop-bub-main{transform:scale(1.08)}
+.pop-root.pop-bub .pop-bubble.bye{transition:transform .2s ease-in,opacity .2s;transform:scale(.2);opacity:0}
+.pop-root.pop-bub .pop-bubble{inset-inline-end:auto}
+.pop-bub-ic.rehal svg{width:30px;height:20px}
+.nb-bub{scale:var(--fb-nav,1)}
+.nbnp{scale:var(--fb-np,1)}
+.fb-intro{font-size:.84rem;line-height:1.9;color:var(--on-sv);padding:2px 4px 10px}
+.fb-card{padding:14px 14px 6px!important;border-radius:22px!important;margin-bottom:12px}
+.fb-h{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.fb-h b{display:block}.fb-h small{font-size:.74rem;color:var(--on-sv)}
+.fb-ic{width:40px;height:40px;flex:none;border-radius:14px;display:grid;place-items:center;color:var(--p);background:color-mix(in oklab,var(--p) 12%,transparent)}
+.fb-ic svg,.fb-ic .ic{width:22px;height:22px}
+.fb-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 2px;border-top:1px solid color-mix(in oklab,var(--on-s) 7%,transparent)}
+.fb-row .seg{max-width:62%}
+
+/* ===== 4.4 النوافذ المنبثقة بألوان التطبيق ===== */
+.pop-root.zen{--z-card:var(--sheet-bg,var(--s0,#fff));--z-surf:color-mix(in oklab,var(--p) 7%,var(--z-card));--z-surf2:color-mix(in oklab,var(--p) 13%,var(--z-card));
+  --z-line:color-mix(in oklab,var(--on-s,#222) 12%,transparent);--z-quran:var(--on-s,#1c1a16);--z-ink:var(--on-s,#24211c);--z-soft:var(--on-sv,#5f6353);--z-mut:color-mix(in oklab,var(--on-sv,#888) 80%,transparent);
+  --z-sage:var(--p);--z-sage2:color-mix(in oklab,var(--p) 82%,#000);--z-sage-s:color-mix(in oklab,var(--p) 11%,transparent);--z-sage-b:color-mix(in oklab,var(--p) 30%,transparent);--z-cta:var(--on-p,#fff)}
+html[data-theme=dark] .pop-root.zen,html[data-theme=amoled] .pop-root.zen{--z-card:var(--sheet-bg,#181b1d);--z-sage:color-mix(in oklab,var(--p) 70%,#fff);--z-sage2:color-mix(in oklab,var(--p) 60%,#fff);--z-cta:#0d1416}
+.zen-figs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;width:100%}
+.zen-figs span{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 2px;border-radius:14px;font-size:.64rem;color:var(--z-soft);background:var(--z-surf)}
+.zen-figs b{font-size:.98rem;color:var(--z-ink)}
+.zen-listen{flex:none;width:52px;height:52px;border:0;border-radius:50%;display:grid;place-items:center;color:var(--z-sage);background:var(--z-sage-s);box-shadow:inset 0 0 0 1.5px var(--z-sage-b);cursor:pointer}
+.zen-listen svg{width:22px;height:22px;fill:currentColor}
+.zen-listen.on{color:var(--z-cta);background:var(--z-sage)}
+.zen-actions{display:flex;align-items:center;gap:10px;width:100%}
+.zen-actions .zen-cta{flex:1}
+/* the adhkar card in the same look */
+.pop-root.zen-dh .pop-head{width:100%}
+.pop-root.zen-dh .pop-badge.z{background:var(--z-sage-s);color:var(--z-sage)}
+.pop-root.zen-dh .pop-kicker{color:var(--z-soft);font-weight:700}
+.pop-root.zen-dh .pop-pos{color:var(--z-mut)}
+.pop-root.zen-dh .icon-btn{color:var(--z-mut)}
+.pop-root.zen-dh .pw-folio{background:none;box-shadow:none;border:0;padding:4px 0}
+.pop-root.zen-dh .pw-c{display:none}
+.pop-root.zen-dh .pop-dhikr{color:var(--z-quran)}
+.pop-root.zen-dh .pop-fadl{color:var(--z-soft);background:var(--z-surf);border-radius:14px;padding:8px 12px}
+.pop-root.zen-dh .ring .bgc{stroke:var(--z-surf2)}.pop-root.zen-dh .ring .fgc{stroke:var(--z-sage)}
+.pop-root.zen-dh .pop-tap-in b{color:var(--z-ink)}
+.pop-root.zen-dh .pop-tool{color:var(--z-soft);background:var(--z-surf);border:0}
+.pop-root.zen-dh .pop-acts .btn{background:var(--z-sage);color:var(--z-cta)}
+.pop-root.zen-dh .pop-acts .btn.tonal,.pop-root.zen-dh .pop-acts .icon-btn.tonal{background:var(--z-surf);color:var(--z-ink)}
+.pop-root.zen-dh .pop-bar i{background:var(--z-sage)}
+
+/* ===== 4.4 صفحة المصحف: أبسط وأرتب ===== */
+#screen-quran .page-top{margin-bottom:6px}
+.qx-hero{border-radius:28px!important}
+.qx-wird{margin-top:10px!important;border-radius:20px!important}
+.qx-h{margin:18px 4px 8px!important;font-size:1rem}
+.qx-quick.qx-row{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;gap:8px;margin:0 -16px;padding:2px 16px 4px;scrollbar-width:none;grid-template-columns:none!important}
+.qx-quick.qx-row::-webkit-scrollbar{display:none}
+.qx-quick.qx-row .qx-chip{flex:none;min-width:84px}
+.qx-tools.qx-main{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:8px}
+.qx-tools.qx-main .qx-tile{padding:10px 2px 8px}
+.qx-tools.qx-main .qx-tt{font-size:.72rem}
+.qx-rest{display:none!important;margin-top:8px}
+.qx-rest.on{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px;animation:qxIn .25s ease both}
+@keyframes qxIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.qx-moreb .qx-ic{transition:transform .25s}
+.qx-moreb.on .qx-ic{transform:rotate(45deg)}
+.qx-idx{margin-top:4px}
+.qx-hero .qx-read,html[data-skin] .qx-hero .btn.qx-read{background:#fff!important;color:#0f4e57!important;box-shadow:0 6px 16px -10px rgba(0,0,0,.5)!important;opacity:1!important}
+
+/* ===== 4.4 رمضان ===== */
+.ram-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:12px -16px 12px;padding:2px 16px}
+.ram-tabs::-webkit-scrollbar{display:none}.ram-tabs .chip{flex:none}
+.rg-intro{font-size:.84rem;color:var(--on-sv);line-height:1.8;margin:0 4px 10px}
+.rg-card{padding:14px;border-radius:22px;background:var(--card-bg);box-shadow:inset 0 0 0 1px var(--card-border);margin-bottom:10px}
+.rg-h{display:flex;align-items:center;gap:10px}
+.rg-h b{display:block}.rg-h small{font-size:.74rem;color:var(--on-sv);line-height:1.6}
+.rg-ic{width:42px;height:42px;flex:none;border-radius:14px;display:grid;place-items:center;color:var(--p);background:color-mix(in oklab,var(--p) 12%,transparent)}
+.rg-ic svg,.rg-ic .ic{width:22px;height:22px}
+.rg-set{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid color-mix(in oklab,var(--on-s) 7%,transparent)}
+.rg-step{display:flex;align-items:center;gap:10px}
+.rg-step button{width:36px;height:36px;border:0;border-radius:12px;font:inherit;font-size:1.2rem;font-weight:800;color:var(--p);background:color-mix(in oklab,var(--p) 12%,transparent)}
+.rg-step b{min-width:36px;text-align:center;font-size:1.05rem}
+.rs-figs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.rs-fig{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 4px;border-radius:20px;background:var(--card-bg);box-shadow:inset 0 0 0 1px var(--card-border)}
+.rs-fig b{font-size:1.4rem;color:var(--fc,var(--p))}.rs-fig small{font-size:.7rem;color:var(--on-sv);text-align:center;line-height:1.4}
+.rs-fig.a{--fc:#1f8a70}.rs-fig.b{--fc:#2f7fc1}.rs-fig.c{--fc:#7a4fb5}.rs-fig.d{--fc:#c4840f}.rs-fig.e{--fc:#cf4b63}.rs-fig.f{--fc:#0f8f9e}
+.rs-map{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.rs-day{aspect-ratio:1;border-radius:12px;display:grid;place-items:center;font-size:.72rem;font-weight:700;
+  color:color-mix(in oklab,var(--on-s) calc(40% + var(--v) * 60%),transparent);background:color-mix(in oklab,var(--p) calc(6% + var(--v) * 70%),var(--card-bg))}
+.rs-day.fut{opacity:.4}
+.rs-day.now{box-shadow:0 0 0 2px var(--p)}
+.rs-key{display:flex;align-items:center;justify-content:center;gap:5px;margin:8px 0;font-size:.7rem;color:var(--on-sv)}
+.rs-key i{width:14px;height:14px;border-radius:4px;background:color-mix(in oklab,var(--p) calc(6% + var(--v) * 70%),var(--card-bg))}
+.rs-owe{display:flex;align-items:center;gap:10px;margin-top:10px}
+.rs-owe .ic{width:20px;height:20px;color:var(--warn,#e0a21a)}
+.rsd-total{display:flex;flex-direction:column;align-items:center;gap:2px;margin-bottom:10px;background:linear-gradient(160deg,color-mix(in oklab,var(--p) 14%,var(--card-bg)),var(--card-bg))!important}
+.rsd-total b{font-size:2rem;color:var(--p)}.rsd-total small{color:var(--on-sv)}
+/* 4.4 التقويم: method line at the end, calmer spacing */
+.hj-mini{display:flex;align-items:center;gap:8px;width:100%;margin:14px 0 6px;padding:11px 14px;border:0;border-radius:16px;text-align:start;font:inherit;font-size:.78rem;color:var(--on-sv);background:color-mix(in oklab,var(--on-s) 5%,transparent)}
+.hj-mini b{color:var(--on-s)}
+.hj-mini>svg{width:17px;height:17px;flex:none}
+.hj-mini-a{font-weight:700;color:var(--p)}
+.cl3 .cl3-hero{margin-top:2px}
+
+/* ===================================================================== 4.4 لمسات بصرية عامة (هادئة، لا تغيّر ترتيب أي صفحة) */
+.section-h{font-weight:800;letter-spacing:-.005em}
+.section-h::before{content:'';width:4px;height:16px;border-radius:4px;background:var(--p);opacity:.75;margin-inline-end:8px;flex:none}
+.section-h{justify-content:flex-start}
+.section-h>:last-child:not(:first-child){margin-inline-start:auto}
+.view-head h2{font-weight:800}
+.empty:not(:empty){display:flex;flex-direction:column;align-items:center;gap:8px;font-size:.92rem;line-height:1.8}
+.empty:not(:empty)::before{content:'';width:54px;height:54px;border-radius:18px;background:color-mix(in oklab,var(--p) 10%,transparent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 15.6 7.1 18.2l.9-5.5-4-3.9 5.5-.8z'/%3E%3C/svg%3E") center/26px no-repeat}
+.list.card{overflow:hidden}
+.list.card>.item+.item::after{content:'';position:absolute;top:0;inset-inline:56px 14px;height:1px;background:color-mix(in oklab,var(--on-s) 7%,transparent)}
+.item .lead{border-radius:12px}
+.chip{transition:background .2s,color .2s,transform .15s}
+.chip:active{transform:scale(.96)}
+.chip.on{box-shadow:0 6px 14px -10px var(--p)}
+html[data-skin] .card.pad,html[data-skin][data-theme] .card.pad{border-radius:22px}
+.btn{letter-spacing:-.005em}
+.tiny.muted,.small.muted{line-height:1.75}
+/* headers of the inner screens: a soft line under them while the page scrolls */
+.view-head{box-shadow:0 1px 0 color-mix(in oklab,var(--on-s) 6%,transparent)}

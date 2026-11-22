@@ -21,7 +21,7 @@ const rg = (min, max, step, val, fn)=>h('input', {type:'range', min, max, step, 
 const OPEN = {
   look:()=>M.openSub('look'), perf:()=>M.openSub('perf'), heroimg:()=>M.openSub('heroimg'), icon:()=>M.openSub('icon'), widgets:()=>M.openSub('widgets'),
   prayer:()=>M.openSub('prayer'), prayerpage:()=>M.openSub('prayerpage'), notifs:()=>M.openNotifs(), sounds:()=>M.openSounds && M.openSounds(),
-  alarm:()=>M.openSub('alarm'), focus:()=>M.openSub('focus'), live:()=>M.openSub('live'), psheet:()=>M.prayerSettings && M.prayerSettings(),
+  alarm:()=>M.openSub('alarm'), floaters:()=>M.openSub('floaters'), focus:()=>M.openSub('focus'), live:()=>M.openSub('live'), psheet:()=>M.prayerSettings && M.prayerSettings(),
   quran:()=>M.openSub('quran'), downloads:()=>M.openDownloads(),
   adhkarset:()=>M.openSub('adhkarset'), randset:()=>M.openSub('randset'), counterset:()=>M.openSub('counterset'), duas:()=>M.openMyDuas(), audio:()=>M.openSub('audio'),
   date:()=>M.openSub('date'), calendar:()=>M.openCalendar(),
@@ -39,6 +39,7 @@ const langName = ()=>((M.LANGS || []).find(l=>l[0] === M.lang) || [0, 'العر�
 const GROUPS = [
   ['look', 't:palette', 'المظهر', [
     ['look', 't:palette', 'المظهر والخلفية', 'الواجهة، السمة، اللون، الخلفية', 'look', 'theme skin glass material dark light amoled accent color background wallpaper transparency solid contrast شفافية تباين ثيم داكن فاتح ليلي زجاج ماتيريال لون خلفية خلفيات'],
+    ['floaters', 't:circle-dot', 'الأزرار العائمة', 'الحجم والمكان والإغلاق بالسحب', 'floaters', 'floating bubble button player khatma size الزر العائم دائرة حجم سحب'],
     ['perf', 't:bolt', 'الأداء والحركة', 'الحركات، السلاسة، الحواف المنحنية', 'perf', 'animation motion performance fps 120hz edge curved حركات انتقالات اداء بطارية'],
     ['heroimg', 't:photo', 'صورة بطاقة الصلاة', 'من جهازك أو صور جاهزة', 'heroimg', 'hero image prayer card picture photo صورة بطاقة'],
     ['icon', 't:app-window', 'أيقونة التطبيق', 'تغيير الأيقونة ولونها', 'icon', 'app icon launcher ايقونة'],

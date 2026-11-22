@@ -165,7 +165,7 @@ M.screens.quran = {
       h('span.qx-go', M.ic('fwd'))));
     /* --- the surahs read most: two rows that wrap, never cut at the screen edge --- */
     const QS = [[18,'الكهف'],[36,'يس'],[67,'الملك'],[55,'الرحمن'],[56,'الواقعة'],[2,'البقرة'],[32,'السجدة'],[112,'الإخلاص']];
-    el.append(h('div.section-h.qx-h', 'سور تقرأها كثيرًا'), h('div.qx-quick', ...QS.map(([id, n])=>h('button.qx-chip', {onclick:()=>M.openReader({sura:id, ayah:1})}, h('b', n), h('small.num', M.arNum(id))))));
+    el.append(h('div.section-h.qx-h', 'سور تقرأها كثيرًا'), h('div.qx-quick.qx-row', ...QS.map(([id, n])=>h('button.qx-chip', {onclick:()=>M.openReader({sura:id, ayah:1})}, h('b', n), h('small.num', M.arNum(id))))));
     /* --- every tool of the mushaf in one even grid --- */
     const tile = (ic, t, fn, badge)=>h('button.qx-tile', {onclick:fn}, h('span.qx-ic', {html:M.icon(ic)}), h('span.qx-tt', t), badge ? h('span.fav-n', M.n(badge > 99 ? 99 : badge)) : null);
     const tools = [
@@ -181,7 +181,13 @@ M.screens.quran = {
       tile('download', 'التنزيلات', ()=>M.openDownloads && M.openDownloads()),
       tile('search', 'إلى صفحة', ()=>M.goToPageSheet && M.goToPageSheet()),
       tile(M.cfg.readMode === 'pages' ? 'pages' : 'scroll', 'وضع القراءة', ()=>modeSheet())].filter(Boolean);
-    el.append(h('div.section-h.qx-h', 'أدوات المصحف'), h('div.qx-tools', ...tools),
+    /* 4.4: four tools in sight, the rest behind «المزيد» (remembered open or closed) */
+    const more = !!M.store.get('qxMore', false), main4 = tools.slice(0, 4), rest = tools.slice(4);
+    const restBox = h('div.qx-tools.qx-rest' + (more ? '.on' : ''), ...rest);
+    const moreBtn = h('button.qx-tile.qx-moreb', {onclick:()=>{ const on = !restBox.classList.contains('on'); restBox.classList.toggle('on', on); moreBtn.classList.toggle('on', on); M.store.set('qxMore', on); }},
+      h('span.qx-ic', {html:M.icon('s:grid')}), h('span.qx-tt', 'المزيد'));
+    if(more) moreBtn.classList.add('on');
+    el.append(h('div.section-h.qx-h', 'أدوات المصحف'), h('div.qx-tools.qx-main', ...main4, rest.length ? moreBtn : null), restBox,
       h('div.section-h.qx-h#qh-index', 'الفهرس والبحث'));
     if(!M.Q.ready){
       M.loadQuran().then(()=>{ if(M.curTab === 'quran') M.screens.quran.build(el); });

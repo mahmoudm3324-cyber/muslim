@@ -186,7 +186,7 @@ M.screens.prayer = {
       h('div.tiny.muted', 'تقديرية؛ يُحتاط بنحو ١٥ دقيقة بعد الشروق وقبل الغروب و١٠ قبل الظهر.')));
     // qibla card
     const q = Math.round(M.qiblaDeg());
-    if(!simple) el.append(h('div.card.pad.qibla-card.qr-card', {role:'button', tabindex:0, onclick:e=>{ if(e.target.closest('.qr-map')) return; openQibla(); }},
+    if(!simple) el.append(h('div.card.pad.qibla-card.qr-card', {role:'button', tabindex:0, onclick:e=>{ if(e.target.closest('.qr-map')) return; (M.openQibla || openQibla)(); }},
       h('div.qr-head', h('div.grow', h('div.bold.title-font', 'بوصلة القبلة'), h('div.small.muted', 'اتجاه دقيق إلى الكعبة المشرفة')), h('span.chev', {html:M.icon('fwd')})),
       h('div.mini-compass'),
       h('div.qr-foot', h('span.qr-state.small'), h('span.small.muted', M.n(q)+'° • '+M.n(Math.round(M.distKaaba()).toLocaleString('en'))+' كم'),

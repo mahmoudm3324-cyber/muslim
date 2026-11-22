@@ -41,7 +41,17 @@ const GUIDE = [
 ];
 const toAr = n=>M.n(n);
 
-function ayahsText(s, a, b){ const out = []; for(let i = a; i <= b; i++) out.push(M.ayahText(s, i) + (b > a ? ' ۝' + toAr(i) : '')); return out.join(' '); }
+function ayahsText(s, a, b){ const out = []; for(let i = a; i <= b; i++) out.push(M.ayahText(s, i) + (b > a ? ' (' + toAr(i) + ')' : '')); return out.join(' '); }
+/* the ayahs as nodes: each number in its own round marker, kept with its ayah (never pushed to another line or side) */
+function ayahsNodes(s, a, b){
+  const out = [h('span.rq-orn', '﴿')];
+  for(let i = a; i <= b; i++){
+    const words = String(M.ayahText(s, i)).trim().split(/\s+/), last = words.pop();
+    out.push(words.join(' ') + ' ', h('span.rq-tail', last, h('span.rq-an', {dir:'ltr'}, toAr(i))), ' ');
+  }
+  out.push(h('span.rq-orn', '﴾'));
+  return out;
+}
 function refLbl(s, a, b){ return M.sname(s) + (a === b ? ' ' + toAr(a) : ' ' + toAr(a) + '–' + toAr(b)); }
 
 M.openRuqya2 = function(){
@@ -61,7 +71,7 @@ M.openRuqya2 = function(){
   function init(){ loadErr = false; paint(); M.loadQuran().then(()=>{ ready = true; if(!view.closed) paint(); }).catch(()=>{ loadErr = true; if(!view.closed) paint(); }); }
 
   const gradeBadge = g=>h('span.rq-badge' + (g === SUNNA ? '.s' : '.u'), g);
-  const actions = (text, src)=>h('div.row-flex.gap-s.rq-acts', h('button.btn.tonal.sm', {onclick:()=>M.copy(text + '\n' + src)}, M.ic('copy'), 'نسخ'), h('button.btn.tonal.sm', {onclick:()=>M.share(text + '\n— ' + src)}, M.ic('share'), 'مشاركة'));
+  const actions = (text, src)=>h('div.rq-bar', h('div.grow'), h('button.rq-ib', {'aria-label':'نسخ', onclick:()=>M.copy(text + '\n' + src)}, M.ic('copy')), h('button.rq-ib', {'aria-label':'مشاركة', onclick:()=>{ if(M.shareCard) M.shareCard(text, src); else M.share(text + '\n— ' + src); }}, M.ic('share')));
 
   /* ---- ayat ---- */
   function tAyat(el){
@@ -69,15 +79,17 @@ M.openRuqya2 = function(){
       const text = '﴿ ' + ayahsText(s, a, b) + ' ﴾', ref = 'سورة ' + refLbl(s, a, b);
       el.append(h('details.card.rq-det', i === 0 ? {open:true} : null,
         h('summary', h('div.grow', h('div.t.bold', title), h('div.s.small.muted', ref)), gradeBadge(g), M.ic('chevDown')),
-        h('div.rq-body', h('div.qfont.rq-ayah', {dir:'rtl'}, text), h('div.small.rq-src', nt),
-          h('div.row-flex.gap-s.rq-acts', h('button.btn.sm', {onclick:()=>M.player.playRange(s, a, b, 1, 1)}, M.ic('play'), 'استمع'), h('button.btn.tonal.sm', {onclick:()=>M.openReader({sura:s, ayah:a})}, M.ic('quran'), 'المصحف'),
-            h('button.btn.tonal.sm', {onclick:()=>M.copy(text + '\n' + ref)}, M.ic('copy'), 'نسخ'), h('button.btn.tonal.sm', {onclick:()=>M.share(text + '\n— ' + ref)}, M.ic('share'), 'مشاركة')))));
+        h('div.rq-body', h('div.qfont.rq-ayah', {dir:'rtl'}, ...ayahsNodes(s, a, b)), nt ? h('div.rq-why', h('b', 'الدليل'), h('span', nt)) : null,
+          h('div.rq-bar', h('button.rq-play', {onclick:()=>M.player.playRange(s, a, b, 1, 1)}, M.ic('play'), 'استمع'),
+            h('button.rq-ib', {'aria-label':'افتح في المصحف', onclick:()=>M.openReader({sura:s, ayah:a})}, M.ic('quran')),
+            h('button.rq-ib', {'aria-label':'نسخ', onclick:()=>M.copy(text + '\n' + ref)}, M.ic('copy')),
+            h('button.rq-ib', {'aria-label':'مشاركة', onclick:()=>{ if(M.shareCard) M.shareCard(text, ref); else M.share(text + '\n— ' + ref); }}, M.ic('share'))))));
     });
     el.append(h('div.tiny.muted.rq-foot', 'التصنيف: «ثابت في السنة» أي ورد في الحديث ما يدل على الرقية أو الحفظ بها، و«مما ذكره أهل العلم» أي مما درج عليه العلماء في الرقية دون حديث مرفوع بتخصيصه.'));
   }
   /* ---- duas ---- */
   function tDuas(el){
-    DUAS.forEach(([title, text, src, nt])=>el.append(h('div.card.pad.rq-dua', h('div.bold', title), h('div.qfont.rq-ayah', {dir:'rtl'}, '«' + text + '»'), nt ? h('div.small.muted', nt) : null, h('div.small.rq-src', src), actions(text, src))));
+    DUAS.forEach(([title, text, src, nt], i)=>el.append(h('div.card.rq-dua', h('div.rq-dh', h('span.rq-no', toAr(i + 1)), h('b', title)), h('div.qfont.rq-ayah.rq-dt', {dir:'rtl'}, text), nt ? h('div.rq-why', h('b', 'فضله'), h('span', nt)) : null, h('div.rq-srcp', src), actions(text, src))));
     el.append(h('div.tiny.muted.rq-foot', 'نصوص الأحاديث مكتوبة بالمعنى المشهور والمراجعة مطلوبة؛ للتحقق راجع الصحيحين وسنن أبي داود والترمذي.'));
     if(M.sectionOpen) el.append(h('div.row-flex.gap-s', h('button.btn.tonal.sm.grow', {onclick:()=>M.sectionOpen('sunna_ruqya')}, M.ic('shield'), 'الرقية بالسنة'), h('button.btn.tonal.sm.grow', {onclick:()=>M.sectionOpen('quran_ruqya')}, M.ic('quran'), 'الرقية بالقرآن')));
   }
