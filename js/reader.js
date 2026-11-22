@@ -64,9 +64,12 @@ M.openReader = async function(opts){
        (it used to stretch to the whole width, and the lines piled on each other) */
     const PR = 0.62, PW1 = Math.round(H * PR), wide = W0 > PW1 + 8;
     /* two pages side by side (a computer, a tablet on its side) when both fit at full height; the reading setting can turn it off */
-    const spread = wide && M.cfg.qSpread !== false && W0 >= PW1 * 2 + 24;
-    const W = spread ? Math.min(W0 - 16, PW1 * 2) : wide ? PW1 : W0;
-    main.classList.toggle('pg-wide', wide); main.classList.toggle('pg-spread', spread); main.style.setProperty('--pgw', W + 'px');
+    /* two pages: on a wide screen when both fit at full height, and on any tablet (upright too) where each page is at least
+       as wide as a phone screen */
+    const full = W0 >= PW1 * 2 + 24, tablet = W0 >= 680;
+    const spread = M.cfg.qSpread !== false && (full || tablet);
+    const W = spread ? (full ? Math.min(W0 - 16, PW1 * 2) : W0 - 8) : wide ? PW1 : W0;
+    main.classList.toggle('pg-wide', wide || spread); main.classList.toggle('pg-spread', spread); main.style.setProperty('--pgw', W + 'px');
     layout = {W, H, PW:spread ? W / 2 : W, spread};
     const bodyW = W - 34;
     const fs = Math.min(bodyW / 16.6, 46);
@@ -281,10 +284,66 @@ M.openReader = async function(opts){
     }
     function trim(){ if(cache.size > 9){ for(const k of cache.keys()){ if(Math.abs(k - cur) > 3){ cache.delete(k); if(cache.size <= 9) break; } } } }
     function setT(on){ Object.values(slides).forEach(s=>s.style.transition = on ? (M.cfg.qFlip ? 'transform .42s cubic-bezier(.3,.1,.3,1)' : 'transform .26s cubic-bezier(.2,.8,.2,1)') : 'none'); }
+    /* 4.5.2 two pages side by side turn like a book: the outer page lifts and turns over the spine in the middle.
+       Forward (towards the end of the Mushaf) the left page turns onto the right; back, the right page turns onto the left.
+       Under the turning leaf: the half that stays, and the spread being opened. */
+    /* presses during a turn are counted and played one after another (at most five ahead) */
+    let pend = 0;
+    const flushPend = ()=>{ if(!pend) return; const d = Math.sign(pend); pend -= d; setTimeout(()=>api.step(d), 20); };
+    const book = (()=>{
+      let st = null;
+      const halfOf = (el, side)=>{ const x = el && el.querySelector('.msp-half.' + side); return x ? x.cloneNode(true) : h('div.msp-half'); };
+      function begin(dir){
+        const target = cur + dir; if(target < 1 || target > MAX()) return null;
+        const curEl = get(cur), toEl = get(target); if(!curEl || !toEl) return null;
+        const to = dir > 0 ? slides.next : slides.prev, other = dir > 0 ? slides.prev : slides.next;
+        if(to.firstChild !== toEl){ to.innerHTML = ''; to.appendChild(toEl); }
+        if(!toEl._fin){ toEl._fin = true; fin(toEl); }
+        setT(false);
+        to.style.transform = 'translate3d(0,0,0)'; to.style.zIndex = 1; to.style.visibility = 'visible';
+        slides.cur.style.transform = 'translate3d(0,0,0)'; slides.cur.style.zIndex = 2; slides.cur.style.visibility = 'visible';
+        slides.cur.style.clipPath = dir > 0 ? 'inset(0 0 0 50%)' : 'inset(0 50% 0 0)';   // the half that does not turn
+        other.style.visibility = 'hidden';
+        const shade = h('i.bk-shade');
+        const leaf = h('div.bk-leaf' + (dir > 0 ? '.fw' : '.bw'),
+          h('div.bk-face', halfOf(curEl, dir > 0 ? 'l' : 'r')),
+          h('div.bk-face.bk-back', halfOf(toEl, dir > 0 ? 'r' : 'l')), shade);
+        track.append(leaf); track.classList.add('bk-on');
+        st = {dir, leaf, shade, target};
+        return st;
+      }
+      function set(t){
+        if(!st) return;
+        t = Math.max(0, Math.min(1, t));
+        st.leaf.style.transform = 'rotateY(' + (st.dir > 0 ? 180 * t : -180 * t).toFixed(2) + 'deg)';
+        st.shade.style.opacity = (Math.sin(t * Math.PI) * .5).toFixed(3);
+        st.t = t;
+      }
+      function clean(){
+        if(!st) return;
+        st.leaf.remove(); track.classList.remove('bk-on'); slides.cur.style.clipPath = '';
+        st = null;
+      }
+      function end(go, ms){
+        if(!st) return;
+        const s0 = st, d = ms || Math.round(260 + 280 * (go ? 1 - (s0.t || 0) : (s0.t || 0)));
+        s0.leaf.style.transition = 'transform ' + d + 'ms cubic-bezier(.3,.15,.25,1)';
+        s0.shade.style.transition = 'opacity ' + d + 'ms ease';
+        requestAnimationFrame(()=>set(go ? 1 : 0));
+        setTimeout(()=>{ if(st !== s0) return; clean(); if(go) cur = s0.target; dx = 0; setT(false); fill(); anim = false; if(go) onPage(PG(cur)); flushPend(); }, d + 30);
+      }
+      return {begin, set, end, cancel:()=>{ clean(); }, get active(){ return !!st; }, get dir(){ return st ? st.dir : 0; }};
+    })();
     function commit(delta){
       const np = cur + delta; if(np < 1 || np > MAX()){ snap(); return; }
       lastDir = delta > 0 ? 1 : -1;
-      if(curlOn()){
+      if(SPm){
+        anim = true; if(M.cfg.qFlipSound !== false) paperSound();
+        if(book.active) book.cancel();
+        if(book.begin(delta > 0 ? 1 : -1)){ book.set(0); book.end(true, 620); return; }
+        anim = false;
+      }
+      if(curlOn() && !SPm){
         try{
           anim = true; if(M.cfg.qFlipSound !== false) paperSound();
           const c = curl || (curl = M.mushafCurl.make(track, slides, ()=>layout));
@@ -296,7 +355,7 @@ M.openReader = async function(opts){
       anim = true; setT(true); dx = delta > 0 ? layout.W : -layout.W; place();
       if(M.cfg.qFlipSound !== false) paperSound();
       setTimeout(()=>{ if(anim) warmStep(null, np); }, 30);
-      setTimeout(()=>{ cur = np; dx = 0; setT(false); fill(); anim = false; onPage(PG(cur)); }, M.cfg.qFlip ? 430 : 270);
+      setTimeout(()=>{ cur = np; dx = 0; setT(false); fill(); anim = false; onPage(PG(cur)); flushPend(); }, M.cfg.qFlip ? 430 : 270);
     }
     function snap(){ setT(true); dx = 0; place(); setTimeout(()=>setT(false), M.cfg.qFlip ? 440 : 280); }
     host.addEventListener('pointerdown', e=>{ if(anim) return; const r = host.getBoundingClientRect(); down = {x:e.clientX, y:e.clientY, t:Date.now(), ry:e.clientY - r.top}; dragging = false; });
@@ -310,7 +369,12 @@ M.openReader = async function(opts){
       if(dragging){
         dx = ddx; dy = ddy;
         if((cur === MAX() && dx > 0) || (cur === 1 && dx < 0)) dx *= 0.25;
-        if(curlOn() && !(cur === MAX() && dx > 0) && !(cur === 1 && dx < 0)){
+        if(SPm && !(cur === MAX() && dx > 0) && !(cur === 1 && dx < 0)){
+          const dir = dx > 0 ? 1 : -1;
+          if(book.active && book.dir !== dir) book.cancel();
+          if(book.active || book.begin(dir)){ book.set(Math.abs(dx) / (layout.W * .62)); return; }
+        }
+        if(!SPm && curlOn() && !(cur === MAX() && dx > 0) && !(cur === 1 && dx < 0)){
           try{
             const dir = dx > 0 ? 1 : -1;
             if(!curl) curl = M.mushafCurl.make(track, slides, ()=>layout);
@@ -326,6 +390,13 @@ M.openReader = async function(opts){
       if(!dragging) return;
       dragging = false; api.wasDrag = true; setTimeout(()=>api.wasDrag = false, 80);
       const v = dx / Math.max(1, Date.now() - d.t), W = layout.W;
+      if(book.active){
+        const dir = book.dir, go = dir > 0 ? (dx > W * .22 || (v > .5 && dx > 30)) : (dx < -W * .22 || (v < -.5 && dx < -30));
+        if(go) lastDir = dir;
+        anim = true; if(go && M.cfg.qFlipSound !== false) paperSound();
+        book.end(go);
+        return;
+      }
       if(curl && curl.active){
         const dir = curl.dir, go = dir > 0 ? (dx > W * 0.2 || (v > 0.5 && dx > 30)) : (dx < -W * 0.2 || (v < -0.5 && dx < -30));
         const np = cur + (go ? dir : 0);
@@ -342,9 +413,9 @@ M.openReader = async function(opts){
     const api = {
       wasDrag:false, get cur(){ return PG(cur); }, get spread(){ return SPm; },
       /* one turn forward or back (a page, or a spread) — the arrows and the keyboard use this */
-      step(d){ const u = Math.max(1, Math.min(MAX(), cur + d)); if(u === cur) return; if(!anim) commit(u - cur); },
+      step(d){ if(anim){ pend = Math.max(-5, Math.min(5, pend + d)); return; } const u = Math.max(1, Math.min(MAX(), cur + d)); if(u === cur) return; commit(u - cur); },
       destroyCurl(){ try{ curl && curl.destroy(); }catch(e){} curl = null; },
-      relayout(){ if(!anim && curl) curl.stop(); if(!!layout.spread !== SPm){ const pg = PG(cur); SPm = !!layout.spread; cur = UN(pg); } cache.clear(); slides.prev.innerHTML = slides.cur.innerHTML = slides.next.innerHTML = ''; fill(); },
+      relayout(){ if(!anim && curl) curl.stop(); book.cancel(); if(!!layout.spread !== SPm){ const pg = PG(cur); SPm = !!layout.spread; cur = UN(pg); } cache.clear(); slides.prev.innerHTML = slides.cur.innerHTML = slides.next.innerHTML = ''; fill(); },
       rebuild(p){ const u = UN(p); if(!cache.has(u)) return; cache.delete(u); if(Math.abs(u - cur) <= 1) fill(); },
       goto(p, animate){
         p = UN(Math.max(1, Math.min(604, p))); if(p === cur) return;
