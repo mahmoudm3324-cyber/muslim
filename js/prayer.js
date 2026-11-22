@@ -186,11 +186,11 @@ M.screens.prayer = {
       h('div.tiny.muted', 'تقديرية؛ يُحتاط بنحو ١٥ دقيقة بعد الشروق وقبل الغروب و١٠ قبل الظهر.')));
     // qibla card
     const q = Math.round(M.qiblaDeg());
-    if(!simple) el.append(h('button.card.pad.qibla-card', {onclick:()=>openQibla()},
-      h('div.row-flex',
-        h('div.mini-compass', {html:`<svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="37" fill="none" stroke="currentColor" stroke-opacity=".25" stroke-width="2"/><g style="transform:rotate(${q}deg);transform-origin:40px 40px"><path d="M40 10 L47 42 L40 38 L33 42Z" fill="var(--p)"/></g><text x="40" y="12" font-size="9" text-anchor="middle" fill="currentColor" opacity=".6">ش</text></svg>`}),
-        h('div.grow', h('div.bold', 'اتجاه القبلة'), h('div.small.muted', M.n(q)+'° من الشمال الحقيقي • '+M.n(Math.round(M.distKaaba()).toLocaleString('en'))+' كم إلى الكعبة')),
-        h('span.chev', {html:M.icon('fwd')}))));
+    if(!simple) el.append(h('div.card.pad.qibla-card.qr-card', {role:'button', tabindex:0, onclick:e=>{ if(e.target.closest('.qr-map')) return; openQibla(); }},
+      h('div.qr-head', h('div.grow', h('div.bold.title-font', 'بوصلة القبلة'), h('div.small.muted', 'اتجاه دقيق إلى الكعبة المشرفة')), h('span.chev', {html:M.icon('fwd')})),
+      h('div.mini-compass'),
+      h('div.qr-foot', h('span.qr-state.small'), h('span.small.muted', M.n(q)+'° • '+M.n(Math.round(M.distKaaba()).toLocaleString('en'))+' كم'),
+        h('button.chip.qr-map', {onclick:e=>{ e.stopPropagation(); M.openQiblaMap && M.openQiblaMap(); }}, M.ic('pin'), 'الخريطة'))));
     if(!simple && M.qiblaMini) try{ M.qiblaMini(el.lastChild); }catch(e){}
     el.append(h('div.tiny.muted.center', {style:'margin:14px 0 4px'}, 'طريقة الحساب: '+(M.METHODS.find(m=>m[0] === M.cfg.method) || [,''])[1]+(M.cfg.method === 'auto' ? ' ('+(M.METHODS.find(m=>m[0] === M.methodKey()) || [,''])[1]+')' : '')+' • '+(M.cfg.madhhab === 'hanafi' ? 'العصر حنفي' : 'العصر شافعي/جمهور')));
   }
@@ -228,12 +228,32 @@ function prayerSettings(){
       say(M.cfg.madhhab);
       return h('div.col-flex', {style:'gap:6px'}, M.seg([['shafi','الشافعي والمالكي والحنبلي'],['hanafi','الحنفي']], M.cfg.madhhab === 'hanafi' ? 'hanafi' : 'shafi', v=>{ M.save('madhhab', v); say(v); refresh(); }), note); })(),
     h('div.row-flex', h('div.grow', h('div', 'إظهار وقت الإقامة'), h('div.small.muted', 'بعد الأذان بعدد دقائق تحدده')), M.switchEl(M.cfg.iqamaOn !== false, v=>{ M.save('iqamaOn', v); refresh(); })),
-    iqamaRows(),
+    h('button.btn.tonal.block', {onclick:()=>M.openIqama()}, M.ic('clock'), 'ضبط مواقيت الإقامة'),
     h('div.small.muted', 'تعديل يدوي للدقائق (± دقيقة)'),
     adjustRows(),
     h('div.small.muted', 'صيغة الساعة (١٢/٢٤) من «الخط والأرقام»، وصوت الأذان والتنبيه من «الإشعارات والأصوات».'));
   M.sheet({title:'إعدادات المواقيت', content:body});
 }
+/* the iPhone Live Activity can end at the iqama: keep its minutes in step */
+M.on('settings', k=>{ if(k === 'iqama' && window.Android && Android.setLiveCfg){ const c = Object.assign({style:'next', island:'name', end:'adhan'}, M.cfg.liveCfg || {}); try{ Android.setLiveCfg(JSON.stringify({style:c.style, island:c.island, end:c.end, iqama:M.cfg.iqama || {}})); }catch(e){} } });
+M.openIqama = function(){
+  M.openView({id:'iqama', title:'ضبط مواقيت الإقامة', build:b=>{
+    const box = h('div.col-flex.iq-box');
+    b.append(h('div.small.muted', {style:'line-height:1.9;margin:0 4px 10px'}, 'أدخل وقت الإقامة لكل صلاة بالدقائق بعد الأذان. تظهر الإقامة في صفحة المواقيت والرئيسية، وفي النشاط الحي إذا اخترت أن ينتهي عند الإقامة.'),
+      h('div.list.card', h('div.item.static', h('div.grow', h('div.t', 'إظهار وقت الإقامة')), M.switchEl(M.cfg.iqamaOn !== false, v=>{ M.save('iqamaOn', v); refresh(); }))), box);
+    const draw = ()=>{
+      let tt = null; try{ tt = M.prayerTimes(new Date()); }catch(e){}
+      box.replaceChildren(...['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'].map(k=>{
+        const m = (M.cfg.iqama || {})[k] || 0;
+        const set = d=>{ const a = Object.assign({}, M.cfg.iqama); a[k] = Math.max(0, Math.min(90, (a[k] || 0) + d)); M.save('iqama', a); M.haptic && M.haptic(6); draw(); refresh(); };
+        const iq = tt ? new Date(+tt[k] + m * 60000) : null;
+        return h('div.card.iq-row', h('div.grow', h('b.title-font', M.prayerLabel(k)), h('small', tt ? 'الأذان: ' + M.n(M.fmt(tt[k])) + '  •  الإقامة: ' + M.n(M.fmt(iq)) : '')),
+          h('div.iq-step', h('button', {'aria-label':'زيادة', onclick:()=>set(1)}, M.ic('plus')), h('b.num', M.n(m)), h('button', {'aria-label':'إنقاص', onclick:()=>set(-1)}, M.ic('minus'))));
+      }), h('div.tiny.muted', {style:'margin:4px'}, 'الأوقات الظاهرة هي أوقات اليوم.'));
+    };
+    draw();
+  }});
+};
 function iqamaRows(){
   const wrap = h('div.col-flex.gap-s');
   ['fajr','dhuhr','asr','maghrib','isha'].forEach(k=>{

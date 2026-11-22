@@ -39,6 +39,45 @@ const ICONS = {
 };
 const ico = k=>h('span.qb-i', {html:ICONS[k]});
 
+
+/* ---------- 3.11 the ring dial (card on the prayer screen + the qibla screen) ----------
+   A ring with degrees, the four directions outside it and the Kaaba on it; the ring turns with the phone. A white fan grows from
+   the top (where the phone points) to the Kaaba: turn until it closes. The arrow in the middle is the phone. */
+function ringDial(qd){
+  const C = 160, Rr = 118, BW = 40;
+  let t = '';
+  for(let i = 0; i < 72; i++){ const a = i * 5, big = a % 30 === 0;
+    t += '<line x1="' + C + '" y1="' + (C - Rr - BW / 2 + 5) + '" x2="' + C + '" y2="' + (C - Rr - BW / 2 + (big ? 13 : 8)) + '" class="' + (big ? 'qr-tb' : 'qr-t') + '" transform="rotate(' + a + ' ' + C + ' ' + C + ')"/>'; }
+  let l = '';
+  for(let a = 0; a < 360; a += 30) l += '<text x="' + C + '" y="' + (C - Rr + 8) + '" class="qr-deg" text-anchor="middle" transform="rotate(' + a + ' ' + C + ' ' + C + ')">' + M.n(a) + '°</text>';
+  const card = [['ش', 0], ['ق', 90], ['ج', 180], ['غ', 270]].map(([c, a])=>{ const rr = Rr + BW / 2 + 14, x = C + rr * Math.sin(a * Math.PI / 180), y = C - rr * Math.cos(a * Math.PI / 180) + 6;
+    return '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" class="qr-card' + (a === 0 ? ' n' : '') + '" text-anchor="middle">' + c + '</text>'; }).join('');
+  const kaaba = '<g class="qr-k" transform="rotate(' + qd.toFixed(2) + ' ' + C + ' ' + C + ')"><line x1="' + C + '" y1="' + C + '" x2="' + C + '" y2="' + (C - Rr + 14) + '" class="qr-kl"/>' +
+    '<g transform="translate(' + C + ' ' + (C - Rr) + ') rotate(' + (-qd).toFixed(2) + ')" class="qr-kb"><circle r="15" class="qr-kc"/><rect x="-7.5" y="-7" width="15" height="14" rx="1.6" class="qr-kx"/><rect x="-7.5" y="-3.6" width="15" height="2.6" class="qr-kg"/></g></g>';
+  const el = h('div.qr', {html:
+    '<svg viewBox="0 0 320 320" class="qr-svg"><defs><linearGradient id="qrFan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity=".35"/></linearGradient></defs>' +
+    '<path class="qr-fan" d=""/>' +
+    '<g class="qr-dial"><circle cx="' + C + '" cy="' + C + '" r="' + Rr + '" class="qr-band" stroke-width="' + BW + '"/>' + t + l + card + kaaba + '</g>' +
+    '<g class="qr-arrow"><path d="M160 116 L183 186 L160 172 L137 186 Z"/></g></svg>'});
+  const dial = el.querySelector('.qr-dial'), fan = el.querySelector('.qr-fan'), kg = el.querySelector('.qr-k');
+  let q = qd;
+  const arc = (a0, a1)=>{ // a fan from angle a0 to a1 (degrees, 0 = up, clockwise) on the band
+    const ro = Rr + BW / 2 - 2, ri = 22, P = (a, rr)=>[C + rr * Math.sin(a * Math.PI / 180), C - rr * Math.cos(a * Math.PI / 180)];
+    if(Math.abs(a1 - a0) < .6) return '';
+    const big = Math.abs(a1 - a0) > 180 ? 1 : 0, sw = a1 > a0 ? 1 : 0;
+    const [x0, y0] = P(a0, ro), [x1, y1] = P(a1, ro), [x2, y2] = P(a1, ri), [x3, y3] = P(a0, ri);
+    return 'M' + x0.toFixed(1) + ' ' + y0.toFixed(1) + 'A' + ro + ' ' + ro + ' 0 ' + big + ' ' + sw + ' ' + x1.toFixed(1) + ' ' + y1.toFixed(1) + 'L' + x2.toFixed(1) + ' ' + y2.toFixed(1) + 'A' + ri + ' ' + ri + ' 0 ' + big + ' ' + (1 - sw) + ' ' + x3.toFixed(1) + ' ' + y3.toFixed(1) + 'Z';
+  };
+  const api = {el,
+    set(heading, cum){ dial.setAttribute('transform', 'rotate(' + (-(cum == null ? heading : cum)).toFixed(2) + ' ' + C + ' ' + C + ')');
+      const d = delta(heading, q); fan.setAttribute('d', arc(0, d)); el.classList.toggle('ok', Math.abs(d) <= 3); return d; },
+    qibla(v){ q = v; kg.setAttribute('transform', 'rotate(' + v.toFixed(2) + ' ' + C + ' ' + C + ')'); const b = kg.querySelector('.qr-kb'); b.setAttribute('transform', 'translate(' + C + ' ' + (C - Rr) + ') rotate(' + (-v).toFixed(2) + ')'); },
+    still(){ fan.setAttribute('d', ''); dial.setAttribute('transform', ''); }
+  };
+  return api;
+}
+M.qiblaRing = ringDial;
+
 /* ---------- compass sensor (shared by both panes) ---------- */
 function makeSensor(onData){
   let hasAbs = false, sx = 0, sy = 0, n = 0, jit = 0, last = null, on = false;
@@ -120,7 +159,8 @@ function openV2(startTab){
   const kg = dialSvg.querySelector('.qb-kg');
   const cardG = dialSvg.querySelector('svg');
   const headTxt = h('div.qb-h', '—'), headSub = h('div.qb-hs', 'اتجاه جهازك');
-  const dialBox = h('div.qb-dbox', dialSvg, h('div.qb-pt', {html:'<svg viewBox="0 0 28 34"><path d="M14 2L26 28 14 22 2 28z"/></svg>'}), h('div.qb-center', headTxt, headSub));
+  const RING = ringDial(qd);
+  const dialBox = h('div.qb-dbox.qb-ringbox', RING.el, h('div.qb-center', headTxt, headSub));
   const status = h('div.qb-status', 'حرّك الجهاز لقراءة الاتجاه…');
   const hint = h('div.qb-hint.hide');
   const bearN = h('div.qb-v'), distN = h('div.qb-v'), locN = h('div.qb-loc');
@@ -150,7 +190,7 @@ function openV2(startTab){
     bearN.replaceChildren(h('b', deg(qd)), h('div.small.muted', cardinal(qd))); distN.textContent = fmtInt(dist) + ' كم';
     locN.textContent = (st.live ? 'موقعك الحالي' : st.name || 'الموقع المحفوظ') + (st.acc ? ' • دقة ±' + M.n(Math.round(st.acc)) + ' م' : '');
     mInfo.replaceChildren(h('div.qb-mi', h('div.qb-mb', deg(qd)), h('div.qb-mt', 'اتجاه القبلة')), h('div.qb-md'), h('div.qb-mi', h('div.qb-mb', fmtInt(dist)), h('div.qb-mt', 'كم إلى الكعبة')), h('div.qb-md'), h('div.qb-mi', h('div.qb-mb.qb-hd', hasSensor && disp != null ? deg(disp) : '—'), h('div.qb-mt', 'اتجاهك الآن')), mStatus);
-    kg.setAttribute('transform', 'rotate(' + qd.toFixed(2) + ' 160 160)');
+    kg.setAttribute('transform', 'rotate(' + qd.toFixed(2) + ' 160 160)'); RING.qibla(qd);
   };
   const paintMode = ()=>{
     enableBtn.classList.toggle('hide', hasSensor || !noSensor);
@@ -184,7 +224,7 @@ function openV2(startTab){
   }
   function render(){
     if(tab === 'compass' || !noSensor){
-      dialSvg.style.transform = 'rotate(' + (-cum).toFixed(2) + 'deg)';
+      dialSvg.style.transform = 'rotate(' + (-cum).toFixed(2) + 'deg)'; RING.set(disp);
       headTxt.textContent = deg(disp); headSub.textContent = cardinal(disp);
     }
     const diff = delta(disp, qd), ok = Math.abs(diff) <= (aligned ? 5 : 3);
@@ -285,19 +325,21 @@ function openV2(startTab){
 M.qiblaMini = function(card){
   const box = card && card.querySelector('.mini-compass'); if(!box) return;
   const qd = norm(+M.qiblaDeg()), decl = +M.store.get('qibla2:decl', 0) || 0;
-  box.innerHTML = '<svg viewBox="0 0 80 80"><g class="qm-dial"><circle cx="40" cy="40" r="37" class="qm-ring"/><text x="40" y="12" font-size="9" text-anchor="middle" fill="currentColor" opacity=".6">ش</text><g class="qm-need" style="transform:rotate(' + qd + 'deg);transform-origin:40px 40px"><path d="M40 10 L47 42 L40 38 L33 42Z"/></g></g></svg>';
-  const dial = box.querySelector('.qm-dial'); dial.style.transformOrigin = '40px 40px';
-  const lab = h('div.tiny.qm-ok.hide', 'أنت على اتجاه القبلة ✓'); const grow = card.querySelector('.grow'); if(grow) grow.append(lab);
+  const RING = ringDial(qd); box.replaceChildren(RING.el); box.classList.add('qr-mini');
+  const lab = card.querySelector('.qr-state');
   const ios = typeof DeviceOrientationEvent !== 'undefined' && !!DeviceOrientationEvent.requestPermission;
-  let target = null, disp = null, ok = false, raf = 0, on = false, perm = !ios || M.store.get('qibla2:perm', '') === 'granted';
+  let target = null, disp = null, cum = 0, ok = false, raf = 0, on = false, perm = !ios || M.store.get('qibla2:perm', '') === 'granted';
+  if(lab) lab.textContent = perm ? 'حرّك الهاتف لقراءة الاتجاه' : 'اضغط لتفعيل البوصلة';
+  RING.set(0);   // no reading yet: north up, the fan shows the way to the Kaaba
   const sensor = makeSensor(d=>{ target = norm(d.heading + decl); if(!raf) raf = requestAnimationFrame(tick); });
   function tick(){
     raf = 0; if(!on || target == null) return;
-    if(disp == null) disp = target;
-    const d = delta(disp, target); disp = norm(disp + d * .25);
-    dial.style.transform = 'rotate(' + (-disp).toFixed(2) + 'deg)';
-    const a = Math.abs(delta(disp, qd)) <= (ok ? 5 : 3);
-    if(a !== ok){ ok = a; card.classList.toggle('qm-aligned', ok); lab.classList.toggle('hide', !ok); }
+    if(disp == null){ disp = target; cum = target; }
+    const d = delta(disp, target); disp = norm(disp + d * .22); cum += d * .22;
+    const left = RING.set(disp, cum);
+    const a = Math.abs(left) <= (ok ? 5 : 3);
+    if(a !== ok){ ok = a; card.classList.toggle('qm-aligned', ok); if(ok) M.haptic && M.haptic(30); }
+    if(lab) lab.textContent = ok ? 'أنت على اتجاه القبلة ✓' : (left > 0 ? 'استدر يمينًا ' : 'استدر يسارًا ') + M.n(Math.round(Math.abs(left))) + '°';
     if(Math.abs(d) > .05) raf = requestAnimationFrame(tick);
   }
   const stop = ()=>{ if(!on) return; on = false; sensor.stop(); cancelAnimationFrame(raf); raf = 0; };
@@ -308,7 +350,7 @@ M.qiblaMini = function(card){
     vis ? start() : stop();
   };
   const iv = setInterval(check, 700); document.addEventListener('visibilitychange', check); check();
-  card.addEventListener('click', ()=>{ if(ios && !perm){ perm = true; M.store.set('qibla2:perm', 'granted'); sensor.start().then(r=>{ if(r === 'denied'){ perm = false; M.store.set('qibla2:perm', ''); } }); } }, true);
+  card.addEventListener('click', e=>{ if(ios && !perm){ e.stopPropagation(); perm = true; M.store.set('qibla2:perm', 'granted'); if(lab) lab.textContent = 'حرّك الهاتف لقراءة الاتجاه'; sensor.start().then(r=>{ if(r === 'denied'){ perm = false; M.store.set('qibla2:perm', ''); } else { on = false; start(); } }); } }, true);
 };
 
 /* ---------- registration (falls back to the old screens if anything throws) ---------- */

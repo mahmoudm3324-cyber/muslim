@@ -55,8 +55,12 @@ function makeSphere(cv, size){
     let r = 0.62, g = 0.62, b = 0.6;
     if(TEX){
       const lon = Math.atan2(px, pz), lat = Math.asin(py), u = 0.5 + lon / TAU, v = 0.5 - lat / Math.PI;
-      const tx = Math.min(TEX.w - 1, Math.max(0, Math.floor(u * TEX.w))), ty = Math.min(TEX.h - 1, Math.max(0, Math.floor(v * TEX.h))), k = (ty * TEX.w + tx) * 4;
-      r = TEX.d[k] / 255; g = TEX.d[k + 1] / 255; b = TEX.d[k + 2] / 255;
+      /* bilinear: the 640×320 map is stretched over a sphere up to 600 px wide, nearest-pixel looked blocky */
+      const fx = Math.min(TEX.w - 1.001, Math.max(0, u * TEX.w - .5)), fy = Math.min(TEX.h - 1.001, Math.max(0, v * TEX.h - .5));
+      const x0 = Math.floor(fx), y0 = Math.floor(fy), ax = fx - x0, ay = fy - y0, W = TEX.w, D0 = TEX.d;
+      const k00 = (y0 * W + x0) * 4, k10 = k00 + 4, k01 = k00 + W * 4, k11 = k01 + 4;
+      const bl = o=>((D0[k00 + o] * (1 - ax) + D0[k10 + o] * ax) * (1 - ay) + (D0[k01 + o] * (1 - ax) + D0[k11 + o] * ax) * ay) / 255;
+      r = bl(0); g = bl(1); b = bl(2);
     }
     cr[i] = r; cg[i] = g; cb[i] = b;
   }

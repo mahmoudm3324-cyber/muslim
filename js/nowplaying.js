@@ -3,6 +3,7 @@
 'use strict';
 const M = window.M, h = M.h;
 const SZ = 56, RING = 2 * Math.PI * 26.5;
+let lgPaint = ()=>{};
 let el, pill, last = null, cur = null, sig = '', open = false, autoT = null, dragging = false, tick = null, chipT = null, ay = null, sl = null;
 const S = {s:'l', y:null};   // physical side + vertical position as a fraction of the app height
 const radioEl = ()=>M.radio && M.radio.el;
@@ -125,27 +126,72 @@ function build(){
   loadPos();
   const eq = ()=>h('div.np-eq', h('i'), h('i'), h('i'), h('i'));
   /* the classic expanded pill (v1.0.5 look and behaviour) + the stop-scheduling row */
-  /* 3.10: the open player is a small card — what is playing, its progress, and the controls in the middle */
-  pill = h('div.nowplaying.np2.hide',
+  /* 3.11 «Liquid Glass»: a frosted pill — the reciter on one side, prev / the glass play button / next in the middle,
+     speed and repeat on the other side, and the time with a scrubber under them. A tap anywhere else folds it into the orb. */
+  const SV = (d, fill)=>'<svg viewBox="0 0 24 24" aria-hidden="true"' + (fill ? ' fill="currentColor"' : ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"') + '>' + d + '</svg>';
+  const ICP = '<path d="M7 5.5v13a1 1 0 0 0 1.5.86l11-6.5a1 1 0 0 0 0-1.72l-11-6.5A1 1 0 0 0 7 5.5z"/>', ICS = '<rect x="6.5" y="6.5" width="11" height="11" rx="2.4"/>';
+  pill = h('div.nowplaying.np2.lg.hide',
+    h('div.lg-pop', {role:'dialog', 'aria-label':'اختيار القارئ'}),
     h('div.np2-top',
       h('button.np-art', {'aria-label':'تصغير المشغّل', onclick:()=>setOpen(false)}, h('span.np2-gl'), eq()),
       h('div.np-tx', h('div.np-t'), h('div.np-s')),
-      h('button.icon-btn.np2-min', {'aria-label':'تصغير المشغّل', onclick:()=>setOpen(false)}, M.ic('chevDown')),
-      h('button.icon-btn.np-x', {'aria-label':'إيقاف وإغلاق المشغّل', onclick:()=>{ const c = cur; setOpen(false); c && c.stop && c.stop(); setTimeout(render, 60); }}, M.ic('close'))),
-    h('div.np2-prog', h('i')),
-    h('div.np2-bot',
       h('div.np-tmr', h('button.np-chip', {'aria-label':'إيقاف تلقائي', onclick:timerSheet}, M.ic('clock'), h('span.np-chip-t', 'إيقاف تلقائي')),
         h('button.np-chip-x.hide', {'aria-label':'إلغاء الإيقاف التلقائي', onclick:cancelStop}, M.ic('close'))),
+      h('button.icon-btn.np-x', {'aria-label':'إيقاف وإغلاق المشغّل', onclick:()=>{ const c = cur; setOpen(false); c && c.stop && c.stop(); setTimeout(render, 60); }}, M.ic('close'))),
+    h('div.lg-row',
+      h('button.lg-rec', {'aria-label':'القارئ', 'aria-expanded':'false', onclick:e=>{ e.stopPropagation(); recPop(); }}, h('span.lg-rec-t')),
       h('div.np-ctl',
-        h('button.icon-btn.np-prev', {'aria-label':'السابق', onclick:()=>cur && cur.prev && cur.prev()}, M.ic('prev')),
-        h('button.np-pp', {'aria-label':'تشغيل / إيقاف', onclick:()=>{ cur && cur.toggle && cur.toggle(); setTimeout(render, 60); }}, M.ic('pause')),
-        h('button.icon-btn.np-next', {'aria-label':'التالي', onclick:()=>cur && cur.next && cur.next()}, M.ic('next')))));
+        h('button.lg-ib.np-prev', {'aria-label':'السابق', onclick:()=>cur && cur.prev && cur.prev(), html:SV('<path d="M11 18V6l-8.5 6L11 18zm.5-6 8.5 6V6l-8.5 6z"/>', 1)}),
+        h('button.lg-glass.np-pp', {'aria-label':'تشغيل / إيقاف', onclick:()=>{ cur && cur.toggle && cur.toggle(); setTimeout(render, 60); }},
+          h('span.lg-ic', {html:SV(ICS, 1).replace('<svg', '<svg class="lg-stop"') + SV(ICP, 1).replace('<svg', '<svg class="lg-play"')})),
+        h('button.lg-ib.np-next', {'aria-label':'التالي', onclick:()=>cur && cur.next && cur.next(), html:SV('<path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/>', 1)})),
+      h('div.lg-right',
+        h('button.lg-speed', {'aria-label':'سرعة التلاوة', onclick:e=>{ e.stopPropagation(); const L = [0.75, 1, 1.25, 1.5, 2], v = M.cfg.speed || 1; const nx = L[(L.indexOf(v) + 1) % L.length] || 1; M.player.setSpeed(nx); paintLg(); M.haptic && M.haptic(6); }}),
+        h('button.lg-ib.lg-rep', {'aria-label':'تكرار الآية', onclick:e=>{ e.stopPropagation(); const L = [1, 2, 3, 5, 0], v = M.cfg.repeat == null ? 1 : M.cfg.repeat; M.save('repeat', L[(L.indexOf(v) + 1) % L.length]); paintLg(); M.haptic && M.haptic(6); },
+          html:SV('<path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>')}, h('span.lg-badge')))),
+    h('div.lg-prog', h('span.lg-t', '00:00'), h('div.np2-prog', h('i', h('b'))), h('span.lg-d', '00:00')));
+  const prog = pill.querySelector('.np2-prog');
+  /* the scrubber: drag to seek inside the verse (or the track) */
+  prog.addEventListener('pointerdown', e=>{
+    const P = M.player; if(!cur || cur.k !== 'quran' || !P || !P.a) return;
+    e.stopPropagation(); prog.classList.add('drag');
+    const seek = ev=>{ const r0 = prog.getBoundingClientRect(), f = Math.max(0, Math.min(1, (ev.clientX - r0.left) / r0.width));
+      try{ const q = M.audioPos ? M.audioPos(P.a) : {t:P.a.currentTime, d:P.a.duration}; if(q.d > 0 && isFinite(q.d)){ const base = P.a.currentTime - q.t; P.a.currentTime = base + f * q.d; } }catch(_){}
+      prog.firstChild.style.width = (f * 100) + '%'; };
+    seek(e); try{ prog.setPointerCapture(e.pointerId); }catch(_){}
+    const mv = ev=>seek(ev), up = ()=>{ prog.classList.remove('drag'); prog.removeEventListener('pointermove', mv); prog.removeEventListener('pointerup', up); prog.removeEventListener('pointercancel', up); };
+    prog.addEventListener('pointermove', mv); prog.addEventListener('pointerup', up); prog.addEventListener('pointercancel', up);
+  });
+  function recPop(){
+    const pop = pill.querySelector('.lg-pop'), btn = pill.querySelector('.lg-rec'), on = !pop.classList.contains('open');
+    btn.setAttribute('aria-expanded', String(on));
+    if(!on){ pop.classList.remove('open'); return; }
+    pop.replaceChildren(h('div.lg-pop-h', h('b', 'اختر القارئ'), h('button.lg-ib', {'aria-label':'إغلاق', onclick:e=>{ e.stopPropagation(); pop.classList.remove('open'); }}, M.ic('close'))),
+      h('div.lg-pop-g', ...(M.RECITERS || []).map(r0=>h('button.lg-opt' + (r0[0] === M.cfg.reciter ? '.on' : ''), {onclick:e=>{ e.stopPropagation();
+        M.save('reciter', r0[0]); pop.classList.remove('open'); const P = M.player; if(P && P.s){ P.play(P.s, P.ayah); } paintLg(); render(); M.toast && M.toast('القارئ: ' + r0[1]); }}, r0[1]))));
+    pop.classList.toggle('below', pill.getBoundingClientRect().top < innerHeight * .45);
+    pop.classList.add('open');
+  }
+  function paintLg(){
+    const q = cur && cur.k === 'quran';
+    pill.classList.toggle('lg-live', !q);
+    const rc = ((M.RECITERS || []).find(x=>x[0] === M.cfg.reciter) || [])[1] || 'القارئ';
+    pill.querySelector('.lg-rec-t').textContent = rc.split(' ').slice(0, 2).join(' ');
+    const sp = M.cfg.speed || 1; const sb = pill.querySelector('.lg-speed'); sb.textContent = String(sp).replace(/^0\./, '.') + 'x'; sb.classList.toggle('active', sp !== 1);
+    const rp = M.cfg.repeat == null ? 1 : M.cfg.repeat, rb = pill.querySelector('.lg-rep');
+    rb.classList.toggle('active', rp !== 1); rb.querySelector('.lg-badge').textContent = rp === 0 ? '∞' : M.n(rp);
+  }
+  lgPaint = paintLg;
+  M.on('settings', k=>{ if(k === 'speed' || k === 'repeat' || k === 'reciter') paintLg(); });
+  /* a tap anywhere outside the open player folds it into the orb */
+  document.addEventListener('pointerdown', e=>{ if(!open || !pill || pill.contains(e.target) || (el && el.contains(e.target)) || e.target.closest('#sheet-root, .sheet, .nb-layer')) return; setOpen(false); }, true);
   pill.addEventListener('pointerdown', ()=>armAuto(), true);
   /* the collapsed circle */
   el = h('div.nbnp.hide', {dataset:{side:S.s}},
     h('div.nbnp-bg'),
     h('span.nbnp-rw', {html:'<svg class="nbnp-ring" viewBox="0 0 56 56" aria-hidden="true"><circle class="nbnp-trk" cx="28" cy="28" r="26.5"/><circle class="nbnp-prog" cx="28" cy="28" r="26.5"/></svg>'}),
-    h('button.nbnp-disc', {'aria-label':'فتح المشغّل — اسحب لتحريكه', 'aria-expanded':'false'}, h('span.nbnp-gl'), eq()));
+    h('button.nbnp-disc', {'aria-label':'فتح المشغّل — اسحب لتحريكه', 'aria-expanded':'false'}, h('span.nbnp-gl'), eq()),
+    h('span.nbnp-time', {hidden:true}));
   M.$('#app').append(pill, el);
   const disc = el.querySelector('.nbnp-disc');
 
@@ -193,7 +239,17 @@ function progress(){
   if(!el || !cur) return;
   const c = el.querySelector('.nbnp-prog'), p = cur.prog ? cur.prog() : null;
   el.classList.toggle('ind', p == null);
-  if(pill){ const bar = pill.querySelector('.np2-prog'); bar.classList.toggle('ind', p == null); if(p != null) bar.firstChild.style.width = (clamp(p, 0, 1) * 100).toFixed(1) + '%'; }
+  if(pill && open){
+    const bar = pill.querySelector('.np2-prog'), fmt = x=>{ x = Math.max(0, Math.floor(x || 0)); return M.n(M.pad(Math.floor(x / 60)) + ':' + M.pad(x % 60)); };
+    let t = 0, d = 0; const P = M.player;
+    if(cur.k === 'quran' && P && P.a){ try{ const q = M.audioPos ? M.audioPos(P.a) : {t:P.a.currentTime, d:P.a.duration}; t = q.t; d = q.d; }catch(e){} }
+    const live = !(d > 0 && isFinite(d));
+    bar.classList.toggle('ind', live);
+    if(!live && !bar.classList.contains('drag')) bar.firstChild.style.width = (clamp(t / d, 0, 1) * 100).toFixed(1) + '%';
+    pill.querySelector('.lg-t').textContent = live ? (cur.k === 'radio' ? 'مباشر' : '') : fmt(t);
+    pill.querySelector('.lg-d').textContent = live ? '' : fmt(d);
+  }
+  { const tp = el.querySelector('.nbnp-time'); if(tp){ const P = M.player; let t = 0; try{ if(cur.k === 'quran'){ const q = M.audioPos ? M.audioPos(P.a) : {t:P.a.currentTime}; t = q.t; } }catch(e){} tp.textContent = cur.k === 'quran' ? M.n(M.pad(Math.floor(t / 60)) + ':' + M.pad(Math.floor(t) % 60)) : cur.k === 'radio' ? 'مباشر' : ''; tp.hidden = !tp.textContent; } }
   if(p == null){ c.style.strokeDashoffset = ''; return; }
   c.style.strokeDashoffset = String(RING * (1 - clamp(p, 0, 1)));
 }
@@ -218,7 +274,7 @@ function render(){
   pill.querySelector('.np-s').textContent = cur.sub;
   el.querySelector('.nbnp-gl').innerHTML = M.icon(cur.playing ? 'pause' : 'play');
   pill.querySelector('.np2-gl').innerHTML = M.icon(cur.glyph || 's:mushaf');
-  pill.querySelector('.np-pp').innerHTML = M.icon(cur.playing ? 'pause' : 'play');
+  pill.querySelector('.np-pp').classList.toggle('paused', !cur.playing); lgPaint();
   pill.querySelector('.np-pp').classList.toggle('hide', !cur.toggle);
   pill.querySelector('.np-prev').classList.toggle('hide', !cur.prev);
   pill.querySelector('.np-next').classList.toggle('hide', !cur.next);

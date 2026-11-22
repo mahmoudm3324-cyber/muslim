@@ -43,7 +43,7 @@ function build(mode){
   const upd = mode === 'update';
   let step = 0, dir = 1, busy = false, off = [], pageOff = [];
   const pages = [];
-  const root = h('div.ob');
+  const root = h('div.ob.ob3');
   const barW = h('div.ob-bar', {role:'progressbar', 'aria-valuemin':0, 'aria-valuemax':100});
   const back = h('button.ob-back', {'aria-label':'رجوع', onclick:()=>go(step - 1)}, M.ic('back'));
   const skipB = h('button.ob-skip', {onclick:()=>go(step + 1)}, 'تخطَّ');
@@ -97,20 +97,36 @@ function build(mode){
     return {el, primary: upd ? 'متابعة' : 'لنجهّزه على ذوقك', onPrimary: upd ? finish : null, second: upd ? 'إعادة تخصيص التطبيق' : 'ابدأ مباشرة بالإعدادات المقترحة', onSecond: upd ? ()=>go(1) : quick, noSkip: true};
   });
 
-  /* 2 features summary: a bento of what is inside, with today's next prayer live */
+  /* 2 the prayer timeline: the day's five prayers on an arc, the sky and the name changing from one to the next */
   pages.push(()=>{
-    let nx = null; try{ nx = M.nextPrayer(); }catch(e){}
-    const tile = (cls, ic, t, d, extra)=>h('div.ob-tile.ob-st'+cls, h('span.ob-ti', {html:M.icon(ic)}), h('b', t), h('small', d), extra || null);
-    const grid = h('div.ob-bento',
-      tile('.w.hero', 's:mushaf', 'المصحف الشريف', 'قراءة وتفسير وتلاوة بأصوات عدة قرّاء، مع تنزيل للاستماع دون إنترنت.', h('div.ob-tnum', h('span', h('b', M.n(114)), ' سورة'), h('span', h('b', M.n(30)), ' جزءًا'), h('span', h('b', M.n(604)), ' صفحة'))),
-      tile('', 's:mosque', 'المواقيت والأذان', nx ? 'التالية: '+M.prayerLabel(nx.next.k)+' '+M.n(M.fmt(nx.next.t)) : 'أذان وتنبيه قبل كل صلاة'),
-      tile('', 's:qibla', 'القبلة', 'بوصلة وخريطة لاتجاه الكعبة'),
-      tile('', 's:beads', 'الأذكار والمسبحة', 'صباحًا ومساءً ومسبحة بالعدّ'),
-      tile('', 'mic', 'التسميع بالصوت', 'يسمع تلاوتك ويتابعك آية آية'),
-      tile('', 's:khatma', 'الختمة والتحفيظ', 'ورد يومي وخطة حفظ ومراجعة'),
-      tile('', 's:calendar', 'التقويم الهجري', 'المناسبات والأيام البيض'),
-      tile('.w.soft', 'image', 'بطاقات للمشاركة', 'صمّم آية أو ذكرًا بخلفيات وخطوط جميلة وشاركه.'));
-    return {el: h('div.ob-page', ...head('s:star8', 'كل ما تحتاجه في مكان واحد', 'هذه أبرز أقسام التطبيق، وتجد الباقي في «المزيد».'), grid), primary:'متابعة'};
+    const PR = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+    let tt = null; try{ tt = M.prayerTimes(new Date()); }catch(e){}
+    const P = (t)=>{ const x = 296 - t * 272, y = 92 - Math.sin(t * Math.PI) * 70; return [x, y]; };   // the day runs from the east (right) to the west
+    const dots = PR.map((k, i)=>{ const [x, y] = P(i / 4); return (k === 'fajr' || k === 'isha') ? '<path d="M' + (x + 2).toFixed(1) + ' ' + (y - 6).toFixed(1) + 'a6 6 0 1 0 4 10.5A5 5 0 0 1 ' + (x + 2).toFixed(1) + ' ' + (y - 6).toFixed(1) + 'z" class="ob3-dot"/>' : '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="4.5" class="ob3-dot"/><circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="7.5" class="ob3-dotr"/>'; }).join('');
+    const arc = h('div.ob3-arc', {html:'<svg viewBox="0 0 320 110"><path d="M24 92 Q160 -48 296 92" class="ob3-path"/>' + dots + '<g class="ob3-mk"><g class="ob3-sun"><circle r="17" class="ob3-mkh"/><g class="ob3-rays"><line x1="0" y1="-15" x2="0" y2="-19" transform="rotate(0)"/><line x1="0" y1="-15" x2="0" y2="-19" transform="rotate(45)"/><line x1="0" y1="-15" x2="0" y2="-19" transform="rotate(90)"/><line x1="0" y1="-15" x2="0" y2="-19" transform="rotate(135)"/><line x1="0" y1="-15" x2="0" y2="-19" transform="rotate(180)"/><line x1="0" y1="-15" x2="0" y2="-19" transform="rotate(225)"/><line x1="0" y1="-15" x2="0" y2="-19" transform="rotate(270)"/><line x1="0" y1="-15" x2="0" y2="-19" transform="rotate(315)"/></g><circle r="10" class="ob3-sunc"/></g>'
+      + '<g class="ob3-moon"><circle r="17" class="ob3-mkh m"/><path d="M4 -11a11 11 0 1 0 7 19.5A9 9 0 0 1 4 -11z" class="ob3-moonc"/><circle cx="-9" cy="-9" r="1.3" class="ob3-st"/><circle cx="12" cy="-12" r="1" class="ob3-st"/></g></g></svg>'});
+    const mk = arc.querySelector('.ob3-mk');
+    const name = h('div.ob3-pn.title-font'), when = h('div.ob3-pt');
+    const scene = h('div.ob3-scene', h('div.ob3-kick', 'مواقيت الصلاة'), name, when);
+    const city = h('div.ob3-city', {html:'<svg viewBox="0 0 400 120" preserveAspectRatio="xMidYMax slice"><path d="M0 120V92h28v-8h10v8h22V70a26 26 0 0 1 52 0v22h14V40l4-10 4 10v52h20V80a40 40 0 0 1 80 0v12h20V40l4-10 4 10v52h14V74a24 24 0 0 1 48 0v18h30v-6h12v6h34v28z"/></svg>'});
+    let i = 0, iv = null;
+    const show = ()=>{ const k = PR[i]; name.textContent = M.prayerLabel(k); when.textContent = tt ? M.n(M.fmt(tt[k])) : '';
+      const [x, y] = P(i / 4); mk.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')');
+      el.dataset.sky = k; root.dataset.sky = k; mk.classList.toggle('night', k === 'fajr' || k === 'isha'); name.classList.remove('in'); void name.offsetWidth; name.classList.add('in'); };
+    const el = h('div.ob-page.ob3-tl', arc, scene, city,
+      h('div.ob3-tx.ob-st', h('h1.ob-h.title-font', 'مشاهد حيّة لمواقيتك'), h('p.ob-p', 'تتغيّر ألوان السماء مع كل صلاة، وتتابع يومك من الفجر إلى العشاء.')));
+    show();
+    if(!reduced()){ iv = setInterval(()=>{ i = (i + 1) % PR.length; show(); }, 1700); pageOff.push(()=>{ clearInterval(iv); delete root.dataset.sky; }); }
+    return {el, primary:'متابعة'};
+  });
+
+  /* 2b mark every prayer you complete (a little try: tap a prayer) */
+  pages.push(()=>{
+    const PR = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
+    let tt = null; try{ tt = M.prayerTimes(new Date()); }catch(e){}
+    const grid = h('div.ob3-pr.ob-st', ...PR.map(k=>h('button.ob3-pt-t', {onclick:function(){ this.classList.toggle('on'); M.haptic && M.haptic(this.classList.contains('on') ? 14 : 6); }},
+      h('span.ob3-ck', {html:M.icon('check')}), h('span.ob3-ic', {html:M.icon('p:' + k)}), h('b', M.prayerLabel(k)), h('small.num', tt ? M.n(M.fmt(tt[k])) : ''))));
+    return {el: h('div.ob-page', h('div.ob3-big.ob-st', grid), h('div.ob3-tx.ob-st', h('h1.ob-h.title-font', 'سجّل كل صلاة تؤديها'), h('p.ob-p', 'اجعل الصلاة عادة ثابتة: علّم صلواتك كل يوم وتابع أيامك المتتالية. جرّب الضغط على صلاة.'))), primary:'متابعة'};
   });
 
   /* 3 language + numerals */
@@ -173,9 +189,24 @@ function build(mode){
     const row = (ic, t, d, sw)=>h('div.ob-row.ob-st', h('span.ob-fi', {html:M.icon(ic)}), h('div.grow', h('b', t), h('small', d)), sw);
     const mins = M.seg([['5', M.n(5)+' د'], ['10', M.n(10)+' د'], ['15', M.n(15)+' د'], ['20', M.n(20)+' د']], String(preOff()), v=>PR5.forEach(k=>M.nfSet('pre_'+k, {off:+v})));
     const minsBox = h('div.ob-mins', h('div.ob-lab', 'قبل الصلاة بـ'), mins); minsBox.hidden = !preOn();
+    const mode = ()=>!allOn() ? 'off' : M.cfg.adhanTone === false ? 'note' : 'adhan';
+    const modes = h('div.ob3-modes.ob-st');
+    const voice = h('button.ob3-voice', {onclick:()=>{
+      const l = h('div.list');
+      (M.ADHANS || []).forEach(([id, nm])=>l.append(h('button.item.ob3-vo' + ((M.cfg.adhan || 'ad_makkah') === id ? '.on' : ''), {onclick:()=>{ M.save('adhan', id); try{ M.playSound(id); }catch(e){} paintModes(); l.querySelectorAll('.ob3-vo').forEach(x=>x.classList.toggle('on', x === l.querySelector('[data-id="' + id + '"]'))); }, dataset:{id}}, h('span.ob3-rd'), h('div.grow.t', nm), M.ic('play'))));
+      const sh = M.sheet({title:'صوت الأذان', content:l, onClose:()=>{ try{ M.stopSound(); }catch(e){} paintModes(); }});
+    }});
+    const MODES = [['off', 's:bell', 'معطّل', 'لا تنبيه عند دخول الوقت'], ['note', 't:notification', 'إشعار فقط', 'إشعار بنغمة الهاتف'], ['adhan', 's:mosque', 'الأذان', 'إشعار مع صوت الأذان']];
+    const paintModes = ()=>{ const m = mode();
+      modes.replaceChildren(...MODES.map(([k, ic, t, d])=>h('button.ob3-mode' + (m === k ? '.on' : ''), {onclick:()=>{
+        const o = Object.assign({}, M.cfg.notifyIn); PR5.forEach(x=>o[x] = k !== 'off'); M.save('notifyIn', o); M.save('adhanTone', k === 'adhan'); paintModes(); M.haptic && M.haptic(8); }},
+        h('span.ob-fi', {html:M.icon(ic)}), h('div.grow', h('b', t), h('small', d)), h('span.ob3-rd'))));
+      const nm = ((M.ADHANS || []).find(a=>a[0] === (M.cfg.adhan || 'ad_makkah')) || [, 'الأذان'])[1];
+      voice.replaceChildren(M.ic('volume'), h('span.grow', 'صوت الأذان'), h('b', nm), M.ic('fwd')); voice.hidden = m !== 'adhan'; };
+    paintModes();
     return {el: h('div.ob-page', ...head('s:bell', 'التنبيهات والأذان', 'كلها متوقفة حتى تفعّل ما تريده الآن أو لاحقًا من «الإشعارات». يطلب النظام إذنك عند تفعيل أول تنبيه.'),
+      modes, voice,
       h('div.ob-group.ob-st',
-        row('s:mosque', 'الأذان عند دخول الوقت', 'تنبيه وأذان لكل صلاة', M.switchEl(allOn(), v=>{ const o = Object.assign({}, M.cfg.notifyIn); PR5.forEach(k=>o[k] = v); M.save('notifyIn', o); if(v) M.save('adhanTone', true); })),
         row('bell', 'ينبّه باقتراب الصلاة', 'تذكير قبل دخول وقت كل صلاة', M.switchEl(preOn(), v=>{ PR5.forEach(k=>M.nfSet('pre_'+k, {on:v})); minsBox.hidden = !v; })),
         minsBox,
         row('t:notification', 'الصلاة القادمة في الإشعارات', 'إشعار دائم بالعدّ التنازلي', M.switchEl(!!M.cfg.liveNotif, v=>M.save('liveNotif', v)))),
@@ -240,6 +271,17 @@ function build(mode){
     paint();
     return {el: h('div.ob-page', ...head('s:grid', 'اختصاراتك', 'اختر الأقسام التي تستخدمها كثيرًا؛ تظهر في الرئيسية وفي الدائرة العائمة.'),
       h('div.ob-lab.ob-st.ob-lab-row', h('span', 'اختياراتك'), count), grid), primary:'متابعة'};
+  });
+
+  /* 7b' the home screen's cards */
+  if(M.HOME_ORDER) pages.push(()=>{
+    const list = h('div.ob3-cards.ob-st');
+    const order = (M.homeOrder ? M.homeOrder() : M.HOME_ORDER.map(x=>x[0]));
+    order.forEach(k=>{ const d = M.HOME_ORDER.find(x=>x[0] === k); if(!d || k === 'custom') return;
+      const b = h('button.ob3-card' + (M.homeOn(k) ? '.on' : ''), {onclick:()=>{ const x = Object.assign({}, M.cfg.homeBlocks); x[k] = !M.homeOn(k); M.save('homeBlocks', x); b.classList.toggle('on', M.homeOn(k)); M.haptic && M.haptic(6); }},
+        h('div.grow', h('b', d[1]), d[2] ? h('small', d[2]) : null), h('span.ob3-cc', {html:M.icon('check')}));
+      list.append(b); });
+    return {el: h('div.ob-page', ...head('t:layout-dashboard', 'بطاقات الرئيسية', 'اختر ما يظهر في الشاشة الرئيسية، وغيّر ترتيبه لاحقًا من الإعدادات ← البطاقات.'), list), primary:'متابعة'};
   });
 
   /* 7c the floating card (verse khatma): on or off, as a small circle, and the hours it may appear in */

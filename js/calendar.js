@@ -145,13 +145,13 @@ M.openCalendar = function(){
   const th = M.hijri(today);
   const S = {y:th.y, m:th.m, tab:'cal'};
   const content = h('div');
-  const view = M.openView({title:'التقويم الهجري', id:'calendar', build:b=>{ b.append(content); }});
+  const view = M.openView({title:'التقويم الهجري', id:'calendar', build:b=>{ b.classList.add('cl3'); b.append(content); }});
 
   function paint(){
     content.innerHTML = '';
-    content.append(h('div.row-flex.gap-s', {style:'margin:4px 0 12px'}, h('div.grow', M.seg([['cal','التقويم'],['conv','المحوّل'],['occ','المناسبات']], S.tab, v=>{ S.tab = v; paint(); })), h('button.icon-btn.tonal', {'aria-label':'القمر', onclick:()=>M.openMoon()}, M.ic('moon'))));
+    content.append(h('div.row-flex.gap-s', {style:'margin:4px 0 12px'}, h('div.grow', M.seg([['cal','التقويم'],['times','المواقيت'],['conv','المحوّل'],['occ','المناسبات']], S.tab, v=>{ S.tab = v; paint(); })), h('button.icon-btn.tonal', {'aria-label':'القمر', onclick:()=>M.openMoon()}, M.ic('moon'))));
     content.append(banner());
-    (S.tab === 'cal' ? month : S.tab === 'conv' ? conv : occ)(content);
+    (S.tab === 'cal' ? month : S.tab === 'times' ? times : S.tab === 'conv' ? conv : occ)(content);
   }
   function month(el){
     const len = M.hijriMonthLen(S.y, S.m), first = M.hijriToGreg(S.y, S.m, 1);
@@ -159,10 +159,18 @@ M.openCalendar = function(){
     const isCur = S.y === th.y && S.m === th.m;
     if(!S.sel || S.selM !== S.y+'-'+S.m){ S.selM = S.y+'-'+S.m; S.sel = isCur ? th.d : 1; }
     const nav = (ic, fn, lbl)=>h('button.cal-nav', {'aria-label':lbl, onclick:fn}, M.ic(ic));
-    el.append(h('div.cal-hero',
-      nav('back', ()=>{ if(S.m === 1){ S.m = 12; S.y--; } else S.m--; paint(); }, 'الشهر السابق'),
-      h('div.cal-title', h('div.cal-mn.title-font', M.HMONTHS[S.m - 1]), h('div.cal-yr', h('bdi', M.n(S.y)+' هـ'), h('i'), M.GMONTHS[first.getMonth()]+(first.getMonth() !== last.getMonth() ? ' – '+M.GMONTHS[last.getMonth()] : '')+' '+M.n(last.getFullYear()))),
-      nav('fwd', ()=>{ if(S.m === 12){ S.m = 1; S.y++; } else S.m++; paint(); }, 'الشهر التالي')));
+    const prog = isCur ? th.d / len : (S.y < th.y || (S.y === th.y && S.m < th.m)) ? 1 : 0;
+    const go = n=>{ if(n < 0){ if(S.m === 1){ S.m = 12; S.y--; } else S.m--; } else { if(S.m === 12){ S.m = 1; S.y++; } else S.m++; } paint(); M.haptic && M.haptic(6); };
+    const moonBox = h('div.cl3-moon');
+    el.append(h('div.cal-hero.cl3-hero',
+      h('i.cl3-stars'),
+      h('div.cl3-hrow',
+        nav('back', ()=>go(-1), 'الشهر السابق'),
+        h('div.cal-title', h('div.cal-mn.title-font', M.HMONTHS[S.m - 1]), h('div.cal-yr', h('bdi', M.n(S.y)+' هـ'), h('i'), M.GMONTHS[first.getMonth()]+(first.getMonth() !== last.getMonth() ? ' – '+M.GMONTHS[last.getMonth()] : '')+' '+M.n(last.getFullYear()))),
+        nav('fwd', ()=>go(1), 'الشهر التالي')),
+      h('div.cl3-hfoot', moonBox, h('div.grow', h('div.cl3-bar', h('i', {style:'width:'+(prog * 100).toFixed(1)+'%'})), h('div.cl3-bl', isCur ? 'مضى '+M.n(th.d)+' من '+M.n(len)+' يومًا' : M.n(len)+' يومًا')),
+        !isCur ? h('button.cl3-today', {onclick:()=>{ S.y = th.y; S.m = th.m; S.selM = null; paint(); }}, 'اليوم') : null)));
+    const paintMoon = ()=>{ try{ moonBox.innerHTML = M.moonSVG(M.moonAge(M.addDays(first, S.sel - 1)), 40); }catch(e){} };
     const grid = h('div.cal-grid');
     const ws = M.cfg.weekStart == null ? 6 : M.cfg.weekStart;
     const DN = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
@@ -171,7 +179,7 @@ M.openCalendar = function(){
     const nts = notes(); const cells = {};
     const detail = h('div.cal-detail');
     function showDetail(){
-      detail.innerHTML = '';
+      detail.innerHTML = ''; paintMoon();
       const g = M.addDays(first, S.sel - 1), hj = {y:S.y, m:S.m, d:S.sel}, occ = M.occasionsOn(g, hj), k = M.dkey(g), nt = notes()[k];
       const diff = Math.round((new Date(g.getFullYear(), g.getMonth(), g.getDate()) - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / 864e5);
       const rel = diff === 0 ? 'اليوم' : diff === 1 ? 'غدًا' : diff === -1 ? 'أمس' : diff > 0 ? 'بعد '+M.cnt(diff, 'يوم', true, 'يومًا') : 'منذ '+M.cnt(-diff, 'يوم', true, 'يومًا');
@@ -179,6 +187,7 @@ M.openCalendar = function(){
       if(occ.length){ const l = h('div.cd-occ'); occ.forEach(o=>l.append(h('div.occ-row', h('span.badge'+(o.k === 'eid' ? '.gold' : ''), o.minor ? 'سنة' : 'مناسبة'), h('span', o.t)))); detail.append(l); }
       else detail.append(h('div.small.muted', {style:'margin-top:8px'}, 'لا توجد مناسبات في هذا اليوم.'));
       if(nt) detail.append(h('div.cd-note', M.ic('note'), h('span', nt)));
+      try{ const tt = M.prayerTimes(g); detail.append(h('div.cl3-pt', ...['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'].map(k=>h('div', h('small', M.prayerLabel(k, g)), h('b.num', M.n(M.fmt(tt[k]))))))); }catch(e){}
       detail.append(h('div.row-flex.gap-s', {style:'margin-top:12px'}, h('button.btn.tonal.sm.grow', {onclick:()=>dayInfo(g, hj)}, M.ic('note'), nt ? 'تعديل الملاحظة' : 'إضافة ملاحظة'),
         h('button.btn.tonal.sm', {onclick:()=>M.share(M.WEEKDAYS[g.getDay()]+' '+M.fmtHijri(hj)+' الموافق '+M.n(g.getDate())+' '+M.GMONTHS[g.getMonth()]+' '+M.n(g.getFullYear()))}, M.ic('share'), 'مشاركة')));
     }
@@ -193,10 +202,29 @@ M.openCalendar = function(){
       cells[d] = c; grid.append(c);
     }
     el.append(h('div.card.cal-card', grid));
+    { let x0 = null, y0 = 0; grid.addEventListener('pointerdown', e=>{ x0 = e.clientX; y0 = e.clientY; });
+      grid.addEventListener('pointerup', e=>{ if(x0 == null) return; const dx = e.clientX - x0, dy = e.clientY - y0; x0 = null; if(Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(dx > 0 ? 1 : -1); }); }
     el.append(h('div.row-flex.cal-leg', h('span.tiny', h('i.cal-dot.k-eid'), ' عيد'), h('span.tiny', h('i.cal-dot.k-fast'), ' صيام'), h('span.tiny', h('i.cal-dot'), ' مناسبة'), h('span.tiny', h('i.cal-dot.k-note'), ' ملاحظة')));
     showDetail(); el.append(h('div.card.pad.cal-dcard', detail)); el.append(monthOv(S.y, S.m));
     el.append(h('div.row-flex.gap-s', {style:'margin-top:12px;flex-wrap:wrap'}, h('button.btn.tonal.sm', {onclick:()=>{ S.y = th.y; S.m = th.m; S.selM = null; paint(); }}, M.ic('calendar'), 'اليوم'),
       h('button.btn.tonal.sm', {onclick:adjSheet}, M.ic('settings'), 'ضبط التاريخ')));
+  }
+  function times(el){
+    const len = M.hijriMonthLen(S.y, S.m), first = M.hijriToGreg(S.y, S.m, 1);
+    const go = n=>{ if(n < 0){ if(S.m === 1){ S.m = 12; S.y--; } else S.m--; } else { if(S.m === 12){ S.m = 1; S.y++; } else S.m++; } paint(); };
+    const K = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
+    el.append(h('div.cl3-tnav', h('button.cal-nav', {'aria-label':'الشهر السابق', onclick:()=>go(-1)}, M.ic('back')), h('b.title-font', M.HMONTHS[S.m - 1]+' '+M.n(S.y)+' هـ'), h('button.cal-nav', {'aria-label':'الشهر التالي', onclick:()=>go(1)}, M.ic('fwd'))));
+    const tb = h('div.cl3-tbl', {role:'table'});
+    tb.append(h('div.cl3-tr.cl3-th', {role:'row'}, h('span', 'اليوم'), ...K.map(k=>h('span', M.prayerLabel(k)))));
+    for(let d = 1; d <= len; d++){
+      const g = M.addDays(first, d - 1); let tt = null; try{ tt = M.prayerTimes(g); }catch(e){}
+      const isT = M.dkey(g) === M.dkey(today);
+      tb.append(h('div.cl3-tr' + (isT ? '.now' : '') + (g.getDay() === 5 ? '.fri' : ''), {role:'row'},
+        h('span.cl3-td', h('b.num', M.n(d)), h('small.num', M.n(g.getDate()) + '/' + M.n(g.getMonth() + 1))),
+        ...K.map(k=>h('span.num', tt ? M.n(M.fmt(tt[k])).replace(/\s?[صم]$/, '') : '—'))));
+    }
+    el.append(h('div.card.cl3-tcard', tb), h('div.tiny.muted', {style:'margin:8px 4px'}, 'المواقيت حسب موقعك وطريقة الحساب المختارة.'));
+    setTimeout(()=>{ const n = tb.querySelector('.now'); if(n && n.scrollIntoView) n.scrollIntoView({block:'center'}); }, 120);
   }
   function dayInfo(g, hj){
     const occ = M.occasionsOn(g, hj), k = M.dkey(g), n = notes();

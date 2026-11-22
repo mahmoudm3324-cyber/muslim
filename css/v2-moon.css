@@ -60,3 +60,7 @@
 .mn-verse{padding:20px 18px}
 .mn-vt{margin-top:2px}
 .mn-note{padding:0 12px}
+/* 3.11: the moon page stays a night sky in every skin (it showed a light page under a dark bar) */
+html[data-skin] .view.mn,html[data-skin][data-theme] .view.mn{background:radial-gradient(120% 60% at 50% 0%,#141c33 0%,#070a12 60%)!important}
+html[data-skin] .view.mn .view-body,html[data-skin][data-theme] .view.mn .view-body{background:transparent!important;color:var(--mn-fg)}
+html[data-skin] .view.mn .view-head,html[data-skin][data-theme] .view.mn .view-head{background:rgba(7,10,18,.72)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-color:transparent!important}
