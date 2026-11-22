@@ -58,6 +58,16 @@ function build(mode){
     dir = n >= step ? 1 : -1; step = n; draw(true);
   }
   const card = (...k)=>h('div.ob-card.ob-st', ...k);
+  /* after an update: a few switches for what is new, so they can be turned on right here */
+  function quickSet(){
+    const row = (ic, t, d, sw)=>h('div.ob-row', h('span.ob-fi', {html:M.icon(ic)}), h('div.grow', h('b', t), h('small', d)), sw);
+    const rows = [];
+    if(M.duaDayCard) rows.push(row('heart', 'دعاء اليوم في الرئيسية', 'دعاء جديد كل يوم بمصدره', M.switchEl(M.homeOn('duaday'), v=>{ const x = Object.assign({}, M.cfg.homeBlocks); x.duaday = v; M.save('homeBlocks', x); })));
+    if(M.nfOn && M.nfSet && (M.NF || []).some(d=>d.id === 'duarand')) rows.push(row('bell', 'إشعار بدعاء عشوائي', 'مرة يوميًا، وتغيّر الصوت والتكرار من «الإشعارات»', M.switchEl(M.nfOn('duarand'), v=>{ M.nfSet('duarand', {on:v}); notifApply(); })));
+    if(M.popupCfg) rows.push(row('s:khatma', 'ورد الختمة العائم', 'آية من ختمتك تقرؤها وتنتقل للتالية', M.switchEl(!!M.popupCfg.w().on, v=>M.popupCfg.wset({on:v}))));
+    rows.push(row('palette', 'المظهر', 'فاتح أو داكن أو حسب النظام', M.seg([['auto', 'تلقائي'], ['light', 'فاتح'], ['dark', 'داكن']], M.cfg.theme === 'amoled' ? 'dark' : M.cfg.theme || 'auto', v=>M.save('theme', v))));
+    return h('div.ob-group.ob-st.ob-quick', h('div.ob-lab', 'إعدادات سريعة'), ...rows);
+  }
   /* «ابدأ مباشرة»: the suggested settings (the location when allowed), then the app */
   async function quick(){
     if(!M.cfg.loc){ try{ const l = await Promise.race([M.detectLocation(), new Promise((_, no)=>setTimeout(no, 6000))]); M.save('loc', l); }catch(e){} }
@@ -88,7 +98,8 @@ function build(mode){
         h('img.ob-w2-icon', {src:'img/icons/'+icon+'.jpg', alt:''}),
         h('div.ob-w2-tt', h('small', upd ? 'تحديث جديد' : hello + ' • أهلًا بك'), h('h1.ob-h.title-font', 'المسلم'))),
       h('p.ob-p.ob-st.ob-w2-p', upd ? 'تم تحديث التطبيق إلى الإصدار '+M.n(M.VERSION)+'. هذا أبرز ما أضفناه لك.' : 'رفيقك اليومي للقرآن والصلاة والذكر. نجهّزه على ذوقك في خطوات قصيرة.'),
-      upd ? card(h('b.ob-ul-h', 'الجديد في هذا الإصدار'), h('ul.ob-ul', ...(M.whatsNew ? M.whatsNew() : M.WHATS_NEW).map(t=>h('li', t)))) : null,
+      upd ? card(h('b.ob-ul-h', 'الجديد في الإصدار ' + M.n(M.VERSION)), h('ul.ob-ul', ...(M.WHATS_LATEST || (M.whatsNew ? M.whatsNew() : M.WHATS_NEW).slice(0, 3)).map(t=>h('li', t)))) : null,
+      upd ? quickSet() : null,
       !upd ? h('div.ob-w2-list.ob-st', ...FEAT.map(([ic, t, d])=>h('div.ob-w2-row', h('span.ob-w2-ic', {html:M.icon(ic)}), h('div.grow', h('b', t), h('small', d))))) : null,
       !upd ? h('div.ob-promise.ob-st', ...[['s:shield', 'بلا إعلانات'], ['lock', 'بلا حسابات'], ['download', 'يعمل دون إنترنت']].map(([ic, t])=>h('span', {html:M.icon(ic)}, t))) : null);
     /* a long "what's new" list scrolls: fade the bottom edge while there is more below */

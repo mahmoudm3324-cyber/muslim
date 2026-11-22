@@ -93,7 +93,7 @@ S.live = {title:'الصلاة القادمة في الإشعارات', build(b){
   /* iPhone: the Live Activity's look on the lock screen, the Dynamic Island's, and when it ends */
   if(window.isIOSApp || (window.Android && Android.setLiveCfg && !Android.liveStatus)){
     const LC = ()=>Object.assign({style:'next', island:'name', end:'adhan'}, M.cfg.liveCfg || {});
-    const push = ()=>{ const c = LC(); try{ Android.setLiveCfg(JSON.stringify({style:c.style, island:c.island, end:c.end, iqama:M.cfg.iqama || {}})); }catch(e){} };
+    const push = ()=>{ const c = LC(); try{ Android.setLiveCfg(JSON.stringify({style:c.style, island:c.island, end:c.end, iqama:M.cfg.iqama || {}, lang:M.lang || 'ar'})); }catch(e){} };
     const setC = p=>{ M.save('liveCfg', Object.assign(LC(), p)); push(); draw(); };
     const box = h('div.col-flex.la-box');
     const mock = k=>{

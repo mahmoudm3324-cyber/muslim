@@ -270,7 +270,7 @@ function customCards(){
 }
 M.HOME_ORDER = [
  ['prayer', 'الصلاة القادمة', 'الصلاة القادمة والمواقيت'], ['time', 'وقت العبادة', 'أذكار وعبادات الوقت الحالي'], ['worship', 'عبادات اليوم', 'قائمة تُعلَّم'], ['quranc', 'تابع القراءة', 'آخر صفحة قرأتها'], ['quick', 'اختصاراتي', ''],
- ['progress', 'تقدّم اليوم', 'محاسبة وأذكار وورد'], ['occasion', 'المناسبات', 'رمضان والعيدان'], ['ayah', 'آية اليوم', ''],
+ ['progress', 'تقدّم اليوم', 'محاسبة وأذكار وورد'], ['occasion', 'المناسبات', 'رمضان والعيدان'], ['duaday', 'دعاء اليوم', 'دعاء جديد كل يوم بمصدره'], ['ayah', 'آية اليوم', ''],
  ['dhikr', 'ذكر اليوم', ''], ['hadith', 'حديث اليوم', ''], ['state', 'الحالة', 'مناسبة اليوم'],
  ['date', 'التاريخ', 'هجري وميلادي'], ['prayergrid', 'مواقيت الصلاة', 'بطاقات مع الإقامة'], ['audio', 'أذكار سمعية', 'استمع للأذكار'],
  ['calstrip', 'التقويم', 'شريط الأسبوع'], ['stats', 'إحصائيات المتابعة', 'اليوم وآخر ٧ أيام'],
@@ -279,7 +279,7 @@ M.HOME_ORDER = [
 ];
 const OFF = ['state', 'date', 'prayergrid', 'audio', 'calstrip', 'stats', 'trackweek', 'counter', 'myduas', 'loved'];
 M.homeOn = k=>{ const B = M.cfg.homeBlocks || {}; return B[k] === undefined ? !OFF.includes(k) : B[k] !== false; };
-const BUILD = {occasion:occasionCard, worship:checklistCard, time:timeCard, state:stateCard, date:dateCard, prayergrid:prayerGridCard, audio:audioCard, quranc:quranCard, calstrip:calStripCard, stats:statsCard, trackweek:trackWeekCard, counter:counterCard, myduas:myDuasCard, loved:lovedCard};
+const BUILD = {duaday:()=>M.duaDayCard ? M.duaDayCard() : null, occasion:occasionCard, worship:checklistCard, time:timeCard, state:stateCard, date:dateCard, prayergrid:prayerGridCard, audio:audioCard, quranc:quranCard, calstrip:calStripCard, stats:statsCard, trackweek:trackWeekCard, counter:counterCard, myduas:myDuasCard, loved:lovedCard};
 
 /* ---- home ordering ---- */
 M.homeOrder = ()=>{ const o = (M.cfg.homeOrder || []).filter(k=>M.HOME_ORDER.some(x=>x[0] === k)); M.HOME_ORDER.forEach(([k])=>{ if(!o.includes(k)) o.push(k); }); return o; };

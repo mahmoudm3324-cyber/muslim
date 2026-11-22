@@ -28,6 +28,7 @@ const NF = [
   {id:'sleep', custom:true, g:'adhkar', t:'أذكار النوم', ic:'star', on:false, off:75, offLbl:'بعد العشاء بـ', offMax:240, pool:['r_istighfar1', 'r_istighfar2']},
   {id:'dhikr', g:'adhkar', t:'ذكر الله', ic:'beads', on:false, clock:'11:00', multi:true, custom:true, pool:['r_dhikr1', 'r_tasbih1', 'r_ahabb', 'r_dhikr2', 'r_tasbih2', 'r_hasbuna', 'r_karb', 'r_tawakkul', 'r_tahlil', 'r_kaffara', 'r_tahlil3', 'r_subhan', 'r_subhanbi', 'r_tahlil2']},
   {id:'salawat', g:'adhkar', t:'الصلاة على النبي ﷺ', ic:'s:muhammad', on:false, clock:'17:30', multi:true, custom:true, pool:['r_salawat1', 'r_salawat2', 'r_salawat3', 'r_salawat4', 'r_salawat5', 'r_salawat6', 'r_istighfar1', 'r_istighfar2', 'r_salawat7', 'r_salawat8', 'r_salawat9', 'r_salawat10']},
+  {id:'duarand', g:'adhkar', t:'دعاء عشوائي', ic:'heart', on:false, clock:'13:00', multi:true, custom:true, pool:['r_karb', 'r_hasbuna', 'r_tawakkul', 'r_istighfar1', 'r_istighfar2', 'r_kaffara', 'r_ahabb']},
   {id:'tijan', g:'adhkar', t:'تيجان الذكر السبعة', ic:'s:star8', on:false, clock:'09:00', multi:true, custom:true, pool:['r_dhikr1', 'r_tasbih1', 'r_dhikr2', 'r_tasbih2']},
   {id:'kahf', custom:true, g:'worship', t:'سورة الكهف يوم الجمعة', ic:'mosque', on:false, off:60, offLbl:'بعد الشروق بـ', offMax:300, pool:['r_salawat1', 'r_salawat2']},
   {id:'ijaba', g:'worship', t:'ساعة الإجابة (الجمعة)', ic:'heart', on:false, off:90, offLbl:'بعد العصر بـ', offMax:180, quiet:true},
@@ -118,7 +119,7 @@ const PRAYER_DHIKR = {
 M.PRAYER_DHIKR = PRAYER_DHIKR;
 /* ---- build the schedule ---- */
 /* the screen a reminder opens when tapped (see M.openDeep) */
-const OPEN = {lastthird:'qiyam', midnight:'qiyam', duha:'duha', morning:'morning', evening:'evening', sleep:'sleep', dhikr:'tasbih', salawat:'tasbih', tijan:'tijan',
+const OPEN = {duarand:'hal', lastthird:'qiyam', midnight:'qiyam', duha:'duha', morning:'morning', evening:'evening', sleep:'sleep', dhikr:'tasbih', salawat:'tasbih', tijan:'tijan',
   kahf:'surah_18', ijaba:'duas', wird:'khatma', fast_mon:'fast_week', fast_thu:'fast_week', fast_white:'fast_white', fast_special:'calendar'};
 M.buildReminders = function(days){
   if(M.cfg.nfMaster === false) return [];
@@ -148,7 +149,7 @@ M.buildReminders = function(days){
         case 'morning': ts = t.sunrise.getTime() + off; title = 'أذكار الصباح'; body = 'ابدأ يومك بذكر الله'; break;
         case 'evening': ts = t.asr.getTime() + off; title = 'أذكار المساء'; body = 'لا تنسَ أذكار المساء'; break;
         case 'sleep': ts = t.isha.getTime() + off; title = 'أذكار النوم'; body = 'اختم يومك بالأذكار وقراءة ما تيسّر'; break;
-        case 'dhikr': case 'salawat': case 'tijan': {
+        case 'dhikr': case 'salawat': case 'tijan': case 'duarand': {
           if(Array.isArray(c.days) && c.days.length && !c.days.includes(dow)) continue;
           const TJ = d.id === 'tijan' ? (M.TIJAN || []) : null;
           const dt = TJ ? 'تيجان الذكر' : d.id === 'dhikr' ? 'ذكر الله' : 'صلِّ على النبي ﷺ', db = d.id === 'dhikr' ? 'أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ' : 'اللهم صلِّ وسلِّم على نبينا محمد';
@@ -164,6 +165,8 @@ M.buildReminders = function(days){
             const x = new Date(day); x.setHours(0, m, 0, 0); const t2 = x.getTime(); if(t2 <= now) return;
             const r2 = resolve(d, c, day, '', i);
             const tj = TJ && TJ.length ? TJ[(day.getDate() + i) % TJ.length] : null;   // a different crown each time
+            const du = d.id === 'duarand' && M.duaPick ? M.duaPick(day.getDate() * 97 + day.getMonth() * 31 + i * 13 + k) : null;   // a different supplication each time
+            if(du){ out.push({id:d.id+'_'+k+'_'+i, ts:t2, title:c.title || ('دعاء — ' + du[0]), body:c.body || (du[1] + '\n[' + du[2] + ']'), tone:r2.tone, snd:r2.snd, ch:'nf_'+d.id+(r2.tone ? '_t' : '_q'), chn:d.t, kind:d.id, open:'hal'}); return; }
             out.push({id:d.id+'_'+k+'_'+i, ts:t2, title:c.title || (tj ? tj[0] : dt), body:c.body || (tj ? tj[1] : db), tone:r2.tone, snd:r2.snd, ch:'nf_'+d.id+(r2.tone ? '_t' : '_q'), chn:d.t, kind:d.id, open:OPEN[d.id] || ''});
           });
           continue;
