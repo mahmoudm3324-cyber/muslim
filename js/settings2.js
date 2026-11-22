@@ -334,7 +334,7 @@ S.counterset = {title:'إعدادات العدّاد', build(b){
 S.icon = {title:'أيقونة التطبيق', build(b){
   if(!(window.Android && Android.setAppIcon)){ b.append(note('تغيير الأيقونة متاح في تطبيق الأندرويد.')); return; }
   const ig = h('div.icon-grid'); let cur = 10; try{ cur = Android.getAppIcon(); }catch(e){}
-  for(let i = 1; i <= 10; i++) ig.append(h('button.icon-opt'+(i === cur ? '.on' : ''), {dataset:{i}, onclick:()=>{ try{ Android.setAppIcon(i); }catch(e){} M.setIconAccent(i); M.$$('.icon-opt', ig).forEach(x=>x.classList.toggle('on', +x.dataset.i === i)); if(!window.isIOSApp) M.toast('تغيّر لون التطبيق الآن، والأيقونة تتغيّر بعد خروجك من التطبيق', 3600); }}, h('img', {src:'img/icons/'+i+'.jpg', alt:''})));
+  for(let i = 1; i <= 14; i++) ig.append(h('button.icon-opt'+(i === cur ? '.on' : ''), {dataset:{i}, onclick:()=>{ try{ Android.setAppIcon(i); }catch(e){} M.setIconAccent(i); M.$$('.icon-opt', ig).forEach(x=>x.classList.toggle('on', +x.dataset.i === i)); if(!window.isIOSApp) M.toast('تغيّر لون التطبيق الآن، والأيقونة تتغيّر بعد خروجك من التطبيق', 3600); }}, h('img', {src:'img/icons/'+i+'.jpg', alt:''})));
   b.append(h('div.section-h', 'اختر أيقونة جديدة للتطبيق'), ig, window.isIOSApp ? null : note('ستتغيّر أيقونة التطبيق بعد خروجك منه. بعض الشاشات الرئيسية تحذف الاختصار القديم عند التغيير؛ ستجد التطبيق بأيقونته الجديدة في قائمة التطبيقات، وبياناتك لا تتأثر.'));
 }};
 
@@ -401,7 +401,7 @@ S.heroimg = {title:'صورة بطاقة الصلاة', build(b){
       h('button.btn.ghost.sm', {onclick:()=>{ M.save({heroImg:null}); draw(); mark(); M.toast('تمت إزالة الصورة'); }}, M.ic('trash'), 'إزالة')));
   const gal = h('div.hero-gal');
   const mark = ()=>M.$$('.hero-th', gal).forEach(x=>x.classList.toggle('on', M.cfg.heroImg === 'img/hero/'+x.dataset.i+'.webp'));
-  for(let i = 1; i <= 13; i++) gal.append(h('button.hero-th', {dataset:{i}, 'aria-label':'صورة '+i, style:'background-image:url("img/hero/t'+i+'.webp")', onclick:()=>{ M.save({heroImg:'img/hero/'+i+'.webp', heroPX:50, heroPY:50, heroZoom:1}); draw(); syncCtl(); mark(); M.haptic && M.haptic(8); }}));
+  for(let i = 1; i <= 34; i++) gal.append(h('button.hero-th', {dataset:{i}, 'aria-label':'صورة '+i, style:'background-image:url("img/hero/t'+i+'.webp")', onclick:()=>{ M.save({heroImg:'img/hero/'+i+'.webp', heroPX:50, heroPY:50, heroZoom:1}); draw(); syncCtl(); mark(); M.haptic && M.haptic(8); }}));
   b.append(h('div.section-h', 'صور جاهزة'), gal); mark();
   b.append(h('div.list.card', {style:'margin-top:12px'},
     row('وضوح الصورة', '', h('input', {type:'range', min:.1, max:1, step:.05, value:M.cfg.heroImgOp != null ? M.cfg.heroImgOp : .45, oninput:e=>{ M.save('heroImgOp', +e.target.value); draw(); }})),
@@ -496,7 +496,7 @@ S.widgets = {title:'الودجت (الأدوات)', build(b){
   const gal = h('div.hero-gal');
   const mark = ()=>M.$$('.hero-th', gal).forEach(x=>x.classList.toggle('on', bgSrc() === x.dataset.src));
   gal.append(h('button.hero-th.none', {dataset:{src:''}, onclick:()=>setBg('')}, 'لون فقط'));
-  for(let i = 1; i <= 13; i++) gal.append(h('button.hero-th', {dataset:{src:'img/hero/'+i+'.webp'}, 'aria-label':'صورة '+i, style:'background-image:url("img/hero/t'+i+'.webp")', onclick:()=>setBg('img/hero/'+i+'.webp')}));
+  for(let i = 1; i <= 34; i++) gal.append(h('button.hero-th', {dataset:{src:'img/hero/'+i+'.webp'}, 'aria-label':'صورة '+i, style:'background-image:url("img/hero/t'+i+'.webp")', onclick:()=>setBg('img/hero/'+i+'.webp')}));
   const file = h('input', {type:'file', accept:'image/*', class:'hide', onchange:async e=>{ const f = e.target.files[0]; if(!f) return; try{ const url = await M.imageToDataURL(f, 720, .82); setBg('custom', url); M.toast('تم تعيين الصورة'); }catch(err){ M.toast('تعذّر قراءة الصورة'); } }});
   /* colours: ready-made themes as small cards, then one row of swatches per colour */
   const themes = h('div.cp-themes'), custom = h('div.card.pad.cp-box');

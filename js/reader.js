@@ -88,7 +88,10 @@ M.openReader = async function(opts){
   }
   /* surah name drawn on a canvas: scaled by its real ink box and centred exactly in the cartouche */
   const CART = {green:[.4775,.295], mint:[.5,.337], gold:[.4755,.30], maroon:[.479,.299], wine:[.4995,.347], blue:[.494,.345], ink:[.48,.296]};
+  const nameMemo = new Map();
   function nameCanvas(ch, W, H){
+    const mk = ch+'|'+W.toFixed(1)+'|'+H.toFixed(1)+'|'+bannerKey(), had = nameMemo.get(mk);
+    if(had){ const d = h('div.nm'); d.style.cssText = had; return d; }
     const [cx, sw] = CART[bannerKey()] || CART.green;
     const dpr = Math.min(window.devicePixelRatio || 1, 3), cv = document.createElement('canvas');
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.cssText = 'width:'+W+'px;height:'+H+'px;display:block';
@@ -101,6 +104,8 @@ M.openReader = async function(opts){
     const x0 = W * cx - (br - bl) / 2 * sc, y0 = H * .487 + (asc - desc) / 2 * sc;
     c.fillText(ch, x0, y0); c.strokeStyle = '#000'; c.lineWidth = Math.max(.5, H * .012); c.lineJoin = 'round'; c.strokeText(ch, x0, y0);
     const d = h('div.nm'); const u = 'url('+cv.toDataURL('image/png')+')'; d.style.cssText = 'width:'+W+'px;height:'+H+'px;-webkit-mask:'+u+' center/100% 100% no-repeat;mask:'+u+' center/100% 100% no-repeat';
+    if(nameMemo.size > 40) nameMemo.delete(nameMemo.keys().next().value);
+    nameMemo.set(mk, d.style.cssText);
     return d;
   }
   function buildQcfPage(p){
@@ -177,11 +182,13 @@ M.openReader = async function(opts){
     const curlOn = ()=>{ try{ return !R.curlBroken && M.cfg.qCurl !== false && !!M.mushafCurl && M.mushafCurl.enabled(); }catch(e){ return false; } };
     const curlFail = e=>{ console.warn('page curl disabled', e); R.curlBroken = true; try{ curl && curl.destroy(); }catch(_){} curl = null; dx = 0; dragging = false; anim = false; setT(false); fill(); };
     const slides = {prev:h('div.pg-slide'), cur:h('div.pg-slide'), next:h('div.pg-slide')};
-    track.append(slides.prev, slides.cur, slides.next);
+    /* the warm-up stage: laid out like a slide but never seen */
+    const warmEl = h('div.pg-slide.pg-warm', {'aria-hidden':'true', style:'visibility:hidden;pointer-events:none;transform:translate3d(-300%,0,0);z-index:-1;will-change:auto'});
+    track.append(slides.prev, slides.cur, slides.next, warmEl);
     const get = p=>{
       if(p < 1 || p > 604) return null;
       let e = cache.get(p);
-      if(!e){ e = buildPage(p); cache.set(p, e); if(cache.size > 9){ for(const k of cache.keys()){ if(Math.abs(k - cur) > 3){ cache.delete(k); break; } } } }
+      if(!e){ e = buildPage(p); cache.set(p, e); trim(); }
       return e;
     };
     /* page-turn rustle, synthesised (no audio file): two short bursts of filtered noise */
@@ -223,16 +230,42 @@ M.openReader = async function(opts){
       else { flipSet(slides.prev, (1 + t) * 90, 3, 1 + t); flipSet(slides.cur, null, 1, 0); flipSet(slides.next, null, 0, 0); slides.next.style.visibility = 'hidden'; }
     }
     function fill(){
+      const todo = [];
       for(const [role, p] of [['prev', cur-1], ['cur', cur], ['next', cur+1]]){
         const s = slides[role]; const e = get(p);
         if(s.firstChild !== e){ s.innerHTML = ''; if(e) s.appendChild(e); }
-        if(e && !e._fin){ e._fin = true; requestAnimationFrame(()=>finishPage(e)); }
+        if(e && !e._fin){ e._fin = true; todo.push(e); }
       }
-      place();
+      if(todo.length) requestAnimationFrame(()=>todo.forEach(finishPage));
+      place(); warmSoon();
     }
+    let lastDir = 1, warmT = 0;
+    const idle = window.requestIdleCallback ? f=>requestIdleCallback(f, {timeout:700}) : f=>setTimeout(f, 160);
+    function warmSoon(){ if(warmT) return; warmT = 1; setTimeout(()=>idle(warmStep), 60); }
+    /* base: the page that is (or is about to be) current. A plain slide / flip turn is a compositor transition, so pages can be
+       prepared while it runs; the curl is drawn on the main thread and is left alone. */
+    function warmStep(dl, base){
+      warmT = 0;
+      if(!host.isConnected) return;
+      if((anim && (!base || (curl && curl.active))) || dragging){ warmSoon(); return; }
+      base = base || cur;
+      const order = base === cur ? [cur + 2 * lastDir, cur - 2 * lastDir, cur + 3 * lastDir] : [base + lastDir, base + 2 * lastDir];
+      for(const p of order){
+        if(p < 1 || p > 604 || cache.has(p)) continue;
+        if(!qcfReady(p)){ if(EP(p)) Promise.all(M.qcf.needs(p).map(n=>M.qcf.ensure(n))).then(()=>warmSoon()); continue; }
+        const e = buildPage(p); e._fin = true;
+        warmEl.appendChild(e); finishPage(e); e.remove();
+        cache.set(p, e); trim();
+        if(!dl || !dl.timeRemaining || dl.timeRemaining() < 20){ warmSoon(); return; }
+      }
+      /* the audio context costs a frame on first use: make it now, quietly */
+      if(!actx && M.cfg.qFlipSound !== false && !M.cfg.mute){ try{ const AC = window.AudioContext || window.webkitAudioContext; if(AC) actx = new AC(); }catch(e){} }
+    }
+    function trim(){ if(cache.size > 9){ for(const k of cache.keys()){ if(Math.abs(k - cur) > 3){ cache.delete(k); if(cache.size <= 9) break; } } } }
     function setT(on){ Object.values(slides).forEach(s=>s.style.transition = on ? (M.cfg.qFlip ? 'transform .42s cubic-bezier(.3,.1,.3,1)' : 'transform .26s cubic-bezier(.2,.8,.2,1)') : 'none'); }
     function commit(delta){
       const np = cur + delta; if(np < 1 || np > 604){ snap(); return; }
+      lastDir = delta > 0 ? 1 : -1;
       if(curlOn()){
         try{
           anim = true; if(M.cfg.qFlipSound !== false) paperSound();
@@ -244,6 +277,7 @@ M.openReader = async function(opts){
       }
       anim = true; setT(true); dx = delta > 0 ? layout.W : -layout.W; place();
       if(M.cfg.qFlipSound !== false) paperSound();
+      setTimeout(()=>{ if(anim) warmStep(null, np); }, 30);
       setTimeout(()=>{ cur = np; dx = 0; setT(false); fill(); anim = false; onPage(cur); }, M.cfg.qFlip ? 430 : 270);
     }
     function snap(){ setT(true); dx = 0; place(); setTimeout(()=>setT(false), M.cfg.qFlip ? 440 : 280); }
@@ -277,6 +311,7 @@ M.openReader = async function(opts){
       if(curl && curl.active){
         const dir = curl.dir, go = dir > 0 ? (dx > W * 0.2 || (v > 0.5 && dx > 30)) : (dx < -W * 0.2 || (v < -0.5 && dx < -30));
         const np = cur + (go ? dir : 0);
+        if(go) lastDir = dir;
         anim = true; if(go && M.cfg.qFlipSound !== false) paperSound();
         try{ curl.finish(go, ()=>{ cur = np; dx = 0; curl.stop(); setT(false); fill(); anim = false; if(go) onPage(cur); }, v); }catch(er){ curlFail(er); }
         return;

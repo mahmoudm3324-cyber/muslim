@@ -80,7 +80,7 @@ const end = ()=>{
   const W = innerWidth, el = s.v.el, fast = Math.abs(s.dx) / Math.max(1, Date.now() - s.t0) > .6;
   window.__jsSwipeAt = Date.now();
   el.style.transition = 'transform .24s cubic-bezier(.2,.8,.2,1)';
-  if(Math.abs(s.dx) > W * .38 || fast){ el.style.transform = 'translateX('+(s.rtl ? -W : W)+'px)'; setTimeout(()=>{ el.style.visibility = 'hidden'; s.v.close(); }, 230); M.haptic && M.haptic(8); }
+  if(Math.abs(s.dx) > W * .38 || fast){ el.style.transition = 'opacity .18s ease-out'; el.style.opacity = '0'; setTimeout(()=>{ el.style.visibility = 'hidden'; s.v.close(); }, 170); M.haptic && M.haptic(8); }   // fades where it is: no throw to the side
   else { el.style.transform = 'none'; setTimeout(()=>{ el.style.transition = ''; el.style.animation = ''; el.style.transform = ''; }, 260); }
 };
 document.addEventListener('touchend', end, {passive:true}); document.addEventListener('touchcancel', end, {passive:true});

@@ -657,3 +657,47 @@ button,a,[role=button],.tile,.item,.chip,.seg button,.tab,input,select,label{tou
 body{text-rendering:auto}
 .view-body,.screen,.sheet .sh-body,.ob-stage{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 html,body{overscroll-behavior:none}
+
+/* ---------------------------------------------------------------- 4.2 بوصلة القبلة مطابقة للمرجع */
+.qr-card.card,html[data-skin] .qr-card.card,html[data-skin][data-theme] .qr-card.card{color:#fff;border:0;border-radius:30px;padding:20px 18px 18px!important;
+  background:linear-gradient(180deg,#45464d 0%,#36363c 55%,#3a3236 100%)!important;box-shadow:0 18px 40px -22px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.06)!important}
+.qr-card .qr-head .bold{font-size:1.35rem;color:#fff}
+.qr-card .qr-head .small.muted{color:rgba(255,255,255,.5)!important;font-size:.9rem}
+.qr-card .chev{color:rgba(255,255,255,.5)}
+.qr-card .qr-foot .small.muted{color:rgba(255,255,255,.55)!important}
+.qr-card .qr-state{color:#fff}
+.qr-card.qm-aligned .qr-state{color:#7ee2a8}
+.qr-card .qr-map{background:rgba(255,255,255,.12);color:#fff;border:0}
+.qr-card .mini-compass.qr-mini{width:min(100%,300px)}
+.qr{aspect-ratio:1;max-width:360px}
+.qr-svg{overflow:visible}
+.qr-band{fill:none;stroke:rgba(255,255,255,.14)}
+.qr-t{stroke:rgba(255,255,255,.42);stroke-width:2.4;stroke-linecap:round;opacity:1}
+.qr-t.M{stroke:rgba(255,255,255,.75);stroke-width:3.2}
+.qr-deg{fill:rgba(255,255,255,.52);font-size:21px;font-weight:600;font-family:-apple-system,"SF Pro Text",var(--font),sans-serif}
+.qr-deg.B{fill:#fff;font-size:29px;font-weight:800}
+.qr .qr-cd{fill:#fff;font-size:52px;font-weight:500;font-style:italic;font-family:-apple-system,"SF Pro Display",var(--font),sans-serif}
+.qr-kl{stroke:#fff;stroke-width:3;stroke-dasharray:none;opacity:1}
+.qr-kc{fill:#8d8e94;stroke:#fff;stroke-width:4}
+.qr-kx{fill:#222b47}.qr-ktop{fill:#38456b}.qr-kg{fill:#f2b23a}.qr-kedge{stroke:#141a30;stroke-width:1.2}
+.qr-fan{opacity:1}
+.qr-cross line{stroke:rgba(255,255,255,.75);stroke-width:2.4;stroke-dasharray:12 9}
+.qr-arrow{fill:#fff;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))}
+.qr.ok .qr-arrow{fill:#fff}
+.qr.ok .qr-band{stroke:rgba(126,226,168,.22)}
+.qr-arrow path{fill:inherit}
+/* inside the qibla screen: the same dark stage */
+.qb-c .qb-ringbox{padding:26px 10px 14px;border-radius:30px;background:linear-gradient(180deg,#45464d 0%,#36363c 55%,#3a3236 100%);box-shadow:0 18px 40px -22px rgba(0,0,0,.6)}
+.qb-c .qb-ringbox .qb-center{position:static;transform:none;margin-top:6px;color:#fff}
+.qb-c .qb-ringbox .qb-center .qb-hs{color:rgba(255,255,255,.6)}
+html .qr .qr-fan{opacity:1!important}
+html .qr .qr-kc{fill:#8d8e94!important;stroke:#fff!important}
+html .qr .qr-kx{fill:#222b47!important;stroke:none!important}
+html .qr .qr-band{stroke:rgba(255,255,255,.14)!important}
+
+/* 4.2: going back is calm — the page fades where it is instead of being thrown to the side, and the screen under it never moves */
+html[data-skin] .view.leaving,html[data-skin=glass] .view.leaving,html[data-skin=material] .view.leaving{animation:vLeave .2s ease-out both!important}
+@keyframes vLeave{from{opacity:1}to{opacity:0;transform:scale(.985)}}
+html[data-skin=glass][data-views] #screens{transform:none}
+html[data-skin=glass] #screens{transition:none}
+.bg-chips{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none}.bg-chips::-webkit-scrollbar{display:none}.bg-chips .chip{flex:none}

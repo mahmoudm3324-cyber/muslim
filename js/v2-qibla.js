@@ -43,35 +43,60 @@ const ico = k=>h('span.qb-i', {html:ICONS[k]});
 /* ---------- 3.11 the ring dial (card on the prayer screen + the qibla screen) ----------
    A ring with degrees, the four directions outside it and the Kaaba on it; the ring turns with the phone. A white fan grows from
    the top (where the phone points) to the Kaaba: turn until it closes. The arrow in the middle is the phone. */
+let RN = 0;
 function ringDial(qd){
-  const C = 160, Rr = 118, BW = 40;
-  let t = '';
-  for(let i = 0; i < 72; i++){ const a = i * 5, big = a % 30 === 0;
-    t += '<line x1="' + C + '" y1="' + (C - Rr - BW / 2 + 5) + '" x2="' + C + '" y2="' + (C - Rr - BW / 2 + (big ? 13 : 8)) + '" class="' + (big ? 'qr-tb' : 'qr-t') + '" transform="rotate(' + a + ' ' + C + ' ' + C + ')"/>'; }
-  let l = '';
-  for(let a = 0; a < 360; a += 30) l += '<text x="' + C + '" y="' + (C - Rr + 8) + '" class="qr-deg" text-anchor="middle" transform="rotate(' + a + ' ' + C + ' ' + C + ')">' + M.n(a) + '°</text>';
-  const card = [['ش', 0], ['ق', 90], ['ج', 180], ['غ', 270]].map(([c, a])=>{ const rr = Rr + BW / 2 + 14, x = C + rr * Math.sin(a * Math.PI / 180), y = C - rr * Math.cos(a * Math.PI / 180) + 6;
-    return '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" class="qr-card' + (a === 0 ? ' n' : '') + '" text-anchor="middle">' + c + '</text>'; }).join('');
-  const kaaba = '<g class="qr-k" transform="rotate(' + qd.toFixed(2) + ' ' + C + ' ' + C + ')"><line x1="' + C + '" y1="' + C + '" x2="' + C + '" y2="' + (C - Rr + 14) + '" class="qr-kl"/>' +
-    '<g transform="translate(' + C + ' ' + (C - Rr) + ') rotate(' + (-qd).toFixed(2) + ')" class="qr-kb"><circle r="15" class="qr-kc"/><rect x="-7.5" y="-7" width="15" height="14" rx="1.6" class="qr-kx"/><rect x="-7.5" y="-3.6" width="15" height="2.6" class="qr-kg"/></g></g>';
+  const gid = 'qrFanG' + (++RN);
+  /* measured on the reference: band 0.646–1 of the outer radius, labels at 0.73, ticks on the outer edge, letters at 1.13,
+     the fan inside the band's hole (0.39–0.646), the Kaaba badge outside at 1.19, dashed cross and the white arrow fixed */
+  const C = 500, RO = 330, RI = RO * .646, RL = RO * .735, RF = RO * .39, RB = RO * 1.2, RC = RO * 1.14;
+  const P = (a, r)=>[C + r * Math.sin(a * Math.PI / 180), C - r * Math.cos(a * Math.PI / 180)];
+  let ticks = '';
+  for(let a = 0; a < 360; a += 5){
+    const major = a % 30 === 15, mid = a % 15 === 0 && !major;
+    if(a % 30 === 0) continue;   // where a label sits the edge stays clear
+    const r1 = RO - 8, r0 = major ? RO - 64 : mid ? RO - 30 : RO - 22;
+    const [x0, y0] = P(a, r0), [x1, y1] = P(a, r1);
+    ticks += '<line x1="' + x0.toFixed(1) + '" y1="' + y0.toFixed(1) + '" x2="' + x1.toFixed(1) + '" y2="' + y1.toFixed(1) + '" class="qr-t' + (major ? ' M' : '') + '"/>';
+  }
+  let labels = '';
+  for(let a = 0; a < 360; a += 30){
+    const big = a % 90 === 0;
+    labels += '<text x="' + C + '" y="' + (C - RL + (big ? 14 : 11)) + '" class="qr-deg' + (big ? ' B' : '') + '" text-anchor="middle" transform="rotate(' + a + ' ' + C + ' ' + C + ')">' + a + '°</text>';
+  }
+  // the letters keep the dial's own upright (as on the reference), they are not turned along the ring like the degrees
+  const card = [['N', 0], ['E', 90], ['S', 180], ['W', 270]].map(([c, a])=>{ const [x, y] = P(a, RC); return '<text x="' + x.toFixed(1) + '" y="' + (y + 16).toFixed(1) + '" class="qr-cd" text-anchor="middle">' + c + '</text>'; }).join('');
+  const kaaba = '<g class="qr-k"><line x1="' + C + '" y1="' + (C - RI) + '" x2="' + C + '" y2="' + (C - RB + 48) + '" class="qr-kl"/>' +
+    '<g transform="translate(' + C + ' ' + (C - RB) + ')"><g class="qr-kb"><circle r="48" class="qr-kc"/>' +
+    '<path d="M-21 -13 L0 -21 L21 -13 L21 17 L0 25 L-21 17 Z" class="qr-kx"/><path d="M-21 -13 L0 -5 L21 -13 L0 -21 Z" class="qr-ktop"/><path d="M-21 -5 L0 3 L21 -5 L21 -1 L0 7 L-21 -1 Z" class="qr-kg"/><path d="M0 -5 L0 25" class="qr-kedge"/></g></g></g>';
   const el = h('div.qr', {html:
-    '<svg viewBox="0 0 320 320" class="qr-svg"><defs><linearGradient id="qrFan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity=".35"/></linearGradient></defs>' +
-    '<path class="qr-fan" d=""/>' +
-    '<g class="qr-dial"><circle cx="' + C + '" cy="' + C + '" r="' + Rr + '" class="qr-band" stroke-width="' + BW + '"/>' + t + l + card + kaaba + '</g>' +
-    '<g class="qr-arrow"><path d="M160 116 L183 186 L160 172 L137 186 Z"/></g></svg>'});
-  const dial = el.querySelector('.qr-dial'), fan = el.querySelector('.qr-fan'), kg = el.querySelector('.qr-k');
-  let q = qd;
-  const arc = (a0, a1)=>{ // a fan from angle a0 to a1 (degrees, 0 = up, clockwise) on the band
-    const ro = Rr + BW / 2 - 2, ri = 22, P = (a, rr)=>[C + rr * Math.sin(a * Math.PI / 180), C - rr * Math.cos(a * Math.PI / 180)];
-    if(Math.abs(a1 - a0) < .6) return '';
-    const big = Math.abs(a1 - a0) > 180 ? 1 : 0, sw = a1 > a0 ? 1 : 0;
-    const [x0, y0] = P(a0, ro), [x1, y1] = P(a1, ro), [x2, y2] = P(a1, ri), [x3, y3] = P(a0, ri);
-    return 'M' + x0.toFixed(1) + ' ' + y0.toFixed(1) + 'A' + ro + ' ' + ro + ' 0 ' + big + ' ' + sw + ' ' + x1.toFixed(1) + ' ' + y1.toFixed(1) + 'L' + x2.toFixed(1) + ' ' + y2.toFixed(1) + 'A' + ri + ' ' + ri + ' 0 ' + big + ' ' + (1 - sw) + ' ' + x3.toFixed(1) + ' ' + y3.toFixed(1) + 'Z';
+    '<svg viewBox="40 40 920 920" class="qr-svg"><defs><linearGradient id="' + gid + '" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#fff" stop-opacity=".97"/></linearGradient></defs>' +
+    '<g class="qr-dial"><circle cx="' + C + '" cy="' + C + '" r="' + ((RO + RI) / 2) + '" class="qr-band" stroke-width="' + (RO - RI) + '"/>' + ticks + labels + card + kaaba + '</g>' +
+    '<path class="qr-fan" d="" fill="url(#' + gid + ')"/>' +
+    '<g class="qr-cross"><line x1="' + (C - RF * 1.02) + '" y1="' + C + '" x2="' + (C + RF * 1.02) + '" y2="' + C + '"/><line x1="' + C + '" y1="' + (C - RF * 1.15) + '" x2="' + C + '" y2="' + (C + RF * 1.15) + '"/></g>' +
+    '<path class="qr-arrow" d="M500 405 Q503 405 505 410 L548 518 Q551 528 541 526 L506 507 Q500 504 494 507 L459 526 Q449 528 452 518 L495 410 Q497 405 500 405 Z"/></svg>'});
+  const dial = el.querySelector('.qr-dial'), fan = el.querySelector('.qr-fan'), kg = el.querySelector('.qr-k'), kb = el.querySelector('.qr-kb');
+  fan.style.fill = 'url(#' + gid + ')';
+  let q = qd, lastRot = 0;
+  /* the fan: an annular sector from the top (where the phone points) to the Kaaba, fading in towards the Kaaba */
+  const sector = d=>{
+    if(Math.abs(d) < .8) return '';
+    const big = Math.abs(d) > 180 ? 1 : 0, sw = d > 0 ? 1 : 0;
+    const [x0, y0] = P(0, RI), [x1, y1] = P(d, RI), [x2, y2] = P(d, RF), [x3, y3] = P(0, RF);
+    return 'M' + x0.toFixed(1) + ' ' + y0.toFixed(1) + 'A' + RI + ' ' + RI + ' 0 ' + big + ' ' + sw + ' ' + x1.toFixed(1) + ' ' + y1.toFixed(1) +
+      'L' + x2.toFixed(1) + ' ' + y2.toFixed(1) + 'A' + RF + ' ' + RF + ' 0 ' + big + ' ' + (1 - sw) + ' ' + x3.toFixed(1) + ' ' + y3.toFixed(1) + 'Z';
   };
+  const place = ()=>{ kg.setAttribute('transform', 'rotate(' + q.toFixed(2) + ' ' + C + ' ' + C + ')'); };
+  place();
   const api = {el,
-    set(heading, cum){ dial.setAttribute('transform', 'rotate(' + (-(cum == null ? heading : cum)).toFixed(2) + ' ' + C + ' ' + C + ')');
-      const d = delta(heading, q); fan.setAttribute('d', arc(0, d)); el.classList.toggle('ok', Math.abs(d) <= 3); return d; },
-    qibla(v){ q = v; kg.setAttribute('transform', 'rotate(' + v.toFixed(2) + ' ' + C + ' ' + C + ')'); const b = kg.querySelector('.qr-kb'); b.setAttribute('transform', 'translate(' + C + ' ' + (C - Rr) + ') rotate(' + (-v).toFixed(2) + ')'); },
+    set(heading, cum){
+      const rot = -(cum == null ? heading : cum); lastRot = rot;
+      dial.setAttribute('transform', 'rotate(' + rot.toFixed(2) + ' ' + C + ' ' + C + ')');
+      kb.setAttribute('transform', 'rotate(' + (-(rot + q)).toFixed(2) + ')');   // the Kaaba stays upright
+      const d = delta(heading, q);
+      fan.setAttribute('d', sector(d));
+      const g = el.querySelector('#' + gid); if(g){ const [ax, ay] = P(0, RI), [bx, by] = P(d, RI); g.setAttribute('x1', ax.toFixed(1)); g.setAttribute('y1', ay.toFixed(1)); g.setAttribute('x2', bx.toFixed(1)); g.setAttribute('y2', by.toFixed(1)); }
+      el.classList.toggle('ok', Math.abs(d) <= 3); return d; },
+    qibla(v){ q = v; place(); },
     still(){ fan.setAttribute('d', ''); dial.setAttribute('transform', ''); }
   };
   return api;
@@ -341,7 +366,7 @@ M.qiblaMini = function(card){
   const start = ()=>{ if(on || !perm) return; on = true; sensor.start(); };
   const check = ()=>{
     if(!card.isConnected){ stop(); clearInterval(iv); document.removeEventListener('visibilitychange', check); return; }
-    const vis = !document.hidden && card.offsetParent !== null && !(M.views && M.views.length) && !document.querySelector('#sheet-root .sheet, #sheet-root .dialog');
+    const vis = !document.hidden && !(M.views && M.views.length) && !document.querySelector('#sheet-root .sheet, #sheet-root .dialog') && card.offsetParent !== null;
     vis ? start() : stop();
   };
   const iv = setInterval(check, 700); document.addEventListener('visibilitychange', check); check();

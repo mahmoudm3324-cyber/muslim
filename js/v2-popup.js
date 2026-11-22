@@ -375,7 +375,7 @@ async function showWird(o){
 }
 /* share from the pop-up page: as text, or as a picture card on one of the app's backgrounds (like the app's share sheet) */
 function sharePanel(text, back){
-  const BGS = (M.BG_LIST || []).slice(0, 26);
+  const BGS = (M.BG_LIST || []).slice(0, 42);
   const day = BGS.length ? BGS[Math.floor(Date.now() / 864e5) % BGS.length] : '';
   let src = M.cfg.shareBg == null ? day : M.cfg.shareBg, canvas = null, token = 0, mode = 'pick';
   const box = h('div.pop-shr-prev'), strip = h('div.pop-shr-strip');

@@ -1,7 +1,7 @@
 /* Sharing: every text shared from the app goes out as a picture card on one of the bundled backgrounds (or as plain text, if preferred). */
 (function(){
 const M = window.M, h = M.h;
-const BGS = []; for(let i = 1; i <= 13; i++) BGS.push('img/hero/'+i+'.webp'); for(let i = 1; i <= 13; i++) BGS.push('img/bg/bg'+i+'.jpg');
+const BGS = []; for(let i = 1; i <= 34; i++) BGS.push('img/hero/'+i+'.webp'); for(let i = 1; i <= 34; i++) BGS.push('img/bg/bg'+i+'.jpg');
 M.BG_LIST = BGS;
 M.bgThumb = s=>s.replace(/hero\/(\d+)\.webp/, 'hero/t$1.webp').replace(/bg\/bg(\d+)\.jpg/, 'bg/t$1.jpg');
 const shareText = M.share; M.shareText = shareText;

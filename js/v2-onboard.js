@@ -102,7 +102,7 @@ function build(mode){
       h('p.ob-p.ob-st.ob-w2-p', upd ? 'تم تحديث التطبيق إلى الإصدار '+M.n(M.VERSION)+'. هذا أبرز ما أضفناه لك.' : 'رفيقك اليومي للقرآن والصلاة والذكر. نجهّزه على ذوقك في خطوات قصيرة.'),
       upd ? card(h('b.ob-ul-h', 'الجديد في الإصدار ' + M.n(M.VERSION)), h('ul.ob-ul', ...(M.WHATS_LATEST || (M.whatsNew ? M.whatsNew() : M.WHATS_NEW).slice(0, 3)).map(t=>h('li', t)))) : null,
       upd ? quickSet() : null,
-      !upd ? h('div.ob-icons.ob-st', h('small', 'اختر أيقونة التطبيق — يتلوّن التطبيق بلونها'), h('div.ob-icrow', ...Array.from({length:10}, (_, k)=>{ const i = k + 1;
+      !upd ? h('div.ob-icons.ob-st', h('small', 'اختر أيقونة التطبيق — يتلوّن التطبيق بلونها'), h('div.ob-icrow', ...Array.from({length:14}, (_, k)=>{ const i = k + 1;
         return h('button.ob-ic' + ((M.cfg.appIcon || 10) === i ? '.on' : ''), {'aria-label':'الأيقونة ' + M.n(i), onclick:function(){
           try{ window.Android && Android.setAppIcon && Android.setAppIcon(i); }catch(e){} try{ M.setIconAccent(i); }catch(e){}
           tint(i); const im = el.querySelector('.ob-w2-icon'); if(im) im.src = 'img/icons/' + i + '.jpg';

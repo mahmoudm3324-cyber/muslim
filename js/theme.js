@@ -22,7 +22,7 @@ M.resolveTheme = ()=>M.cfg.theme === 'auto' ? (matchMedia('(prefers-color-scheme
 M.skinName = s=>s === 'glass' ? 'Liquid Glass' : 'Material You';
 
 /* the app colour follows the chosen launcher icon unless the user picked a colour by hand */
-M.ICON_ACCENT = {1:'#3f918b', 2:'#3f918b', 3:'#3f918b', 4:'#3f918b', 5:'#3f918b', 6:'#3f918b', 7:'#3f918b', 8:'#3f918b', 9:'#1b3f8a', 10:'#1c6679'};
+M.ICON_ACCENT = {1:'#3f918b', 2:'#3f918b', 3:'#3f918b', 4:'#3f918b', 5:'#3f918b', 6:'#3f918b', 7:'#3f918b', 8:'#3f918b', 9:'#1b3f8a', 10:'#1c6679', 11:'#1f3a7a', 12:'#0f7a5e', 13:'#a8742f', 14:'#9a4a6a'};
 M.iconAccent = function(i){ return M.ICON_ACCENT[i] || M.ICON_ACCENT[10]; };
 M.setIconAccent = function(i){ M.save('appIcon', i); M.save('accentSrc', 'icon'); M.save('accent', M.iconAccent(i)); };
 (function(){
@@ -114,7 +114,10 @@ M.SCENES = {
   dome:['قبة الفجر', ()=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2a4e"/><stop offset=".5" stop-color="#6c5b8c"/><stop offset=".8" stop-color="#f0a690"/><stop offset="1" stop-color="#ffd9a0"/></linearGradient></defs><rect width="400" height="800" fill="url(#g)"/><path fill="#1c1630" d="M0 800V660h60v-40c0-10 8-16 8-16s8 6 8 16v40h30c0-50 30-90 94-90s94 40 94 90h30v-40c0-10 8-16 8-16s8 6 8 16v40h60v140z"/><path fill="#1c1630" d="M196 560c0-14 4-22 4-22s4 8 4 22z"/><circle cx="200" cy="528" r="5" fill="#1c1630"/></svg>`]
 };
 
-M.PHOTOS = [[1,'المدينة المنورة'],[2,'غروب المسجد'],[3,'برج الساعة'],[4,'مكة ليلًا'],[5,'الساعة الذهبية'],[6,'القبة الذهبية'],[7,'مسجد الغروب'],[8,'غيوم بيضاء'],[10,'مصلى أزرق'],[11,'المسجد الأبيض'],[12,'الروضة والزهور'],[13,'الروضة ورق']];
+/* the backgrounds, grouped: [number, name, group] — pictures in img/bg (bgN.jpg, thumbnail tN.jpg), moving ones in img/live (vN.mp4, vN.jpg) */
+M.PHOTOS = [[1,'المدينة المنورة','madinah'],[2,'غروب المسجد','mosques'],[3,'برج الساعة','makkah'],[4,'مكة ليلًا','makkah'],[5,'الساعة الذهبية','makkah'],[6,'القبة الذهبية','quds'],[7,'مسجد الغروب','mosques'],[8,'غيوم بيضاء','mosques'],[10,'مصلى أزرق','art'],[11,'المسجد الأبيض','mosques'],[12,'الروضة والزهور','madinah'],[13,'الروضة ورق','art'],[14,'ليل وهلال','night'],[15,'كثبان الغروب','mosques'],[16,'فجر بالغيوم','mosques'],[17,'مسجد دبي ليلًا','night'],[18,'الجامع الأزهر','mosques'],[19,'نور المصحف','art'],[20,'أقواس وزخارف','art'],[21,'مسجد محمد علي','mosques'],[22,'مسجد الشيخ زايد','night'],[23,'مسجد الصحابة','mosques'],[24,'القبة الخضراء','madinah'],[25,'المسجد النبوي والطيور','madinah'],[26,'برج الساعة نهارًا','makkah'],[27,'الكعبة تحت المطر','makkah'],[28,'المئذنة والقمر','night'],[29,'مسجد على البحر','mosques'],[30,'مسجد عند الغروب','mosques'],[31,'مسجد قول شريف','mosques'],[32,'مسجد ذهبي','mosques'],[33,'الساعة عند الغروب','makkah'],[34,'قلعة صلاح الدين ليلًا','night']];
+M.LIVE = [[1,'المسجد النبوي من الداخل','madinah'],[2,'غروب المدينة','madinah'],[3,'المسجد الحرام','makkah'],[4,'المدينة من الأروقة','madinah'],[5,'المدينة ليلًا','madinah'],[6,'حمام القبة الخضراء','madinah'],[7,'حمام الحرم','makkah'],[8,'الكعبة ليلًا','makkah']];
+M.BG_GROUPS = [['all','الكل'],['makkah','مكة'],['madinah','المدينة'],['quds','القدس'],['mosques','مساجد'],['night','ليل'],['art','زخارف'],['live','متحركة'],['colors','ألوان']];
 M.applyBg = function(){
   if(String(M.cfg.bg || '').startsWith('pattern:')) M.cfg.bg = 'aurora'; // the pattern wallpapers were removed
   const bg = M.$('#bg'); if(!bg) return;
@@ -132,8 +135,10 @@ M.applyBg = function(){
   else if(type.startsWith('scene:')){ const s = M.SCENES[type.slice(6)]; css = s ? svgURI(s[1]()) : ''; }
   // live video background
   let vid = M.$('#bg-vid');
-  if(type === 'video'){
-    if(!vid){ vid = M.h('video#bg-vid', {muted:true, loop:true, autoplay:true, playsinline:true, preload:'auto', poster:'img/bg/bg9.jpg', src:'img/bg/bg9.mp4'}); vid.muted = true; bg.insertBefore(vid, img); }
+  if(type === 'video' || type.startsWith('live:')){
+    const n = +type.slice(5) || 0, src = n ? 'img/live/v' + n + '.mp4' : 'img/bg/bg9.mp4', poster = n ? 'img/live/v' + n + '.jpg' : 'img/bg/bg9.jpg';
+    if(!vid){ vid = M.h('video#bg-vid', {muted:true, loop:true, autoplay:true, playsinline:true, preload:'auto'}); vid.muted = true; bg.insertBefore(vid, img); }
+    if(vid.getAttribute('src') !== src){ vid.poster = poster; vid.src = src; }
     vid.style.display = ''; vid.play && vid.play().catch(()=>{}); css = 'x';
   } else if(vid){ vid.pause(); vid.style.display = 'none'; }
   img.style.backgroundImage = css && css !== 'x' ? css : 'none';

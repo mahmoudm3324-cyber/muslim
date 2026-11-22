@@ -227,17 +227,31 @@ M.settingsEntries = entries;   // used by the test-suite
     const grid = h('div.bg-grid');
     const cur = ()=>M.cfg.bg;
     function tile(id, label, style, extra){
-      const t = h('button.bg-t'+(cur() === id ? '.on' : ''), {style, onclick:()=>{ if(id === 'image' && !M.cfg.bgImage){ pickImg(); return; } if(id.startsWith('photo:') || id === 'video'){ M.save({bg:id, bgDim:Math.max(M.cfg.bgDim || 0, 0.3)}); } else M.save('bg', id); mark(); M.haptic(8); }}, extra, h('span', label));
+      const t = h('button.bg-t'+(cur() === id ? '.on' : ''), {style, onclick:()=>{ if(id === 'image' && !M.cfg.bgImage){ pickImg(); return; } if(id.startsWith('photo:') || id === 'video' || id.startsWith('live:')){ M.save({bg:id, bgDim:Math.max(M.cfg.bgDim || 0, 0.3)}); } else M.save('bg', id); mark(); M.haptic(8); }}, extra, h('span', label));
       t.dataset.id = id; return t;
     }
     function mark(){ M.$$('.bg-t', grid).forEach(x=>x.classList.toggle('on', x.dataset.id === cur())); }
-    grid.append(tile('aurora', 'أورورا', 'background:linear-gradient(135deg,var(--pc),var(--s2))'), tile('none', 'سادة', 'background:var(--s1)'));
-    M.PHOTOS.forEach(([n, l])=>grid.append(tile('photo:'+n, l, 'background:url(img/bg/t'+n+'.jpg) center/cover')));
-    grid.append(tile('video', 'متحركة', 'background:url(img/bg/t9.jpg) center/cover', M.ic('play')));
-    Object.entries(M.GRADIENTS).forEach(([k, [n, css]])=>grid.append(tile('gradient:'+k, n, 'background:'+css)));
-    Object.entries(M.SCENES).forEach(([k, [n, fn]])=>grid.append(tile('scene:'+k, n, 'background:url("data:image/svg+xml;utf8,'+encodeURIComponent(fn())+'") center/cover')));
+    let grp = M.store.get('bgGrp', 'all');
+    const chips = h('div.bg-chips');
     const imgT = tile('image', 'صورتي', M.cfg.bgImage ? 'background:url('+M.cfg.bgImage+') center/cover' : 'background:var(--s2)', M.cfg.bgImage ? null : M.ic('plus'));
-    grid.append(imgT);
+    function fill(){
+      chips.replaceChildren(...M.BG_GROUPS.map(([k, l])=>h('button.chip' + (grp === k ? '.on' : ''), {onclick:()=>{ grp = k; M.store.set('bgGrp', k); fill(); }}, l)));
+      grid.replaceChildren();
+      const all = grp === 'all';
+      if(all || grp === 'colors'){ grid.append(tile('aurora', 'أورورا', 'background:linear-gradient(135deg,var(--pc),var(--s2))'), tile('none', 'سادة', 'background:var(--s1)')); }
+      M.PHOTOS.filter(p=>all || p[2] === grp).forEach(([n, l])=>grid.append(tile('photo:'+n, l, 'background:url(img/bg/t'+n+'.jpg) center/cover')));
+      if(all || grp === 'live' || grp === 'madinah' || grp === 'makkah'){
+        if(all || grp === 'live') grid.append(tile('video', 'متحركة', 'background:url(img/bg/t9.jpg) center/cover', M.ic('play')));
+        M.LIVE.filter(v=>all || grp === 'live' || v[2] === grp).forEach(([n, l])=>grid.append(tile('live:'+n, l, 'background:url(img/live/v'+n+'.jpg) center/cover', M.ic('play'))));
+      }
+      if(all || grp === 'colors'){
+        Object.entries(M.GRADIENTS).forEach(([k, [n, css]])=>grid.append(tile('gradient:'+k, n, 'background:'+css)));
+        Object.entries(M.SCENES).forEach(([k, [n, fn]])=>grid.append(tile('scene:'+k, n, 'background:url("data:image/svg+xml;utf8,'+encodeURIComponent(fn())+'") center/cover')));
+      }
+      grid.append(imgT);
+    }
+    fill();
+    b.append(chips);
     b.append(grid);
     const file = h('input', {type:'file', accept:'image/*', class:'hide', onchange:async e=>{
       const f = e.target.files[0]; if(!f) return;

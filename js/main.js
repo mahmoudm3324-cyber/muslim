@@ -219,7 +219,7 @@ window.onNativeBack = ()=>{
 /* the digits setting also covers text that is written without M.h (textContent / innerHTML) */
 function watchDigits(){
   const fix = n=>{ const v = n.nodeValue, w = M.dg(v); if(w !== v) n.nodeValue = w; };
-  const walk = el=>{ if(el.nodeType === 3){ fix(el); return; } if(el.nodeType !== 1 || el.tagName === 'SCRIPT' || el.tagName === 'STYLE' || el.tagName === 'TEXTAREA') return; const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); let n; while((n = tw.nextNode())) fix(n); };
+  const walk = el=>{ if(el.nodeType === 3){ fix(el); return; } if(el.nodeType !== 1 || el.tagName === 'SCRIPT' || el.tagName === 'STYLE' || el.tagName === 'TEXTAREA') return; const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {acceptNode:n=>n.nodeType === 1 ? (n.classList.contains('qb') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_SKIP) : NodeFilter.FILTER_ACCEPT}); let n; while((n = tw.nextNode())) fix(n); };
   new MutationObserver(list=>{ for(const m of list){ if(m.type === 'characterData') fix(m.target); else m.addedNodes.forEach(walk); } }).observe(document.getElementById('app'), {subtree:true, childList:true, characterData:true});
 }
 function boot(){

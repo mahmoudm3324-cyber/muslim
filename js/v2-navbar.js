@@ -81,7 +81,9 @@ floaters.resolve = function(moved){
   if(y < L.minY) y = (above >= L.minY) ? above : L.minY;
   mover.setY(clamp(y, L.minY, L.maxY));
 };
-setInterval(()=>{ Object.keys(floaters.list).forEach(k=>{ try{ floaters.list[k].reflow(); }catch(e){} }); floaters.resolve(); }, 600);
+let touchAt = 0; ['pointerdown', 'pointermove', 'wheel'].forEach(t=>window.addEventListener(t, ()=>{ touchAt = performance.now(); }, {capture:true, passive:true}));
+M.uiBusy = ()=>document.hidden || performance.now() - touchAt < 700;
+setInterval(()=>{ if(M.uiBusy()) return; Object.keys(floaters.list).forEach(k=>{ try{ floaters.list[k].reflow(); }catch(e){} }); floaters.resolve(); }, 600);
 window.addEventListener('resize', M.debounce(()=>{ Object.keys(floaters.list).forEach(k=>{ try{ floaters.list[k].reflow(); }catch(e){} }); floaters.resolve(); }, 120));
 
 /* ---------------------------------------------------------------- tab bar: density / mode / long-press ---------------------------------------------------------------- */
@@ -311,7 +313,7 @@ function buildBubble(){
     if(k === 'bubbleSide'){ M.store.set('nbPos', {s:M.cfg.bubbleSide === 'r' ? 'r' : 'l', y:bub.y}); loadBubPos(); placeBub(true); floaters.resolve('bub'); }
     if(k === 'bubbleDim') wake();
   });
-  setInterval(()=>{ syncVis(); }, 450);
+  setInterval(()=>{ if(!document.hidden) syncVis(); }, 450);
   window.addEventListener('resize', M.debounce(()=>{ closeFan(true); placeBub(false); }, 100));
   syncVis(); placeBub(false); wake();
 }
