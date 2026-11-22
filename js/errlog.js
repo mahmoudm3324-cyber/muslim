@@ -18,10 +18,21 @@ function add(kind, msg, src, line, col, stack){
   while(a.length > MAX) a.shift();
   save(a);
 }
+/* a file of the app that did not load (the phone's local server was restarting while the app came back) leaves the app half
+   built: load the page again, quietly, at most three times in a row */
+var RK = 'ms:bootRetry', retrying = false;
+function missed(){
+  if(retrying) return; retrying = true;
+  var n = 0, last = 0; try{ n = +sessionStorage.getItem(RK) || 0; last = +localStorage.getItem(RK + 'At') || 0; }catch(e){}
+  if(n >= 3 || (n === 0 && Date.now() - last < 60000)) return;   // never a loop: three tries, then not again for a minute
+  try{ sessionStorage.setItem(RK, String(n + 1)); localStorage.setItem(RK + 'At', String(Date.now())); }catch(e){}
+  setTimeout(function(){ location.reload(); }, 350 + n * 600);
+}
+window.__bootDone = function(){ try{ sessionStorage.removeItem(RK); }catch(e){} window.__bootOK = true; };
 window.addEventListener('error', function(e){
   if(!e) return;
   if(e.target && e.target !== window && (e.target.tagName === 'IMG' || e.target.tagName === 'AUDIO' || e.target.tagName === 'VIDEO' || e.target.tagName === 'SOURCE')) return; // missing media is handled by the screens
-  if(e.target && e.target !== window && e.target.tagName === 'SCRIPT'){ add('load', 'تعذّر تحميل ملف: ' + where(e.target.src), e.target.src, 0, 0, ''); return; }
+  if(e.target && e.target !== window && e.target.tagName === 'SCRIPT'){ add('load', 'تعذّر تحميل ملف: ' + where(e.target.src), e.target.src, 0, 0, ''); missed(); return; }
   add('error', e.message || (e.error && e.error.message), e.filename, e.lineno, e.colno, e.error && e.error.stack);
 }, true);
 window.addEventListener('unhandledrejection', function(e){

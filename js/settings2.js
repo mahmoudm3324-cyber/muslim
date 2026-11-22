@@ -92,25 +92,32 @@ S.live = {title:'الصلاة القادمة في الإشعارات', build(b){
     row('إظهار الإقامة', 'بجانب وقت الصلاة', sw('liveIqama', true))));
   /* iPhone: the Live Activity's look on the lock screen, the Dynamic Island's, and when it ends */
   if(window.isIOSApp || (window.Android && Android.setLiveCfg && !Android.liveStatus)){
-    const LC = ()=>Object.assign({style:'next', island:'name', end:'adhan'}, M.cfg.liveCfg || {});
-    const push = ()=>{ const c = LC(); try{ Android.setLiveCfg(JSON.stringify({style:c.style, island:c.island, end:c.end, iqama:M.cfg.iqama || {}, lang:M.lang || 'ar'})); }catch(e){} };
+    const LC = ()=>Object.assign({style:'next', island:'name', end:'adhan', color:'teal'}, M.cfg.liveCfg || {});
+    const push = ()=>{ const c = LC(); try{ Android.setLiveCfg(JSON.stringify({style:c.style, island:c.island, end:c.end, color:c.color, iqama:M.cfg.iqama || {}, lang:M.lang || 'ar'})); }catch(e){} };
+    const TONES = [['teal', 'فيروزي', '#0d3d4c', '#e8c46a'], ['night', 'ليلي', '#121738', '#b8c7ff'], ['green', 'أخضر', '#0d4d33', '#9eedb3'], ['gold', 'ذهبي', '#4d3610', '#ffd173'],
+      ['rose', 'وردي', '#57142b', '#ffb3c7'], ['purple', 'بنفسجي', '#331a57', '#d9bdff'], ['black', 'أسود', '#000', '#fff'], ['clear', 'شفاف', 'rgba(0,0,0,.28)', '#e8c46a']];
     const setC = p=>{ M.save('liveCfg', Object.assign(LC(), p)); push(); draw(); };
     const box = h('div.col-flex.la-box');
     const mock = k=>{
       const bar = h('i.la-bar', h('b'));
+      if(k === 'big') return h('div.la-mock.big', h('small', '☀ العصر • ٤:٠٦'), h('b.la-bign', '١:٣٤:٥٤'));
+      if(k === 'ring') return h('div.la-mock', h('div.la-row', h('i.la-ring2'), h('span.grow', h('b', 'العصر'), h('small', '١:٣٤:٥٤')), h('span.la-pills', h('i', 'المغرب'), h('i', 'العشاء'))));
+      if(k === 'bar') return h('div.la-mock', h('div.la-row', h('b', 'العصر'), h('b', '١:٣٤:٥٤')), h('i.la-bar.thick', h('b')), h('div.la-row', h('small', 'الظهر ١٢:٠٤'), h('small', 'العصر ٤:٠٦')));
       if(k === 'arc') return h('div.la-mock.arc', h('i.la-arc'), h('i.la-sun'), h('div.la-mt', h('small', 'العصر • ٤:٠٦'), h('b', '١:٣٤:٤٣')));
       if(k === 'times') return h('div.la-mock', h('div.la-row', h('b', 'العصر'), h('b', '١:٣٤')), h('div.la-days', ...['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء'].map((n, i)=>h('span' + (i === 2 ? '.on' : ''), n))));
       if(k === 'dua') return h('div.la-mock', h('div.la-row', h('b', 'العصر'), h('b', '١:٣٤')), bar, h('small.la-dua', 'اللَّهُمَّ اغْفِرْ لِي ذَنْبِي، وَوَسِّعْ لِي فِي دَارِي'));
       return h('div.la-mock', h('div.la-row', h('span', h('small', 'الصلاة القادمة'), h('b', 'العصر • ٤:٠٦')), h('b', '١:٣٤:٥٤')), bar);
     };
-    const imock = k=>h('div.la-island', k === 'ring' ? h('i.la-ring') : h('span.la-isym', '☀'), k === 'name' ? h('b', 'العصر') : null, h('span.grow'), h('b.num', '١:٣٤:٥٤'));
+    const imock = k=>h('div.la-island', k === 'ring' ? h('i.la-ring') : k === 'dot' ? h('i.la-dot') : h('span.la-isym', '☀'), k === 'name' ? h('b', 'العصر') : k === 'time' ? h('b', '٤:٠٦') : null, h('span.grow'), h('b.num', '١:٣٤:٥٤'));
     function draw(){
       const c = LC();
       box.replaceChildren(
         h('div.section-h', 'شكل النشاط على شاشة القفل'),
-        h('div.la-grid', ...[['next', 'الصلاة القادمة'], ['arc', 'قوس اليوم'], ['times', 'المواقيت'], ['dua', 'مع دعاء']].map(([k, t])=>h('button.la-opt' + (c.style === k ? '.on' : ''), {onclick:()=>setC({style:k})}, mock(k), h('span.la-t', h('i.la-radio'), t)))),
+        h('div.la-grid', {style:'--la-bg:' + (TONES.find(t=>t[0] === c.color) || TONES[0])[2] + ';--la-acc:' + (TONES.find(t=>t[0] === c.color) || TONES[0])[3]}, ...[['next', 'الصلاة القادمة'], ['big', 'عدّاد كبير'], ['ring', 'حلقة'], ['bar', 'شريط التقدّم'], ['arc', 'قوس اليوم'], ['times', 'المواقيت'], ['dua', 'مع دعاء']].map(([k, t])=>h('button.la-opt' + (c.style === k ? '.on' : ''), {onclick:()=>setC({style:k})}, mock(k), h('span.la-t', h('i.la-radio'), t)))),
         h('div.section-h', 'شكل الجزيرة الديناميكية'),
-        h('div.la-igrid', ...[['name', 'الاسم والعدّاد'], ['icon', 'أيقونة وعدّاد'], ['ring', 'حلقة تقدّم']].map(([k, t])=>h('button.la-opt' + (c.island === k ? '.on' : ''), {onclick:()=>setC({island:k})}, imock(k), h('span.la-t', h('i.la-radio'), t)))),
+        h('div.la-igrid', ...[['name', 'الاسم والعدّاد'], ['icon', 'أيقونة وعدّاد'], ['ring', 'حلقة تقدّم'], ['time', 'وقت الصلاة والعدّاد'], ['dot', 'نقطة وعدّاد']].map(([k, t])=>h('button.la-opt' + (c.island === k ? '.on' : ''), {onclick:()=>setC({island:k})}, imock(k), h('span.la-t', h('i.la-radio'), t)))),
+        h('div.section-h', 'لون النشاط'),
+        h('div.la-tones', ...TONES.map(([k, t, bg, acc])=>h('button.la-tone' + (c.color === k ? '.on' : ''), {'aria-label':t, onclick:()=>setC({color:k})}, h('i', {style:'background:' + bg + ';box-shadow:inset 0 0 0 3px ' + acc}), h('small', t)))),
         h('div.section-h', 'ينتهي النشاط عند'),
         M.seg([['adhan', 'الأذان'], ['iqama', 'الإقامة']], c.end, v=>setC({end:v})),
         h('button.btn.tonal.block', {style:'margin-top:10px', onclick:()=>M.openIqama && M.openIqama()}, M.ic('clock'), 'ضبط مواقيت الإقامة'));

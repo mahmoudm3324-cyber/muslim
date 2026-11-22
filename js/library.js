@@ -69,16 +69,21 @@ M.dhikrPager = function(title, items, opts){
 /* ---- scrolling list of cards ---- */
 function cardsView(title, list, opts){
   opts = opts || {};
+  /* 4.3: the same design as the library — a hero with «one by one», the section titles, and cards with the source and tools */
   const view = M.openView({id:opts.id || 'cards', title});
-  const b = view.body;
-  if(opts.intro) b.append(h('div.card.pad.small.muted', opts.intro));
-  const box = h('div.col-flex'); b.append(box);
-  list.forEach((it, k)=>{
-    if(it.head){ box.append(h('div.section-h', it.head)); return; }
-    box.append(h('div.dua-card', h('div.tx.qfont', {style:'font-size:'+(1.2 * fs())+'rem'}, txt(it.t)),
-      h('div.row-flex', h('span.src', it.s || ''), h('div.grow'),
-        h('button.icon-btn.tonal', {'aria-label':'نسخ', onclick:()=>M.copy(it.t+(it.s ? '\n['+it.s+']' : ''))}, M.ic('copy')),
-        h('button.icon-btn.tonal', {'aria-label':'مشاركة', onclick:()=>M.share(it.t+(it.s ? '\n['+it.s+']' : ''))}, M.ic('share')))));
+  const b = view.body; b.classList.add('dl-body');
+  const items = list.filter(it=>!it.head);
+  const full = it=>it.t+(it.s ? '\n['+it.s+']' : '');
+  b.append(h('div.dl-hero.dl-hero-s', h('div.dl-hrow', h('span.dl-hic', {html:M.icon(opts.icon || 's:dua')}),
+    h('div.grow', h('div.dl-ht.title-font', title), h('div.dl-hs', opts.intro || M.cnt(items.length, 'دعاء'))),
+    items.length > 1 ? h('button.dl-one.dl-one-w', {onclick:()=>M.dhikrPager(title, items.map(it=>[txt(it.t), 1, it.s || '']))}, M.ic('layers'), 'واحدًا واحدًا') : null)));
+  const box = h('div.dl-box'); b.append(box);
+  list.forEach(it=>{
+    if(it.head){ box.append(h('div.dl-sh', it.head)); return; }
+    box.append(h('article.dl-card', {style:'--dc:var(--p)'}, h('div.dl-tx.qfont', {style:'font-size:'+(1.2 * fs())+'rem'}, txt(it.t)),
+      h('div.dl-foot', it.s ? h('span.dl-src', it.s) : null, h('div.grow'),
+        h('button.dl-act', {'aria-label':'نسخ', onclick:()=>M.copy(full(it))}, M.ic('copy')),
+        h('button.dl-act', {'aria-label':'مشاركة', onclick:()=>{ if(M.shareCard) M.shareCard(it.t, it.s || ''); else M.share(full(it)); }}, M.ic('share')))));
   });
   return view;
 }
@@ -148,7 +153,7 @@ M.openSickDua = function(){
 
 M.openJami = function(){
   const list = []; M.JAMI.forEach(([g, items])=>{ list.push({head:g}); items.forEach(([t, s])=>list.push({t, s})); });
-  return cardsView('أدعية شاملة', list, {id:'jami', intro:'مجموعة جامعة من أدعية القرآن والسنة مرتبة بالموضوع.'});
+  return cardsView('أدعية شاملة', list, {id:'jami', icon:'s:names', intro:'مجموعة جامعة من أدعية القرآن والسنة مرتبة بالموضوع.'});
 };
 M.openRuqya = function(kind){
   if(kind === 'quran'){
@@ -159,7 +164,7 @@ M.openRuqya = function(kind){
       b.append(l);
     }}); return v;
   }
-  return cardsView('الرقية بالسنة', M.RUQYA.sunna.map(([t, s])=>({t, s})), {id:'ruqya-s'});
+  return cardsView('الرقية بالسنة', M.RUQYA.sunna.map(([t, s])=>({t, s})), {id:'ruqya-s', icon:'s:ruqya'});
 };
 const TCNT = [100, 33, 33, 33, 33, 100, 33, 33, 100, 10]; // from the hadith: سبحان الله وبحمده مئة، لا إله إلا الله مئة، الاستغفار مئة، الصلاة على النبي عشر
 /* one screen for the remembrance phrases: tasbih, istighfar and praise (three tabs) */

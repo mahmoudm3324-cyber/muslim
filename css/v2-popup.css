@@ -544,3 +544,19 @@ html.pop-float .zen-ayah-wrap{max-height:calc(var(--sh,800px) * .4)}
 .pop-root.zen .pop-bub-ic.rehal svg{filter:none}
 html.pop-float .pop-root.zen .pop-bub-main{box-shadow:0 3px 8px -2px rgba(0,0,0,.35),inset 0 0 0 1px var(--z-line)}
 html.pop-float .pop-root.zen .pop-card{max-width:none}
+
+/* 4.3: the circle — the card really goes away (the zen card's display:flex used to keep it on screen, unclickable),
+   no pulsing ring around the circle; the card folds into the circle and opens out of it */
+.pop-root.pop-bub .pop-card,.pop-root.zen.pop-bub .pop-card,.pop-root.pop-bub .pop-scrim{display:none!important}
+.pop-bub-main::before{display:none!important;animation:none!important}
+.pop-root.pop-folding{pointer-events:none}
+.pop-root.pop-folding .pop-card{transition:transform .26s cubic-bezier(.5,0,.75,.2),opacity .2s ease .06s!important;transform:translate(var(--bx,0),var(--by,0)) scale(.14)!important;opacity:0!important}
+.pop-root.pop-folding .pop-scrim{opacity:0!important;transition:opacity .22s ease!important}
+.pop-root.pop-unbub .pop-card{animation:popUnbub .44s cubic-bezier(.2,.9,.3,1.08) both}
+.pop-root.pop-unbub .pop-scrim{animation:popScrimIn .3s ease both}
+@keyframes popUnbub{from{transform:translate(var(--bx,0),var(--by,0)) scale(.14);opacity:0}45%{opacity:1}to{transform:none;opacity:1}}
+@keyframes popScrimIn{from{opacity:0}to{opacity:1}}
+.pop-root.pop-bub .pop-bubble{animation:popBubIn .38s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes popBubIn{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+.pop-root.pop-bub.out .pop-bubble{animation:popBubOut .22s ease-in both}
+@keyframes popBubOut{to{transform:scale(.3);opacity:0}}

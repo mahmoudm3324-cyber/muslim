@@ -79,40 +79,69 @@ const share = t=>M.share ? M.share(t) : null;
 /* the other dua screens, reached from the library (one place for duas) */
 const COLLECTIONS = [['quranduas', 'أدعية من القرآن', 's:tafsir', 'من آيات القرآن الكريم'], ['jami', 'أدعية شاملة', 's:names', 'جوامع الدعاء من السنة'], ['yusr', 'أدعية التيسير', 's:dua', 'عند الهم وتعسّر الأمور'], ['sick', 'أدعية المريض', 's:heart', 'للمريض ولمن يعوده'],
   ['topics', 'أدعية حسب المواضيع', 's:list', 'مرتّبة حسب الحاجة'], ['loved', 'أذكار الأحبة', 'kids', 'للوالدين والأهل والأحبة'], ['mine', 'أدعيتي', 's:mine', 'أدعية تكتبها بنفسك'], ['ruqya2', 'الرقية الشرعية', 's:ruqya', 'آيات وأدعية الرقية']];
+/* 4.3 مكتبة الأدعية: a hero with the search, the dua of the day, quick filters (favourites, last read, at random),
+   the collections as coloured cards, the needs with their counts, and each dua as a card with its source, the tools
+   (copy, share as a picture or text, favourite) and «one by one» reading with a counter */
+const HUE = ['#1f8a70', '#2f7fc1', '#8a5cd0', '#c4840f', '#cf4b63', '#3f6fd8', '#5c7a2e', '#b4572f', '#0f8f9e', '#7a4fb5', '#2e7d5b', '#a2416b'];
 M.openDuas = function(opts){
   opts = opts || {};
   const view = M.openView({id:'duas', title:'مكتبة الأدعية', build:b=>{
-    let cat = null, q = '', onlyFav = !!opts.fav;
-    const search = h('input.field', {placeholder:'ابحث في الأدعية…', oninput:e=>{ q = e.target.value; draw(); }});
-    const box = h('div.col-flex');
-    b.append(search, box);
-    function card(d, i){
-      const key = String(D.indexOf(d)), f = favs();
-      const heart = h('button.icon-btn.tonal'+(f.includes(key) ? '.on' : ''), {'aria-label':'مفضلة', onclick:()=>{ let a = favs(); a = a.includes(key) ? a.filter(x=>x !== key) : a.concat(key); M.store.set('duaFav', a); heart.classList.toggle('on', a.includes(key)); M.haptic && M.haptic(8); }}, M.ic('heart'));
-      return h('div.dua-card', h('div.tx.qfont', d[1]), h('div.row-flex', h('span.src', d[2]), h('div.grow'),
-        h('button.icon-btn.tonal', {'aria-label':'نسخ', onclick:()=>{ try{ navigator.clipboard.writeText(d[1]+'\n— '+d[2]); }catch(e){} M.toast('تم النسخ'); }}, M.ic('copy')),
-        h('button.icon-btn.tonal', {'aria-label':'مشاركة', onclick:()=>share(d[1]+'\n— '+d[2])}, M.ic('share')), heart));
+    b.classList.add('dl-body');
+    let cat = opts.cat || null, q = '', mode = opts.fav ? 'fav' : '';
+    const recent = ()=>M.store.get('duaRecent', []);
+    const seen = i=>{ const r = recent().filter(x=>x !== i); r.unshift(i); M.store.set('duaRecent', r.slice(0, 12)); };
+    const fsz = ()=>+M.cfg.duaSize || 1;
+    const search = h('input.dl-q', {type:'search', placeholder:'ابحث في ' + M.n(D.length) + ' دعاء…', 'aria-label':'بحث في الأدعية', oninput:e=>{ q = e.target.value; draw(); }});
+    const hero = h('div.dl-hero',
+      h('div.dl-hrow', h('span.dl-hic', {html:M.icon('s:dua')}), h('div.grow', h('div.dl-ht.title-font', 'مكتبة الأدعية'), h('div.dl-hs', 'من القرآن الكريم والسنة الصحيحة، مع المصدر'))),
+      h('div.dl-sw', h('span', {html:M.icon('search')}), search));
+    const box = h('div.dl-box');
+    b.append(hero, box);
+    const textOf = d=>M.cfg.noTashkeel ? String(d[1]).replace(/[ً-ٰٟۖ-ۭ]/g, '') : d[1];
+    function card(d){
+      const i = D.indexOf(d), key = String(i), f = favs(), ci = CATS.findIndex(c=>c[0] === d[0]);
+      const heart = h('button.dl-act' + (f.includes(key) ? '.on' : ''), {'aria-label':'مفضلة', onclick:e=>{ e.stopPropagation(); let a = favs(); a = a.includes(key) ? a.filter(x=>x !== key) : a.concat(key); M.store.set('duaFav', a); heart.classList.toggle('on', a.includes(key)); M.haptic && M.haptic(8); }}, M.ic('heart'));
+      return h('article.dl-card', {style:'--dc:' + HUE[(ci < 0 ? 0 : ci) % HUE.length], onclick:()=>seen(i)},
+        ci >= 0 ? h('div.dl-ctag', h('span', {html:M.icon(CATS[ci][2])}), CATS[ci][1]) : null,
+        h('div.dl-tx.qfont', {style:'font-size:' + (1.22 * fsz()).toFixed(2) + 'rem'}, textOf(d)),
+        h('div.dl-foot', h('span.dl-src', d[2]), h('div.grow'),
+          h('button.dl-act', {'aria-label':'نسخ', onclick:e=>{ e.stopPropagation(); seen(i); M.copy(d[1] + '\n— ' + d[2]); }}, M.ic('copy')),
+          h('button.dl-act', {'aria-label':'مشاركة', onclick:e=>{ e.stopPropagation(); seen(i); if(M.shareCard) M.shareCard(d[1], d[2]); else share(d[1] + '\n— ' + d[2]); }}, M.ic('share')),
+          heart));
+    }
+    const pager = (title, list, start)=>M.dhikrPager(title, list.map(d=>[textOf(d), 1, d[2]]), {start:start || 0});
+    function listHead(title, list, sub){
+      return h('div.dl-lh', h('button.dl-back', {'aria-label':'كل الأقسام', onclick:()=>{ cat = null; mode = ''; q = ''; search.value = ''; draw(); }}, M.ic('back')),
+        h('div.grow', h('div.dl-lt', title), h('div.dl-ls', sub || M.cnt(list.length, 'دعاء'))),
+        list.length > 1 ? h('button.dl-one', {onclick:()=>pager(title, list)}, M.ic('layers'), 'واحدًا واحدًا') : null);
     }
     function draw(){
-      box.innerHTML = '';
-      const nq = M.normAr ? M.normAr(q) : q;
-      if(!cat && !nq && !onlyFav){
-        box.append(h('button.item', {onclick:()=>{ onlyFav = true; draw(); }}, h('span.lead', {html:M.icon('heart')}), h('div.grow', h('div.t', 'مفضلتي'), h('div.s', favs().length ? M.cnt(favs().length, 'دعاء') : 'لم تحفظ أي دعاء بعد')), M.ic('fwd')));
-        const cg = h('div.dua-grid.dua-coll');
-        COLLECTIONS.forEach(([id, n, ic, sub])=>{ if(!(M.SECTIONS || []).some(s=>s[0] === id)) return; cg.append(h('button.dua-cat.coll', {onclick:()=>M.sectionOpen(id)}, h('span.nf-ic', {html:M.icon(ic)}), h('div.nf-t', n), h('div.nf-s', sub))); });
-        box.append(h('div.section-h', 'مجموعات الأدعية'), cg, h('div.section-h', 'الأدعية حسب الحاجة'));
-        const g = h('div.dua-grid');
-        CATS.forEach(([id, n, ic])=>g.append(h('button.dua-cat', {onclick:()=>{ cat = id; draw(); }}, h('span.nf-ic', {html:M.icon(ic)}), h('div.nf-t', n), h('div.nf-s', M.cnt(D.filter(d=>d[0] === id).length, 'دعاء')))));
-        box.append(g, h('div.tiny.muted', {style:'margin-top:6px;line-height:1.8'}, 'الأدعية من القرآن الكريم والسنة الصحيحة مع ذكر المصدر. الدعاء عبادة؛ ادعُ بما شئت بلغتك أيضًا.'));
+      box.replaceChildren();
+      const nq = M.normAr ? M.normAr(q) : q.trim();
+      if(nq){
+        const list = D.filter(d=>(M.normAr ? M.normAr(d[1] + ' ' + d[2]) : d[1]).includes(nq));
+        box.append(listHead('نتائج البحث', list), ...(list.length ? list.map(card) : [h('div.dl-empty', 'لا توجد نتائج — جرّب كلمة أخرى')]));
         return;
       }
-      let list = D;
-      if(onlyFav){ const f = favs(); list = D.filter((d, i)=>f.includes(String(i))); }
-      else if(cat) list = D.filter(d=>d[0] === cat);
-      if(nq) list = list.filter(d=>(M.normAr ? M.normAr(d[1]+' '+d[2]) : d[1]).includes(nq));
-      box.append(h('button.chip', {onclick:()=>{ cat = null; onlyFav = false; q = ''; search.value = ''; draw(); }}, M.ic('back'), ' كل الأقسام'));
-      if(!list.length) box.append(h('div.muted.center', {style:'padding:30px'}, 'لا توجد نتائج'));
-      list.forEach((d, i)=>box.append(card(d, i)));
+      if(mode === 'fav'){ const f = favs(), list = D.filter((d, i)=>f.includes(String(i))); box.append(listHead('مفضلتي', list), ...(list.length ? list.map(card) : [h('div.dl-empty', 'اضغط ♡ على أي دعاء ليُحفظ هنا')])); return; }
+      if(mode === 'recent'){ const list = recent().map(i=>D[i]).filter(Boolean); box.append(listHead('آخر ما قرأت', list), ...(list.length ? list.map(card) : [h('div.dl-empty', 'لم تقرأ دعاءً بعد')])); return; }
+      if(cat){ const c = CATS.find(x=>x[0] === cat), list = D.filter(d=>d[0] === cat); box.append(listHead(c ? c[1] : '', list), ...list.map(card)); return; }
+      /* the hub */
+      const day = M.duaDayCard ? M.duaDayCard() : null;
+      if(day) box.append(day);
+      const qk = (ic, t, sub, fn, cls)=>h('button.dl-qk' + (cls ? '.' + cls : ''), {onclick:fn}, h('span.dl-qi', {html:M.icon(ic)}), h('b', t), h('small', sub));
+      box.append(h('div.dl-quick',
+        qk('heart', 'مفضلتي', favs().length ? M.n(favs().length) : 'فارغة', ()=>{ mode = 'fav'; draw(); }, 'fav'),
+        qk('history', 'آخر ما قرأت', recent().length ? M.n(recent().length) : '—', ()=>{ mode = 'recent'; draw(); }, 'rec'),
+        qk('star', 'دعاء عشوائي', 'اضغط', ()=>{ const d = D[Math.floor(Math.random() * D.length)]; seen(D.indexOf(d)); M.sheet({title:'دعاء عشوائي', content:h('div.dl-rnd', card(d))}); }, 'rnd'),
+        qk('t:typography', 'حجم الخط', M.n(Math.round(fsz() * 100)) + '٪', ()=>{ const v = fsz() + 0.1; M.save('duaSize', v > 1.55 ? 0.85 : +v.toFixed(2)); draw(); }, 'fs')));
+      const cg = h('div.dl-coll');
+      COLLECTIONS.forEach(([id, n, ic, sub], k)=>{ if(!(M.SECTIONS || []).some(x=>x[0] === id)) return; cg.append(h('button.dl-cc', {style:'--dc:' + HUE[(k + 3) % HUE.length], onclick:()=>M.sectionOpen(id)}, h('span.dl-ci', {html:M.icon(ic)}), h('b', n), h('small', sub))); });
+      if(M.openHal) cg.prepend(h('button.dl-cc', {style:'--dc:#0f7a68', onclick:()=>M.openHal()}, h('span.dl-ci', {html:M.icon('s:dua')}), h('b', 'أدعية لكل حال'), h('small', 'لكل موقف دعاؤه')));
+      box.append(h('div.dl-sh', 'مجموعات الأدعية'), cg, h('div.dl-sh', 'حسب الحاجة'));
+      const g = h('div.dl-needs');
+      CATS.forEach(([id, n, ic], k)=>g.append(h('button.dl-need', {style:'--dc:' + HUE[k % HUE.length], onclick:()=>{ cat = id; draw(); view.body.scrollTop = 0; }}, h('span.dl-ni', {html:M.icon(ic)}), h('div.grow', h('b', n), h('small', M.cnt(D.filter(d=>d[0] === id).length, 'دعاء'))), M.ic('back'))));
+      box.append(g, h('div.dl-note', 'الأدعية من القرآن الكريم والسنة الصحيحة مع ذكر المصدر. الدعاء عبادة؛ ادعُ بما شئت بلغتك أيضًا.'));
     }
     draw();
   }});

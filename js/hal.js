@@ -74,7 +74,7 @@ M.duaDayCard = function(){
   const [tn, it] = x;
   const copy = plain(it[0]) + '\n[' + it[2] + (it[3] ? ' — ' + it[3] : '') + ']';
   return h('section.card.pad.dd-card', {dataset:{hk:'duaday'}},
-    h('div.dd-h', h('span.dd-ic', {html:M.icon('heart')}), h('div.grow', h('b.title-font', 'دعاء اليوم'), h('small', tn)),
+    h('div.dd-h', h('div.grow', h('b.title-font', 'دعاء اليوم'), h('small', tn)),
       h('button.icon-btn', {'aria-label':'مشاركة', onclick:e=>{ e.stopPropagation(); M.share(copy); }}, M.ic('share'))),
     h('div.dd-t.qfont', plain(it[0])),
     h('div.dd-f', h('span.badge.gold', it[2]), it[3] ? h('span.badge.ok', it[3]) : null, h('span.grow'),

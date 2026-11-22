@@ -76,7 +76,7 @@ M.voiceBar = function(onCount, o){
   const sysOk = ()=>!!(M.speech && M.speech.available()), appOk = ()=>!!(M.qasr && M.qasr.supported());
   const canSpeech = ()=>!!(o.phrase && (sysOk() || appOk()));
   // which recogniser: the app's own (no system service, no beep) unless the phone's was chosen
-  const engine = ()=>M.cfg.vcEng === 'system' && sysOk() ? 'system' : appOk() ? 'app' : 'system';
+  const engine = ()=>M.cfg.vcEng === 'system' && sysOk() ? 'system' : M.cfg.vcEng !== 'app' && M.isIOS && sysOk() ? 'system' : appOk() ? 'app' : 'system';
   const smart = ()=>canSpeech() && M.cfg.vcMode !== 'vad';
   const target = ()=>{ try{ return o.phrase ? String(o.phrase() || '') : ''; }catch(e){ return ''; } };
   const short = t=>{ t = String(t).replace(/[ً-ٰٟ]/g, ''); return t.length > 26 ? t.slice(0, 24)+'…' : t; };
@@ -121,6 +121,7 @@ M.voiceBar = function(onCount, o){
     } else if(smart()){
       mode = 'speech'; sess = 0; set(true); st.textContent = 'جارٍ تشغيل الميكروفون…';
       try{ window.Android && window.Android.speechSilent && window.Android.speechSilent(M.cfg.micBeep !== true); }catch(e){}
+      const t0 = target(), tw = M.arWords(t0);
       M.speech.start('ar-SA', ev=>{
         if(mode !== 'speech') return;
         if(ev.type === 'ready'){ st.textContent = 'أستمع…'; return; }
@@ -131,7 +132,7 @@ M.voiceBar = function(onCount, o){
         for(let k = sess; k < n; k++) hit();
         sess = Math.max(sess, n);
         if(ev.type === 'final') sess = 0;
-      });
+      }, t0 ? [t0, Array(3).fill(t0).join(' ')].concat(tw.length > 3 ? [tw.slice(0, 3).join(' '), tw.slice(-3).join(' ')] : []) : null);
     } else {
       if(!M.voiceSupported()){ M.toast('العدّ بالصوت غير متاح على هذا الجهاز'); return; }
       st.textContent = 'جارٍ تشغيل الميكروفون…';
@@ -158,9 +159,10 @@ window.onSpeech = ev=>{ try{ if(ev && ev.extra && !ev.alts){ try{ ev.alts = JSON
 M.speechReadings = ev=>[ev.text || ''].concat(Array.isArray(ev.alts) ? ev.alts : []).filter(Boolean);
 M.speech = {
   available(){ try{ if(A() && A().speechAvailable) return !!A().speechAvailable(); }catch(e){} return !!(window.SpeechRecognition || window.webkitSpeechRecognition); },
-  start(lang, fn){
-    handler = fn;
-    if(A() && A().speechStart){ A().speechStart(lang || 'ar-SA'); return; }
+  /* hints: the words expected next (the iPhone's recogniser prefers them; others ignore them) */
+  start(lang, fn, hints){
+    handler = fn; M.speech._lang = lang || 'ar-SA';
+    if(A() && A().speechStart){ if(M.isIOS && hints && hints.length) A().speechStart(lang || 'ar-SA', JSON.stringify(hints)); else A().speechStart(lang || 'ar-SA'); return; }
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if(!SR){ fn({type:'error', text:'unavailable'}); return; }
     let alive = true;
     const go = ()=>{
@@ -176,6 +178,8 @@ M.speech = {
     web = null; go();
     M.speech._stopWeb = ()=>{ alive = false; try{ web && web.stop(); }catch(e){} };
   },
+  /* new expected words while listening (from the next sentence on) */
+  hint(hints){ try{ if(handler && M.isIOS && A() && A().speechStart && hints && hints.length) A().speechStart(M.speech._lang || 'ar-SA', JSON.stringify(hints)); }catch(e){} },
   stop(){ const fn = handler; handler = null; try{ if(A() && A().speechStop) A().speechStop(); }catch(e){} try{ M.speech._stopWeb && M.speech._stopWeb(); }catch(e){} if(fn) setTimeout(()=>fn({type:'end'}), 0); }
 };
 

@@ -20,7 +20,7 @@
   --font-title:"El Messiri","Readex Pro","Noto Sans Arabic",sans-serif;
   --tabbar-h:78px;
   --gold:#c9a24b;--ok:#2e9d6a;--danger:#d64545;--warn:#e0a21a;
-  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
+  --sat:max(env(safe-area-inset-top,0px),var(--nat-t,0px));--sab:max(env(safe-area-inset-bottom,0px),var(--nat-b,0px));
   --fs:1; /* UI font scale */
 }
 @supports (transition-timing-function:linear(0,1)){:root{--sp:linear(0,.18 5%,.55 11%,.88 19%,1.04 28%,1.07 34%,1.04 42%,1.01 52%,.995 64%,1);--spring:var(--sp)}}

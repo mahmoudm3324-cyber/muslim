@@ -28,6 +28,7 @@ async function textOf0(it, variant){
 }
 function prayerKeyNow(){ try{ const i = M.nextPrayer(); const prev = i.prev.k; return prev === 'sunrise' ? 'fajr' : prev; }catch(e){ return 'fajr'; } }
 
+const TONE = {morning:'sun', evening:'dusk', after:'teal', sleep:'night', wake:'sky', duas:'green', misc:'green', favs:'rose', mine:'green'};
 const CATS = [
  {id:'morning', title:'أذكار الصباح', icon:'sunrise', desc:'من الفجر حتى الضحى', trk:'adhkar_morning'},
  {id:'evening', title:'أذكار المساء', icon:'moon', desc:'من العصر حتى المغرب', trk:'adhkar_evening'},
@@ -119,32 +120,43 @@ function openCategory(cat, ctx){
     const items = itemsFor(cat, ctx), P = prog(), tk = M.dkey(); const day = P[tk] = P[tk] || {};
     const key = i=>cat === 'after' ? i.id+'@'+ctx.prayer : i.id;
     const doneN = ()=>items.filter(i=>(day[key(i)] || 0) >= i.n).length;
-    const hdr = h('div.row-flex', h('div.grow', h('div.bold', meta.title), h('div.small.muted', 'تم '+M.n(doneN())+' من '+M.n(items.length))), h('button.btn.sm.tonal', {onclick:()=>{ items.forEach(i=>{ delete day[key(i)]; }); saveProg(P); if(trkId()) M.T && M.T.check(M.dkey(), trkId(), false); draw(); }}, M.ic('refresh'), 'إعادة'));
-    const bar = h('div.bar', h('i', {style:'width:'+(items.length ? doneN()/items.length*100 : 0)+'%'}));
-    head.append(hdr, h('div', {style:'height:10px'}), bar);
+    const ring = M.ring(items.length ? doneN() / items.length : 0, 62, 6, M.n(doneN())+'/'+M.n(items.length));
+    const hdr = h('div.dh-hrow', h('span.dh-hic', {html:M.icon(meta.icon)}),
+      h('div.grow', h('div.dh-ht.title-font', meta.title), h('div.small.dh-hs', 'تم '+M.n(doneN())+' من '+M.n(items.length))), ring);
+    const tool = (ic, label, fn)=>h('button.dh-tool', {'aria-label':label, onclick:fn}, M.ic(ic), h('span', label));
+    const tools = h('div.dh-tools',
+      tool('layers', 'واحدًا واحدًا', async()=>{ const list = []; for(const i of items) list.push([await textOf(i, i.v), i.n || 1, [i.src, i.g].filter(Boolean).join(' — ')]); M.dhikrPager(meta.title, list, {start:Math.max(0, items.findIndex(i=>(day[key(i)] || 0) < i.n))}); }),
+      tool('t:typography', 'حجم الخط', ()=>{ const v = ((+M.cfg.dhSize || 1) + 0.1); M.save('dhSize', v > 1.45 ? 0.85 : +v.toFixed(2)); list.style.setProperty('--dhfs', M.cfg.dhSize); }),
+      tool('refresh', 'إعادة', ()=>{ items.forEach(i=>{ delete day[key(i)]; }); saveProg(P); if(trkId()) M.T && M.T.check(M.dkey(), trkId(), false); draw(); }));
+    const bar = {firstChild:{style:{}}};
+    head.className = 'dh-hero tone-' + (TONE[cat] || 'green');
+    head.append(hdr, tools);
+    list.style.setProperty('--dhfs', +M.cfg.dhSize || 1);
     const favSet = favs();
+    let idx = 0;
     for(const it of items){
+      idx++;
       const txt = await textOf(it, it.v);
       const k = key(it); const left = ()=>Math.max(0, it.n - (day[k] || 0));
       const countBtn = h('button.dh-count'+(M.cfg.cntGreen ? '.green' : ''), {'aria-label':'عدّ', style:M.cfg.cntSize && M.cfg.cntSize !== 1 ? 'transform:scale('+M.cfg.cntSize+')' : ''});
       const card = h('article.card.dhikr'+(left() === 0 ? '.done' : ''),
-        it.title ? h('div.dh-title.title-font', it.title) : null,
+        h('div.dh-top', h('span.dh-no.num', M.n(idx)), it.title ? h('div.dh-title.title-font', it.title) : h('div.grow'), it.n > 1 ? h('span.dh-rep', '× '+M.n(it.n)) : null),
         h('div.dh-text.qfont', txt),
         h('div.dh-meta', h('span.badge.gold', it.src), it.g ? h('span.badge.ok', it.g) : null),
-        it.fadl && !M.cfg.hideFadl ? h('div.dh-fadl.small.muted', it.fadl) : null,
+        it.fadl && !M.cfg.hideFadl ? h('div.dh-fadl', h('b', 'فضله'), h('span', it.fadl)) : null,
         h('div.dh-actions',
           h('button.icon-btn', {'aria-label':'مفضلة', onclick:e=>{ e.stopPropagation(); const f = favs(); f.has(it.id) ? f.delete(it.id) : f.add(it.id); saveFavs(f); e.currentTarget.classList.toggle('on', f.has(it.id)); M.haptic(8); }}, M.ic('heart')),
           h('button.icon-btn', {'aria-label':'نسخ', onclick:e=>{ e.stopPropagation(); M.copy(txt.trim()+'\n['+it.src+']'); }}, M.ic('copy')),
-          h('button.icon-btn', {'aria-label':'مشاركة', onclick:e=>{ e.stopPropagation(); M.share(txt.trim()+'\n['+it.src+']'); }}, M.ic('share')),
+          h('button.icon-btn', {'aria-label':'مشاركة', onclick:e=>{ e.stopPropagation(); if(M.shareCard) M.shareCard(txt.trim(), it.src); else M.share(txt.trim()+'\n['+it.src+']'); }}, M.ic('share')),
           h('span.grow'), countBtn));
       if(favSet.has(it.id)) card.querySelector('[aria-label="مفضلة"]').classList.add('on');
-      const paint = ()=>{ const l = left(); countBtn.innerHTML = l === 0 ? M.icon('check') : '<b class="num">'+M.n(l)+'</b>'; card.classList.toggle('done', l === 0); };
+      const paint = ()=>{ const l = left(), f = it.n ? 1 - l / it.n : 1; countBtn.innerHTML = '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21" class="dc-t"/><circle cx="24" cy="24" r="21" class="dc-f" style="stroke-dashoffset:'+(132 * (1 - f)).toFixed(1)+'"/></svg>' + (l === 0 ? M.icon('check') : '<b class="num">'+M.n(l)+'</b>'); card.classList.toggle('done', l === 0); };
       paint();
       card.addEventListener('click', ()=>{
         if(left() === 0) return;
         day[k] = (day[k] || 0) + 1; saveProg(P); if(left() === 0){ if(M.cfg.cntVibEnd !== false) M.haptic(30); } else if(M.cfg.cntVib !== false) M.haptic(10); if(M.cfg.cntSound) M.beep(880, .04, .08); paint();
         card.classList.remove('bump'); void card.offsetWidth; card.classList.add('bump');
-        const d = doneN(); hdr.querySelector('.small').textContent = 'تم '+M.n(d)+' من '+M.n(items.length); bar.firstChild.style.width = (d/items.length*100)+'%';
+        const d = doneN(); hdr.querySelector('.dh-hs').textContent = 'تم '+M.n(d)+' من '+M.n(items.length); ring.set(d / items.length); const rt = ring.querySelector('.rt'); if(rt) rt.textContent = M.n(d)+'/'+M.n(items.length);
         if(left() === 0){ M.beep(740, .08, .12); }
         if(d === items.length){
           const id = trkId(); if(id && M.T){ M.T.check(M.dkey(), id, true); }

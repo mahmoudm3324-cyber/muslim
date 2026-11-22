@@ -195,10 +195,29 @@ function sizeBtn(){
   const small = SZ() === 'sm';
   return h('button.icon-btn.pop-x.pop-sz', {'aria-label':small ? 'تكبير النافذة' : 'تصغير النافذة', onclick:()=>setSize(small ? (ucfg().big === 'lg' ? 'lg' : 'md') : 'sm')}, M.ic(small ? 'enlarge' : 'shrink'));
 }
+/* where the circle sits, relative to the card's centre: the card folds into it and opens out of it */
+function bubAim(root, card){
+  try{
+    const r = root.getBoundingClientRect(), c = card.getBoundingClientRect(); if(!c.width) return;
+    const rtl = getComputedStyle(root).direction === 'rtl', y = Math.max(.08, Math.min(.86, +ucfg().by || .62));
+    const bx = rtl ? r.left + 12 + 32 : r.right - 12 - 32, by = r.top + r.height * y + 32;
+    root.style.setProperty('--bx', Math.round(bx - (c.left + c.width / 2))+'px'); root.style.setProperty('--by', Math.round(by - (c.top + c.height / 2))+'px');
+  }catch(e){}
+}
 function bubble(on){
   if(!open) return;
-  open.bub = !!on; open.el.classList.toggle('pop-bub', !!on);
-  if(on){ stopAudio(); placeBub(open.el); }
+  on = !!on; const el = open.el, was = !!open.bub;
+  open.bub = on;
+  if(on){ stopAudio(); placeBub(el); }
+  if(FLOAT() || was === on || (M.cfg && M.cfg.anim === false)){ el.classList.toggle('pop-bub', on); }
+  else if(on){
+    bubAim(el, open.card); el.classList.add('pop-folding');
+    clearTimeout(el._bt); el._bt = setTimeout(()=>{ el.classList.remove('pop-folding'); if(open && open.el === el && open.bub) el.classList.add('pop-bub'); }, 270);
+  } else {
+    clearTimeout(el._bt); el.classList.remove('pop-folding', 'pop-bub'); el.classList.add('pop-unbub');
+    bubAim(el, open.card);
+    el._bt = setTimeout(()=>el.classList.remove('pop-unbub'), 460);
+  }
   if(FLOAT()){ try{ A().popupBubble && A().popupBubble(!!on); }catch(e){} if(!on) setTimeout(()=>M.popupResize && M.popupResize(), 30); }
   if(!on) requestAnimationFrame(()=>open && fitDy(open.el, open.card));
   M.haptic && M.haptic(8);

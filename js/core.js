@@ -18,7 +18,7 @@ const M = window.M = window.M || {};
   if(window.visualViewport) visualViewport.addEventListener('resize', function(){ setTimeout(back, 60); });
   document.addEventListener('focusout', function(){ setTimeout(back, 120); });
 }catch(e){} })();
-M.VERSION = '4.2.0';
+M.VERSION = '4.3.0';
 M.$ = (s,r)=>(r||document).querySelector(s);
 M.$$ = (s,r)=>Array.from((r||document).querySelectorAll(s));
 
@@ -398,6 +398,7 @@ M.ring = function(pct, size, stroke, content){
   const wrap = h('div.ring', {style:`width:${size}px;height:${size}px`});
   wrap.innerHTML = `<svg width="${size}" height="${size}"><circle class="bgc" cx="${size/2}" cy="${size/2}" r="${r}" stroke-width="${stroke}"/><circle class="fgc" cx="${size/2}" cy="${size/2}" r="${r}" stroke-width="${stroke}" stroke-dasharray="${c}" stroke-dashoffset="${c}"/></svg>`;
   const t = h('div.rt'); if(content) t.append(content); wrap.appendChild(t);
+  if(size < 64 && typeof content === 'string'){ t.style.fontSize = Math.round(size * (content.length > 3 ? .24 : .3))+'px'; t.style.fontWeight = '700'; t.style.letterSpacing = '-.02em'; }   // small rings: the figure fits inside
   const fg = wrap.querySelector('.fgc');
   wrap.set = p=>{ fg.style.strokeDashoffset = c * (1 - Math.max(0, Math.min(1, p))); };
   requestAnimationFrame(()=>requestAnimationFrame(()=>wrap.set(pct)));

@@ -69,7 +69,7 @@ function ringDial(qd){
     '<g transform="translate(' + C + ' ' + (C - RB) + ')"><g class="qr-kb"><circle r="48" class="qr-kc"/>' +
     '<path d="M-21 -13 L0 -21 L21 -13 L21 17 L0 25 L-21 17 Z" class="qr-kx"/><path d="M-21 -13 L0 -5 L21 -13 L0 -21 Z" class="qr-ktop"/><path d="M-21 -5 L0 3 L21 -5 L21 -1 L0 7 L-21 -1 Z" class="qr-kg"/><path d="M0 -5 L0 25" class="qr-kedge"/></g></g></g>';
   const el = h('div.qr', {html:
-    '<svg viewBox="40 40 920 920" class="qr-svg"><defs><linearGradient id="' + gid + '" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#fff" stop-opacity=".97"/></linearGradient></defs>' +
+    '<svg viewBox="40 40 920 920" class="qr-svg"><defs><linearGradient id="' + gid + '" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1" y2="0"><stop offset="0" style="stop-color:var(--qr-fanc,#fff);stop-opacity:.08"/><stop offset="1" style="stop-color:var(--qr-fanc,#fff);stop-opacity:var(--qr-fano,.97)"/></linearGradient></defs>' +
     '<g class="qr-dial"><circle cx="' + C + '" cy="' + C + '" r="' + ((RO + RI) / 2) + '" class="qr-band" stroke-width="' + (RO - RI) + '"/>' + ticks + labels + card + kaaba + '</g>' +
     '<path class="qr-fan" d="" fill="url(#' + gid + ')"/>' +
     '<g class="qr-cross"><line x1="' + (C - RF * 1.02) + '" y1="' + C + '" x2="' + (C + RF * 1.02) + '" y2="' + C + '"/><line x1="' + C + '" y1="' + (C - RF * 1.15) + '" x2="' + C + '" y2="' + (C + RF * 1.15) + '"/></g>' +

@@ -26,7 +26,11 @@ function open(init){
   let toks = [], groups = [], marks = [], base = 0, hints = 0, ended = false, tentative = null, playing = null, resumeAfter = false, flushing = false, busy = false;
   const sysOk = ()=>!!(M.speech && M.speech.available());
   const appOk = ()=>!!(M.qasr && M.qasr.supported());
+  /* 4.3: on the iPhone the phone's recogniser is the default (once: a later choice of the app's recogniser stays) */
+  if(M.isIOS && sysOk() && !M.store.get('ts:eng43', false)){ M.store.set('ts:eng43', true); st.eng = 'system'; }
   const eng = ()=>st.eng === 'system' && sysOk() ? 'system' : appOk() ? 'app' : sysOk() ? 'system' : '';
+  /* the words expected next, for the phone's recogniser: the coming ayah text in short runs and whole */
+  const nextHints = ()=>{ const g0 = toks[base] ? toks[base].g : -1; if(g0 < 0) return []; const ws = groups.slice(g0, g0 + 24).filter(g=>!g.say).map(g=>M.arNorm(g.t)).filter(Boolean); const out = []; for(let i = 0; i < ws.length; i += 3) out.push(ws.slice(i, i + 4).join(' ')); out.unshift(ws.slice(0, 10).join(' ')); return out.slice(0, 40); };
   const view = M.openView({id:'tasmee', title:'تسميع القرآن', onClose:()=>{ stop(true); stopAyah(); }, actions:[h('button.icon-btn', {'aria-label':'الإعدادات', onclick:()=>settings()}, M.ic('settings'))]});
   const b = view.body; b.classList.add('ts-body');
   b.classList.add('ts2');
@@ -196,7 +200,7 @@ function open(init){
       M.qasr.listen(onSpeech, {hint:()=>{ const g0 = toks[base] ? toks[base].g : -1; if(g0 < 0) return ''; return groups.slice(g0, g0 + 28).filter(g=>!g.say).map(g=>g.t).join(' '); }, onProgress:f=>{ if(st.on && f < 1) say('جارٍ تنزيل المعرّف القرآني… '+M.n(Math.round(f * 100))+'٪'); }});
     } else {
       try{ window.Android && window.Android.speechSilent && window.Android.speechSilent(M.cfg.micBeep !== true); }catch(e2){}
-      M.speech.start('ar-SA', onSpeech);
+      M.speech.start('ar-SA', ev=>{ onSpeech(ev); if(ev && ev.type === 'final' && M.speech.hint) M.speech.hint(nextHints()); }, nextHints());
       // the web recogniser has no level: animate gently while listening
       if(!(window.Android && window.Android.speechStart)){ const t = setInterval(()=>{ if(!st.on){ clearInterval(t); meter(-5); return; } meter(2 + Math.random() * 6); }, 160); }
     }

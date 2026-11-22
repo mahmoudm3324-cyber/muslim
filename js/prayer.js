@@ -235,7 +235,7 @@ function prayerSettings(){
   M.sheet({title:'إعدادات المواقيت', content:body});
 }
 /* the iPhone Live Activity can end at the iqama: keep its minutes in step */
-const liveCfgPush = ()=>{ if(!(window.Android && Android.setLiveCfg)) return; const c = Object.assign({style:'next', island:'name', end:'adhan'}, M.cfg.liveCfg || {}); try{ Android.setLiveCfg(JSON.stringify({style:c.style, island:c.island, end:c.end, iqama:M.cfg.iqama || {}, lang:M.lang || 'ar'})); }catch(e){} };
+const liveCfgPush = ()=>{ if(!(window.Android && Android.setLiveCfg)) return; const c = Object.assign({style:'next', island:'name', end:'adhan', color:'teal'}, M.cfg.liveCfg || {}); try{ Android.setLiveCfg(JSON.stringify({style:c.style, island:c.island, end:c.end, color:c.color, iqama:M.cfg.iqama || {}, lang:M.lang || 'ar'})); }catch(e){} };
 setTimeout(liveCfgPush, 3500);   // the iPhone activity learns the app's language and settings at start
 M.on('settings', k=>{ if(k === 'iqama' || k === 'lang' || k === 'liveCfg') liveCfgPush(); });
 M.openIqama = function(){

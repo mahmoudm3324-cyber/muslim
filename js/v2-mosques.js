@@ -30,31 +30,67 @@ async function queryGoogle(lat, lng){
   if(!out.length) throw new Error('empty');
   return out;
 }
-function queryOsm(lat, lng){
-  const q = '[out:json][timeout:15];nwr["amenity"="place_of_worship"]["religion"="muslim"](around:' + MAXR + ',' + lat.toFixed(5) + ',' + lng.toFixed(5) + ');out center tags 200;';
+function queryOsm(lat, lng, rad){
+  const A = '(around:' + (rad || MAXR) + ',' + lat.toFixed(5) + ',' + lng.toFixed(5) + ')';
+  const q = '[out:json][timeout:12];(nwr["amenity"="place_of_worship"]["religion"="muslim"]' + A + ';nwr["building"="mosque"]' + A + ';);out center tags qt 160;';
   const ctrls = EPS.map(()=>new AbortController());
   const one = (u, i)=>new Promise((res, rej)=>{
-    const t = setTimeout(()=>{ ctrls[i].abort(); rej(new Error('timeout')); }, 14000);
+    const t = setTimeout(()=>{ ctrls[i].abort(); rej(new Error('timeout')); }, 11000);
     fetch(u + '?data=' + encodeURIComponent(q), {signal:ctrls[i].signal}).then(r=>{ if(!r.ok) throw new Error('http' + r.status); return r.json(); })
       .then(j=>{ clearTimeout(t); if(!j || !Array.isArray(j.elements)) throw new Error('bad'); res(j.elements); }).catch(e=>{ clearTimeout(t); rej(e); });
   });
-  const tries = EPS.map((u, i)=>new Promise(r=>setTimeout(r, i * 900)).then(()=>one(u, i)));
-  return any(tries).then(els=>{ ctrls.forEach(c=>{ try{ c.abort(); }catch(e){} }); return els.map(e=>{
+  const tries = EPS.map((u, i)=>new Promise(r=>setTimeout(r, i * 700)).then(()=>one(u, i)));
+  return any(tries).then(els=>{ ctrls.forEach(c=>{ try{ c.abort(); }catch(e){} }); return Promise.resolve(els.map(e=>{
     const la = e.lat != null ? e.lat : e.center && e.center.lat, lo = e.lon != null ? e.lon : e.center && e.center.lon;
     if(la == null) return null;
     const tg = e.tags || {};
     return {id:e.type + e.id, name:tg['name:ar'] || tg.name || tg['name:en'] || '', lat:la, lng:lo, kind:tg.building === 'mosque' || /mosque|مسجد|جامع/i.test(tg.name || '') ? 'مسجد' : 'مصلّى', addr:[tg['addr:street'], tg['addr:city']].filter(Boolean).join('، '), rating:0, votes:0, hours:tg.opening_hours || '', photo:'', uri:''};
-  }).filter(Boolean); });
+  }).filter(Boolean)).then(merge); });
 }
-async function query(lat, lng){
+/* one mosque found twice (its building and the prayer place on it, or from both sources): the same OSM object, closer than
+   25 m, or closer than 45 m with the same name (or none) */
+function merge(list){
+  const out = [];
+  list.forEach(m=>{
+    const o = out.find(x=>x.id === m.id || (()=>{ const d = dist(x.lat, x.lng, m.lat, m.lng); return d < 0.025 || (d < 0.045 && (!x.name || !m.name || x.name === m.name)); })());
+    if(!o){ out.push(m); return; }
+    if(!o.name && m.name){ o.name = m.name; o.kind = m.kind; }
+    if(!o.addr && m.addr) o.addr = m.addr;
+  });
+  return out;
+}
+const PT = {N:'node', W:'way', R:'relation'};
+function queryPhoton(lat, lng){
+  const one = q=>fetch('https://photon.komoot.io/api/?q=' + encodeURIComponent(q) + '&lat=' + lat.toFixed(5) + '&lon=' + lng.toFixed(5) + '&limit=50&lang=default&location_bias_scale=0.2&zoom=15&osm_tag=amenity:place_of_worship', {signal:AbortSignal.timeout ? AbortSignal.timeout(9000) : undefined})
+    .then(r=>{ if(!r.ok) throw new Error('http' + r.status); return r.json(); }).then(j=>(j && j.features) || []);
+  return Promise.allSettled(['مسجد', 'جامع', 'mosque', 'masjid'].map(one)).then(rs=>{
+    const fs = [].concat(...rs.filter(r=>r.status === 'fulfilled').map(r=>r.value));
+    if(!fs.length && rs.every(r=>r.status === 'rejected')) throw new Error('photon');
+    return merge(fs.map(f=>{
+      const pr = f.properties || {}, c = f.geometry && f.geometry.coordinates; if(!c) return null;
+      const name = /^(mosque|masjid|مسجد|جامع|مصلى|مصلّى)$/i.test((pr.name || '').trim()) ? '' : (pr.name || '');
+      if(/church|كنيس|cathedral|دير |synagogue|temple/i.test(name)) return null;
+      return {id:(PT[pr.osm_type] || pr.osm_type) + pr.osm_id, name, lat:c[1], lng:c[0], kind:/جامع/.test(name) ? 'جامع' : 'مسجد', addr:[pr.street, pr.district || pr.city].filter(Boolean).join('، '), rating:0, votes:0};
+    }).filter(m=>m && dist(lat, lng, m.lat, m.lng) <= MAXR / 1000));
+  });
+}
+async function query(lat, lng, rad){
   if(navigator.onLine && !M.googleFailed()){ try{ return {src:'google', items:await queryGoogle(lat, lng)}; }catch(e){ try{ console.warn('places', e && e.message || e); }catch(_){} } }
-  return {src:'osm', items:await queryOsm(lat, lng)};
+  return {src:'osm', items:await queryOsm(lat, lng, rad), rad:rad || MAXR};
 }
 const cacheGet = (lat, lng)=>{ const c = M.store.get(CK, null); if(!c || Date.now() - c.at > TTL || dist(lat, lng, c.lat, c.lng) > 0.4) return null; return c; };
 const cacheSet = (lat, lng, src, items)=>{ try{ M.store.set(CK, {lat, lng, at:Date.now(), src, items:items.map(x=>Object.assign({}, x, {photo:''}))}); }catch(e){} };
+/* where the user stands, as precisely as the phone can tell within a few seconds (the GPS, not the saved city) */
 const quickFix = ()=>new Promise((res, rej)=>{
   if(!navigator.geolocation) return rej(new Error('unsupported'));
-  navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude, lng:p.coords.longitude}), rej, {enableHighAccuracy:false, timeout:7000, maximumAge:15 * 60000});
+  let best = null, done = false, id = null;
+  const end = ()=>{ if(done) return; done = true; try{ navigator.geolocation.clearWatch(id); }catch(e){} clearTimeout(t1); clearTimeout(t2); best ? res(best) : rej(new Error('nofix')); };
+  const t1 = setTimeout(()=>{ if(best) end(); }, 6000), t2 = setTimeout(end, 12000);
+  id = navigator.geolocation.watchPosition(p=>{
+    const c = p.coords, f = {lat:c.latitude, lng:c.longitude, acc:c.accuracy || 999};
+    if(!best || f.acc < best.acc) best = f;
+    if(best.acc <= 40) end();
+  }, e=>{ if(!best){ done = true; clearTimeout(t1); clearTimeout(t2); try{ navigator.geolocation.clearWatch(id); }catch(_){} rej(e); } }, {enableHighAccuracy:true, timeout:12000, maximumAge:30000});
 });
 
 /* ---------- pins ---------- */
@@ -162,8 +198,16 @@ function open(){
       else loading('جارٍ البحث عن المساجد…');
       const slow = setTimeout(()=>{ if(my === token && !all) loading('الشبكة بطيئة… ما زلنا نحاول'); }, 6000);
       try{
-        const res = await query(p.lat, p.lng); clearTimeout(slow); if(my !== token) return;
-        cacheSet(p.lat, p.lng, res.src, res.items); all = res.items; src = res.src; await initMap(); paint(true);
+        let g = null;
+        if(navigator.onLine && !M.googleFailed()){ try{ g = await queryGoogle(p.lat, p.lng); }catch(e){ try{ console.warn('places', e && e.message || e); }catch(_){} } }
+        if(my !== token) return;
+        if(g){ clearTimeout(slow); all = g; src = 'google'; cacheSet(p.lat, p.lng, src, all); await initMap(); paint(true); return; }
+        let first = true;
+        const show = items=>{ if(my !== token || !items) return; all = merge((all && src === 'osm' ? all : []).concat(items)); src = 'osm'; cacheSet(p.lat, p.lng, src, all); clearTimeout(slow); initMap().then(()=>{ if(my === token) paint(first); first = false; }); };
+        const fast = queryPhoton(p.lat, p.lng).then(show);
+        const full = queryOsm(p.lat, p.lng, 2000).then(show).then(()=>queryOsm(p.lat, p.lng, MAXR)).then(show);
+        await any([fast, full]);
+        full.catch(()=>{});
       }catch(e){
         clearTimeout(slow); if(my !== token || all) return;
         list.replaceChildren(h('div.card.pad.mq-err', navigator.onLine ? 'تعذّر جلب القائمة الآن. حاول لاحقًا.' : 'يلزم اتصال بالإنترنت للبحث عن المساجد.', h('button.btn.tonal.sm', {onclick:()=>fetchFor(p)}, 'إعادة المحاولة')));
@@ -175,7 +219,7 @@ function open(){
       else loading('جارٍ تحديد موقعك…');
       try{
         const g = await quickFix();
-        if(!pos || dist(pos.lat, pos.lng, g.lat, g.lng) > 0.3){ pos = g; all = null; sel = null; if(mapApi) mapApi.center(pos); initMap(); fetchFor(pos); }
+        if(!pos || dist(pos.lat, pos.lng, g.lat, g.lng) > 0.15){ pos = g; all = null; sel = null; if(mapApi) mapApi.center(pos); initMap(); fetchFor(pos); }
         else { pos = g; paint(); }
       }catch(e){
         if(!pos) list.replaceChildren(h('div.card.pad.mq-err', 'تعذّر تحديد موقعك. فعّل الموقع أو حدّده من إعدادات الصلاة.', h('button.btn.tonal.sm', {onclick:start}, 'إعادة المحاولة')));

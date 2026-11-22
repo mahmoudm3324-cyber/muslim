@@ -222,8 +222,17 @@ function watchDigits(){
   const walk = el=>{ if(el.nodeType === 3){ fix(el); return; } if(el.nodeType !== 1 || el.tagName === 'SCRIPT' || el.tagName === 'STYLE' || el.tagName === 'TEXTAREA') return; const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {acceptNode:n=>n.nodeType === 1 ? (n.classList.contains('qb') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_SKIP) : NodeFilter.FILTER_ACCEPT}); let n; while((n = tw.nextNode())) fix(n); };
   new MutationObserver(list=>{ for(const m of list){ if(m.type === 'characterData') fix(m.target); else m.addedNodes.forEach(walk); } }).observe(document.getElementById('app'), {subtree:true, childList:true, characterData:true});
 }
+/* the page itself never scrolls (each screen scrolls inside): if the web view moved it (a focus, a restore), put it back */
+function pinPage(){
+  const typing = ()=>{ const a = document.activeElement; return a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable); };
+  const fix = ()=>{ if((window.scrollY || window.scrollX || document.documentElement.scrollTop) && !typing()) window.scrollTo(0, 0); };
+  window.addEventListener('scroll', fix, {passive:true});
+  document.addEventListener('focusout', ()=>setTimeout(fix, 60));
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) fix(); });
+  window.addEventListener('pageshow', fix);
+}
 function boot(){
-  watchDigits();
+  watchDigits(); pinPage();
   M.applyTheme();
   buildTabbar();
   M.setTab('home');
@@ -240,5 +249,6 @@ function boot(){
   // let the native splash know we're ready
   try{ window.Android && window.Android.ready && window.Android.ready(); }catch(e){}
 }
-if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+function boot2(){ boot(); setTimeout(()=>{ if(M.curTab && window.__bootDone) window.__bootDone(); }, 1500); }
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot2); else boot2();
 })();
