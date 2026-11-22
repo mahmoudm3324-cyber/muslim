@@ -52,17 +52,17 @@ S.floaters = {title:'الأزرار العائمة', build(b){
   const card = (ic, t, sub, ...rows)=>h('div.card.fb-card', h('div.fb-h', h('span.fb-ic', {html:M.icon(ic)}), h('div.grow', h('b', t), h('small', sub))), ...rows);
   const row = (l, ctl)=>h('div.fb-row', h('span', l), ctl);
   b.append(
-    h('div.fb-intro', 'اسحب أي دائرة عائمة لأي مكان، وتلتصق بأقرب حافة. لإغلاقها اسحبها إلى أسفل الشاشة حتى تظهر علامة ✕ وأفلتها عليها.'),
+    h('div.fb-intro', 'اسحب الدائرة لأي مكان. لإغلاقها أفلتها على ✕ أسفل الشاشة.'),
     card('s:grid', 'زر التنقّل', 'الدائرة التي تفتح أقسام التطبيق',
       row('الحجم', seg3(M.cfg.fbNav || 'md', v=>M.save('fbNav', v), 's:grid')),
       row('شفاف حين لا تستخدمه', M.switchEl(M.cfg.bubbleDim !== false, v=>M.save('bubbleDim', v)))),
-    card('play', 'مشغّل التلاوة', 'يظهر أثناء الاستماع؛ إسقاطه على ✕ يوقف التلاوة',
+    card('play', 'مشغّل التلاوة', 'يظهر أثناء الاستماع',
       row('الحجم', seg3(M.cfg.fbNp || 'md', v=>M.save('fbNp', v), 'play'))),
-    card('s:mushaf', 'دائرة الختمة والأذكار', 'حين تصغّر نافذة الختمة أو الأذكار',
+    card('s:mushaf', 'دائرة الختمة والأذكار', 'عند تصغير الختمة أو الأذكار',
       row('الحجم', seg3(pc.bsz || 'sm', v=>{ M.popupCfg && M.popupCfg.uset({bsz:v}); M.popupBubbleSize && M.popupBubbleSize(); }, 's:mushaf')),
       row('تبدأ مصغّرة', M.switchEl(!!pc.bubble, v=>M.popupCfg && M.popupCfg.uset({bubble:v})))),
     h('button.btn.tonal.block', {style:'margin-top:6px', onclick:()=>{
       try{ M.bubble && M.bubble.reset ? M.bubble.reset() : M.store.set('nbPos', null); M.npReset && M.npReset(); M.popupCfg && M.popupCfg.uset({by:.62, bs:''}); M.popupBubbleSize && M.popupBubbleSize(); }catch(e){}
-      M.toast && M.toast('عادت الأزرار إلى أماكنها'); }}, M.ic('refresh'), 'إرجاع الأزرار إلى أماكنها'));
+      M.toast && M.toast('تمت الإعادة'); }}, M.ic('refresh'), 'إرجاع الأزرار إلى أماكنها'));
 }};
 })();

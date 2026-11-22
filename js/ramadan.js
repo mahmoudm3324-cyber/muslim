@@ -79,7 +79,7 @@ M.openRamadan = function(opts){
           M.ring(pct, 52, 5, M.n(Math.round(pct * 100)) + '٪')),
         h('div.rg-set', h('span.small.muted', 'الهدف'), h('div.rg-step', h('button', {'aria-label':'أقل', onclick:()=>step(k, -d, d, max)}, '−'), h('b.num', M.n(want)), h('button', {'aria-label':'أكثر', onclick:()=>step(k, d, d, max)}, '+'))));
     };
-    el.append(h('div.rg-intro', 'حدّد ما تريد إنجازه في رمضان، ويُحسب التقدّم من سجلّاتك في التطبيق تلقائيًا.'),
+    el.append(h('div.rg-intro', 'يُحسب التقدّم من سجلّاتك في التطبيق.'),
       goal('quran', 'ختمات القرآن', T.pages / 604, G.khatma, 'ختمة', 'khatma', 1, 10),
       goal('mosque', 'ليالي التراويح', T.taraweeh, G.taraweeh, 'ليلة', 'taraweeh', 1, mlen),
       goal('heart', 'الصدقات', T.sadaqa, G.sadaqa || 0, 'مبلغ', 'sadaqa', 50, 1e6),
@@ -96,7 +96,7 @@ M.openRamadan = function(opts){
     el.append(h('div.section-h', 'أعمال كل يوم'), h('div.rs-map', ...T.days.map(d=>h('div.rs-day' + (d.fut ? '.fut' : '') + (d.now ? '.now' : ''), {style:'--v:' + (d.n / DEEDS.length).toFixed(2), title:'اليوم ' + d.i}, h('span.num', M.n(d.i))))),
       h('div.rs-key', h('span', 'أقل'), h('i', {style:'--v:.15'}), h('i', {style:'--v:.45'}), h('i', {style:'--v:.75'}), h('i', {style:'--v:1'}), h('span', 'أكثر')),
       T.owed ? h('div.card.pad.rs-owe', M.ic('clock'), h('span.grow', 'عليك قضاء ' + M.cnt(T.owed, 'يوم')), h('button.btn.sm.tonal', {onclick:()=>M.sectionOpen('qada')}, 'سجّل')) : null,
-      h('button.btn.tonal.block', {style:'margin-top:12px', onclick:()=>M.share('رمضان ' + M.n(y) + ' هـ حتى الآن:\n• صمت ' + M.cnt(T.fasted, 'يوم') + '\n• قرأت ' + M.cnt(T.pages, 'صفحة') + '\n• ' + M.cnt(T.taraweeh, 'ليلة') + ' تراويح\n— من تطبيق «المسلم»')}, M.ic('share'), 'شارك ملخصك'));
+      h('button.btn.tonal.block', {style:'margin-top:12px', onclick:()=>M.share('رمضان ' + M.n(y) + ' هـ حتى الآن:\n• صمت ' + M.cnt(T.fasted, 'يوم') + '\n• قرأت ' + M.cnt(T.pages, 'صفحة') + '\n• ' + M.cnt(T.taraweeh, 'ليلة') + ' تراويح\nتطبيق المسلم')}, M.ic('share'), 'شارك ملخصك'));
   }
   /* ---- 4.4 my charity: a short log, kept on the phone only ---- */
   function tSadaqa(el){
@@ -106,8 +106,8 @@ M.openRamadan = function(opts){
     const total = log.reduce((s, x)=>s + (+x.a || 0), 0);
     el.append(h('div.card.pad.rsd-total', h('small', 'مجموع صدقاتك في رمضان'), h('b.num', M.n(Math.round(total * 100) / 100)), h('small', M.cnt(log.length, 'صدقة'))),
       h('div.card.pad.col-flex', {style:'gap:8px'}, h('div.bold', 'صدقة جديدة'), amt, note,
-        h('button.btn.block', {onclick:()=>{ const a = +amt.value; if(!(a > 0)){ M.toast && M.toast('اكتب المبلغ'); return; } log.unshift({a, n:note.value.trim().slice(0, 60), d:inR ? dayNo : 0, at:Date.now()}); set('sadaqa', log.slice(0, 300)); M.haptic && M.haptic(12); M.toast && M.toast('تقبّل الله صدقتك'); paint(); }}, M.ic('plus'), 'إضافة')),
-      h('div.tiny.muted', {style:'margin:8px 4px'}, 'تبقى على جهازك فقط. «صدقة السر تطفئ غضب الرب».'));
+        h('button.btn.block', {onclick:()=>{ const a = +amt.value; if(!(a > 0)){ M.toast && M.toast('اكتب المبلغ'); return; } log.unshift({a, n:note.value.trim().slice(0, 60), d:inR ? dayNo : 0, at:Date.now()}); set('sadaqa', log.slice(0, 300)); M.haptic && M.haptic(12); M.toast && M.toast('أُضيفت'); paint(); }}, M.ic('plus'), 'إضافة')),
+      h('div.tiny.muted', {style:'margin:8px 4px'}, 'تُحفظ على جهازك فقط.'));
     if(log.length){ const l = h('div.card'); log.forEach((x, i)=>l.append(h('div.trk-row', h('div.grow', h('b.num', M.n(x.a)), h('div.tiny.muted', (x.d ? 'اليوم ' + M.n(x.d) + ' من رمضان' : new Date(x.at).toLocaleDateString('ar')) + (x.n ? ' • ' + x.n : ''))),
       h('button.icon-btn', {'aria-label':'حذف', onclick:()=>{ log.splice(i, 1); set('sadaqa', log); paint(); }}, M.ic('trash'))))); el.append(l); }
   }

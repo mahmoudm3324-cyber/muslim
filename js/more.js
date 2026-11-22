@@ -102,7 +102,7 @@ M.screens.more = {
         });
       }
       paintL();
-      M.sheet({title:'ترتيب المجموعات', content:h('div', h('div.mr-ohint', 'اسحب أي مجموعة من المقبض ⠿ أو استخدم الأسهم.'), list,
+      M.sheet({title:'ترتيب المجموعات', content:h('div', h('div.mr-ohint', 'اسحب من المقبض أو استخدم الأسهم.'), list,
         h('button.btn.tonal.block', {style:'margin-top:10px', onclick:()=>{ M.store.set('mrOrder', []); names.splice(0, names.length, ...M.orgGroups().filter(x=>x[1].some(y=>!SKIP.has(y[0]))).map(x=>x[0])); paintL(); draw(); }}, M.ic('refresh'), 'الترتيب الأصلي'))});
     }
     /* 4.5: every group folds and opens (tap its title); the choice is remembered */

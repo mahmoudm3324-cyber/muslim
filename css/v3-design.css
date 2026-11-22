@@ -1141,3 +1141,59 @@ html[dir=rtl] .mr-g.closed .mr-chev,[dir=rtl] .mr-g.closed .mr-chev{transform:ro
 .mr-or b{font-size:.92rem}
 .mr-oa{width:34px;height:34px;border:0;border-radius:10px;font-size:.7rem;color:var(--g);background:color-mix(in oklab,var(--g) 12%,transparent)}
 .mr-oa:disabled{opacity:.3}
+
+/* ===================================================================== 4.5.1 تنسيق موحّد
+   one family for the screen headers made in 4.x (adhkar, library, More, challenges): the same corner, padding, icon plate,
+   title and line; the library and the challenges take the app's colour like the More page; every content card the same corner */
+:root{--hero-r:28px;--card-r:22px;--hero-g:radial-gradient(130% 150% at 100% 0%,color-mix(in oklab,var(--p) 58%,#fff) 0%,var(--p) 42%,color-mix(in oklab,var(--p) 68%,#000) 100%)}
+.dh-hero,.dl-hero,.mr-hero,.ch-hero{border-radius:var(--hero-r)!important;padding:16px 16px 14px!important;margin-bottom:2px}
+.dl-hero,.ch-hero{background:var(--hero-g)!important;box-shadow:0 16px 34px -22px color-mix(in oklab,var(--p) 70%,#000)!important}
+.dh-hic,.dl-hic,.ch-hic{width:46px!important;height:46px!important;border-radius:16px!important;background:rgba(255,255,255,.18)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)!important}
+.dh-hic svg,.dl-hic svg,.ch-hic svg,.dh-hic .ic,.dl-hic .ic,.ch-hic .ic{width:26px!important;height:26px!important}
+.dh-ht,.dl-ht,.ch-ht,.mr-hero h1{font-size:1.42rem!important;font-weight:800!important;line-height:1.3!important}
+.dh-hs,.dl-hs,.ch-hs,.mr-hero .mr-sub{font-size:.8rem!important;opacity:.86}
+.ch-new{color:color-mix(in oklab,var(--p) 80%,#000)!important}
+.ch-stats span,.dh-tool,.mr-hb{background:rgba(255,255,255,.16)!important}
+/* content cards: one corner, one border, one shadow */
+.dl-card,.ch-card,.rg-card,.fb-card,.rq-dua,.rq-det,.mr-set,.rs-fig,.dl-need,.dl-qk,html[data-skin] .dhikr,html[data-skin] .dua-card{border-radius:var(--card-r)!important}
+/* section titles inside the new screens look like the app's own */
+.dl-sh,.mr-sh b{font-size:1rem;font-weight:800}
+.dl-sh{position:relative;padding-inline-start:12px}
+.dl-sh::before{content:'';position:absolute;inset-inline-start:0;top:50%;width:4px;height:16px;margin-top:-8px;border-radius:4px;background:var(--p);opacity:.75}
+/* tap feedback, the same everywhere */
+.dl-card:active,.ch-kind:active,.mr-st:active,.dl-cc:active,.rg-step button:active,.ch-adds button:active,.dl-act:active,.rq-ib:active{transform:scale(.97);transition:transform .1s}
+
+/* ===================================================================== 4.5.1 هدوء بصري
+   fewer effects, one calm surface: no decorative circles in the headers, no coloured stripes on the side of every card,
+   a quiet two-tone fill instead of a bright radial gradient, and the labels lighter */
+.dh-hero::after,.dl-hero::after,.mr-hero::after,.ch-hero::after,.hero2::after,.hero2::before{display:none!important}
+:root{--hero-g:linear-gradient(160deg,color-mix(in oklab,var(--p) 88%,#fff) 0%,var(--p) 55%,color-mix(in oklab,var(--p) 88%,#000) 100%)}
+.dl-hero,.ch-hero,.mr-hero{background:var(--hero-g)!important;box-shadow:0 10px 24px -18px color-mix(in oklab,var(--p) 70%,#000)!important}
+.dh-hero{background:linear-gradient(160deg,color-mix(in oklab,var(--h2) 80%,var(--h1)) 0%,var(--h1) 100%)!important;box-shadow:0 10px 24px -18px var(--h1)!important}
+.dl-card::before,.dua-card::before,.ch-card::before,.mr-g::before,.section-h::before,.dl-sh::before{display:none!important}
+.section-h,.dl-sh{padding-inline-start:4px!important}
+.dl-src,.rq-srcp,.dua-card .src{background:none!important;padding:0!important;font-weight:600!important;color:color-mix(in oklab,var(--gold,#a77d2a) 85%,var(--on-s))!important}
+.dl-ctag{background:none!important;padding:0!important}
+.dh-fadl,.rq-why{box-shadow:none!important;background:color-mix(in oklab,var(--on-s) 4%,transparent)!important}
+.dh-fadl b,.rq-why b{background:none!important;padding:0!important}
+.chip.on{box-shadow:none}
+/* the label over the next prayer sits on the photo card: always light, like the rest of that card */
+.hero-nm .small.muted,.hero-nm .muted{color:rgba(255,255,255,.86)!important;text-shadow:0 1px 6px rgba(0,0,0,.35)}
+/* 4.5.1 one colour: the app's accent on neutral surfaces, instead of a different bright colour on every card */
+.dl-cc{background:var(--card-bg)!important;color:var(--on-s)!important;box-shadow:inset 0 0 0 1px var(--card-border)!important}
+.dl-cc small{color:var(--on-sv);opacity:1}
+.dl-ci{background:color-mix(in oklab,var(--p) 12%,transparent)!important}
+.dl-ci svg,.dl-ci .ic{color:var(--p)!important}
+.dl-qk .dl-qi,.dl-ni,.rs-fig,.dl-card,.dl-ctag{--dc:var(--p)!important;--fc:var(--p)!important}
+.dl-qk.fav .dl-qi,.dl-qk.rec .dl-qi,.dl-qk.rnd .dl-qi,.dl-qk.fs .dl-qi{color:var(--p)!important;background:color-mix(in oklab,var(--p) 11%,transparent)!important}
+.ch-card,.ch-kind{--cc:var(--p)!important}
+.ch-tap{background:var(--p)!important;box-shadow:none!important}
+.rs-fig b{color:var(--on-s)!important}
+
+/* 4.5.1 المصحف على صفحتين: odd page on the right, even on the left, a soft spine between them */
+.mspread{position:absolute;inset:0;display:flex;direction:rtl}
+.msp-half{position:relative;flex:1 1 50%;min-width:0;overflow:hidden}
+.msp-half>.mpage{position:absolute;inset:0}
+.msp-half.r{box-shadow:inset 14px 0 18px -16px rgba(0,0,0,.45)}
+.msp-half.l{box-shadow:inset -14px 0 18px -16px rgba(0,0,0,.45)}
+.rd-main.pg-spread .pg-track{border-radius:8px}

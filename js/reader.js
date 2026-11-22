@@ -62,9 +62,12 @@ M.openReader = async function(opts){
     const W0 = main.clientWidth, H = main.clientHeight; if(!W0) return;
     /* 4.5: a computer, a tablet, a phone on its side: the page keeps a Mushaf page's proportions in the middle of the screen
        (it used to stretch to the whole width, and the lines piled on each other) */
-    const PR = 0.62, wide = W0 > H * PR + 8, W = wide ? Math.round(H * PR) : W0;
-    main.classList.toggle('pg-wide', wide); main.style.setProperty('--pgw', W + 'px');
-    layout = {W, H};
+    const PR = 0.62, PW1 = Math.round(H * PR), wide = W0 > PW1 + 8;
+    /* two pages side by side (a computer, a tablet on its side) when both fit at full height; the reading setting can turn it off */
+    const spread = wide && M.cfg.qSpread !== false && W0 >= PW1 * 2 + 24;
+    const W = spread ? Math.min(W0 - 16, PW1 * 2) : wide ? PW1 : W0;
+    main.classList.toggle('pg-wide', wide); main.classList.toggle('pg-spread', spread); main.style.setProperty('--pgw', W + 'px');
+    layout = {W, H, PW:spread ? W / 2 : W, spread};
     const bodyW = W - 34;
     const fs = Math.min(bodyW / 16.6, 46);
     const avail = H - 36 - 40 - 12;
@@ -118,10 +121,11 @@ M.openReader = async function(opts){
     /* page geometry. With a frame: the corner ornaments are fc px square; the header and footer sit in the clear
        band between the corners, and the text starts below them, so nothing can touch the frame. */
     const framed = frameKey() !== 'none';
-    const fc = framed ? Math.max(52, Math.min(66, Math.round(layout.W * .158))) : 0;
+    const PW = layout.PW || layout.W;
+    const fc = framed ? Math.max(52, Math.min(66, Math.round(PW * .158))) : 0;
     const side = (framed ? 3 + Math.ceil(fc * .25) + 3 : 12) + (M.cfg.qMar || 0);
     const headH = framed ? 3 + Math.ceil(fc * .74) : 28, footH = framed ? 3 + Math.ceil(fc * .74) : 40;
-    const bodyW = layout.W - side * 2 - (p < 3 ? 22 : 0);
+    const bodyW = PW - side * 2 - (p < 3 ? 22 : 0);
     let mx = 0; lines.forEach(l=>{ if(l[0] === 'w' && l[1] > mx) mx = l[1]; });
     /* page geometry (font size, line pitch, margins) always comes from the default edition's page, so every edition has identical spacing */
     let mxg = 0; ((M.qcf.data && M.qcf.data[p-1]) || pg)[1].forEach(l=>{ if(l[0] === 'w' && l[1] > mxg) mxg = l[1]; });
@@ -182,7 +186,17 @@ M.openReader = async function(opts){
   function makePager(host, startAt){
     const track = h('div.pg-track'); host.append(track);
     const cache = new Map();
-    let cur = startAt, dx = 0, dy = 0, anim = false, down = null, dragging = false, curl = null;
+    let SPm = !!layout.spread;
+    const PG = u=>SPm ? 2 * u - 1 : u, UN = p=>SPm ? Math.ceil(p / 2) : p, MAX = ()=>SPm ? 302 : 604;
+    const pagesOf = u=>SPm ? [2 * u - 1, 2 * u].filter(x=>x <= 604) : [u];
+    const readyU = u=>pagesOf(u).every(qcfReady);
+    const buildUnit = u=>{
+      if(!SPm) return buildPage(u);
+      const a = 2 * u - 1, b = 2 * u;
+      return h('div.mspread', {dataset:{p:a}}, h('div.msp-half.r', buildPage(a)), b <= 604 ? h('div.msp-half.l', buildPage(b)) : h('div.msp-half.l.msp-end'));
+    };
+    const fin = e=>e.classList && e.classList.contains('mspread') ? e.querySelectorAll('.mpage').forEach(finishPage) : finishPage(e);
+    let cur = UN(startAt), dx = 0, dy = 0, anim = false, down = null, dragging = false, curl = null;
     const curlOn = ()=>{ try{ return !R.curlBroken && M.cfg.qCurl !== false && !!M.mushafCurl && M.mushafCurl.enabled(); }catch(e){ return false; } };
     const curlFail = e=>{ console.warn('page curl disabled', e); R.curlBroken = true; try{ curl && curl.destroy(); }catch(_){} curl = null; dx = 0; dragging = false; anim = false; setT(false); fill(); };
     const slides = {prev:h('div.pg-slide'), cur:h('div.pg-slide'), next:h('div.pg-slide')};
@@ -190,9 +204,9 @@ M.openReader = async function(opts){
     const warmEl = h('div.pg-slide.pg-warm', {'aria-hidden':'true', style:'visibility:hidden;pointer-events:none;transform:translate3d(-300%,0,0);z-index:-1;will-change:auto'});
     track.append(slides.prev, slides.cur, slides.next, warmEl);
     const get = p=>{
-      if(p < 1 || p > 604) return null;
+      if(p < 1 || p > MAX()) return null;
       let e = cache.get(p);
-      if(!e){ e = buildPage(p); cache.set(p, e); trim(); }
+      if(!e){ e = buildUnit(p); cache.set(p, e); trim(); }
       return e;
     };
     /* page-turn rustle, synthesised (no audio file): two short bursts of filtered noise */
@@ -240,7 +254,7 @@ M.openReader = async function(opts){
         if(s.firstChild !== e){ s.innerHTML = ''; if(e) s.appendChild(e); }
         if(e && !e._fin){ e._fin = true; todo.push(e); }
       }
-      if(todo.length) requestAnimationFrame(()=>todo.forEach(finishPage));
+      if(todo.length) requestAnimationFrame(()=>todo.forEach(fin));
       place(); warmSoon();
     }
     let lastDir = 1, warmT = 0;
@@ -255,10 +269,10 @@ M.openReader = async function(opts){
       base = base || cur;
       const order = base === cur ? [cur + 2 * lastDir, cur - 2 * lastDir, cur + 3 * lastDir] : [base + lastDir, base + 2 * lastDir];
       for(const p of order){
-        if(p < 1 || p > 604 || cache.has(p)) continue;
-        if(!qcfReady(p)){ if(EP(p)) Promise.all(M.qcf.needs(p).map(n=>M.qcf.ensure(n))).then(()=>warmSoon()); continue; }
-        const e = buildPage(p); e._fin = true;
-        warmEl.appendChild(e); finishPage(e); e.remove();
+        if(p < 1 || p > MAX() || cache.has(p)) continue;
+        if(!readyU(p)){ const ps = pagesOf(p).filter(x=>EP(x)); if(ps.length) Promise.all([].concat(...ps.map(x=>M.qcf.needs(x))).map(n=>M.qcf.ensure(n))).then(()=>warmSoon()); continue; }
+        const e = buildUnit(p); e._fin = true;
+        warmEl.appendChild(e); fin(e); e.remove();
         cache.set(p, e); trim();
         if(!dl || !dl.timeRemaining || dl.timeRemaining() < 20){ warmSoon(); return; }
       }
@@ -268,21 +282,21 @@ M.openReader = async function(opts){
     function trim(){ if(cache.size > 9){ for(const k of cache.keys()){ if(Math.abs(k - cur) > 3){ cache.delete(k); if(cache.size <= 9) break; } } } }
     function setT(on){ Object.values(slides).forEach(s=>s.style.transition = on ? (M.cfg.qFlip ? 'transform .42s cubic-bezier(.3,.1,.3,1)' : 'transform .26s cubic-bezier(.2,.8,.2,1)') : 'none'); }
     function commit(delta){
-      const np = cur + delta; if(np < 1 || np > 604){ snap(); return; }
+      const np = cur + delta; if(np < 1 || np > MAX()){ snap(); return; }
       lastDir = delta > 0 ? 1 : -1;
       if(curlOn()){
         try{
           anim = true; if(M.cfg.qFlipSound !== false) paperSound();
           const c = curl || (curl = M.mushafCurl.make(track, slides, ()=>layout));
           c.start(delta > 0 ? 1 : -1, layout.H * (.55 + Math.random() * .35), 0);
-          c.finish(true, ()=>{ cur = np; dx = 0; c.stop(); setT(false); fill(); anim = false; onPage(cur); }, null);
+          c.finish(true, ()=>{ cur = np; dx = 0; c.stop(); setT(false); fill(); anim = false; onPage(PG(cur)); }, null);
           return;
         }catch(e){ curlFail(e); }
       }
       anim = true; setT(true); dx = delta > 0 ? layout.W : -layout.W; place();
       if(M.cfg.qFlipSound !== false) paperSound();
       setTimeout(()=>{ if(anim) warmStep(null, np); }, 30);
-      setTimeout(()=>{ cur = np; dx = 0; setT(false); fill(); anim = false; onPage(cur); }, M.cfg.qFlip ? 430 : 270);
+      setTimeout(()=>{ cur = np; dx = 0; setT(false); fill(); anim = false; onPage(PG(cur)); }, M.cfg.qFlip ? 430 : 270);
     }
     function snap(){ setT(true); dx = 0; place(); setTimeout(()=>setT(false), M.cfg.qFlip ? 440 : 280); }
     host.addEventListener('pointerdown', e=>{ if(anim) return; const r = host.getBoundingClientRect(); down = {x:e.clientX, y:e.clientY, t:Date.now(), ry:e.clientY - r.top}; dragging = false; });
@@ -295,8 +309,8 @@ M.openReader = async function(opts){
       }
       if(dragging){
         dx = ddx; dy = ddy;
-        if((cur === 604 && dx > 0) || (cur === 1 && dx < 0)) dx *= 0.25;
-        if(curlOn() && !(cur === 604 && dx > 0) && !(cur === 1 && dx < 0)){
+        if((cur === MAX() && dx > 0) || (cur === 1 && dx < 0)) dx *= 0.25;
+        if(curlOn() && !(cur === MAX() && dx > 0) && !(cur === 1 && dx < 0)){
           try{
             const dir = dx > 0 ? 1 : -1;
             if(!curl) curl = M.mushafCurl.make(track, slides, ()=>layout);
@@ -317,7 +331,7 @@ M.openReader = async function(opts){
         const np = cur + (go ? dir : 0);
         if(go) lastDir = dir;
         anim = true; if(go && M.cfg.qFlipSound !== false) paperSound();
-        try{ curl.finish(go, ()=>{ cur = np; dx = 0; curl.stop(); setT(false); fill(); anim = false; if(go) onPage(cur); }, v); }catch(er){ curlFail(er); }
+        try{ curl.finish(go, ()=>{ cur = np; dx = 0; curl.stop(); setT(false); fill(); anim = false; if(go) onPage(PG(cur)); }, v); }catch(er){ curlFail(er); }
         return;
       }
       if(dx > W * 0.2 || (v > 0.55 && dx > 30)) commit(+1);
@@ -326,14 +340,16 @@ M.openReader = async function(opts){
     };
     host.addEventListener('pointerup', end); host.addEventListener('pointercancel', end);
     const api = {
-      wasDrag:false, get cur(){ return cur; },
+      wasDrag:false, get cur(){ return PG(cur); }, get spread(){ return SPm; },
+      /* one turn forward or back (a page, or a spread) — the arrows and the keyboard use this */
+      step(d){ const u = Math.max(1, Math.min(MAX(), cur + d)); if(u === cur) return; if(!anim) commit(u - cur); },
       destroyCurl(){ try{ curl && curl.destroy(); }catch(e){} curl = null; },
-      relayout(){ if(!anim && curl) curl.stop(); cache.clear(); slides.prev.innerHTML = slides.cur.innerHTML = slides.next.innerHTML = ''; fill(); },
-      rebuild(p){ if(!cache.has(p)) return; cache.delete(p); if(Math.abs(p - cur) <= 1) fill(); },
+      relayout(){ if(!anim && curl) curl.stop(); if(!!layout.spread !== SPm){ const pg = PG(cur); SPm = !!layout.spread; cur = UN(pg); } cache.clear(); slides.prev.innerHTML = slides.cur.innerHTML = slides.next.innerHTML = ''; fill(); },
+      rebuild(p){ const u = UN(p); if(!cache.has(u)) return; cache.delete(u); if(Math.abs(u - cur) <= 1) fill(); },
       goto(p, animate){
-        p = Math.max(1, Math.min(604, p)); if(p === cur) return;
+        p = UN(Math.max(1, Math.min(604, p))); if(p === cur) return;
         if(animate && Math.abs(p - cur) === 1 && !anim){ commit(p - cur); return; }
-        cur = p; dx = 0; setT(false); fill(); onPage(cur);
+        cur = p; dx = 0; setT(false); fill(); onPage(PG(cur));
       },
       refresh(){ cache.clear(); slides.prev.innerHTML = slides.cur.innerHTML = slides.next.innerHTML = ''; fill(); }
     };
@@ -390,7 +406,7 @@ M.openReader = async function(opts){
     M.QD.last = {page:p, sura:first[0], ayah:first[1]};
     const pr = M.QD.pagesRead, tk = M.dkey(); const arr = pr[tk] || []; if(!arr.includes(p)){ arr.push(p); pr[tk] = arr; M.QD.pagesRead = pr; }
     bmBtn.classList.toggle('on', M.QD.bookmarks.some(b=>b.page === p && !b.sura));
-    if(R.sel){ /* keep selection only when on the same page */ const sp = PO(...R.sel.split(':').map(Number)); if(sp !== p) select(null); }
+    if(R.sel){ /* keep selection only when on the same page */ const sp = PO(...R.sel.split(':').map(Number)); if(sp !== p && !(layout.spread && sp === p + 1)) select(null); }
   }
   function togglePageBm(){
     let bms = M.QD.bookmarks; const i = bms.findIndex(b=>b.page === R.page && !b.sura);
@@ -611,7 +627,8 @@ M.openReader = async function(opts){
           pages ? grp('إطار الصفحة',
             line('إظهار الإطار المزخرف', 'إطار المصحف حول الصفحة مع دائرة رقم الصفحة', M.switchEl(frameKey() !== 'none', v=>{ const k = v ? (M.cfg.qFrameLast || 'gold') : 'none'; if(!v) M.save('qFrameLast', frameKey()); M.save('qFrame', k); if(F2B[k]) M.save('qSurahFrame', F2B[k]); root.dataset.fr = k; root.dataset.sf = bannerKey(); if(R.pager) R.pager.relayout(); draw(); })),
             frameKey() !== 'none' ? block('لون الإطار', sws(FRS, frameKey(), v=>{ M.save('qFrame', v); if(F2B[v]) M.save('qSurahFrame', F2B[v]); root.dataset.fr = v; root.dataset.sf = bannerKey(); if(R.pager) R.pager.relayout(); }), 'يتغيّر معه لون إطار اسم السورة') : null,
-            block('هوامش الصفحة', M.seg([[0,'ضيّقة'],[14,'عادية'],[30,'واسعة']], M.cfg.qMar == null ? 0 : M.cfg.qMar, v=>{ M.save('qMar', +v); if(R.pager) R.pager.relayout(); }))) : null,
+            block('هوامش الصفحة', M.seg([[0,'ضيّقة'],[14,'عادية'],[30,'واسعة']], M.cfg.qMar == null ? 0 : M.cfg.qMar, v=>{ M.save('qMar', +v); if(R.pager) R.pager.relayout(); })),
+            line('صفحتان متجاورتان', 'على الكمبيوتر والتابلت بالعرض', M.switchEl(M.cfg.qSpread !== false, v=>{ M.save('qSpread', v); doLayout(); }))) : null,
           grp('إطار اسم السورة', h('div.rs-b', sws(BNS, bannerKey(), v=>{ M.save('qSurahFrame', v); if(frameKey() !== 'none' && B2F[v]){ M.save('qFrame', B2F[v]); root.dataset.fr = B2F[v]; if(R.pager) R.pager.relayout(); } root.dataset.sf = v; }))),
           pages ? grp('ألوان التجويد',
             line('تلوين أحكام التجويد', M.qcf.edId() === 'k05' ? 'غير متاحة في طبعة ١٤٠٥هـ' : 'في صفحات المصحف (طبعة ١٤٤١هـ الملوّنة)', M.switchEl(M.qcf.edId() === 'k41c' && M.cfg.mfTaj !== false, v=>{
@@ -818,11 +835,11 @@ M.openReader = async function(opts){
     const t = e.target; if(t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
     if(R.mode !== 'pages' || !R.pager) return;
     let d = 0; if(e.key === 'ArrowLeft' || e.key === 'PageDown') d = 1; else if(e.key === 'ArrowRight' || e.key === 'PageUp') d = -1;
-    if(!d) return; e.preventDefault(); R.pager.goto(R.pager.cur + d, true);
+    if(!d) return; e.preventDefault(); (R.pager.step ? R.pager.step(d) : R.pager.goto(R.pager.cur + d, true));
   };
   document.addEventListener('keydown', onKey); off.push(()=>document.removeEventListener('keydown', onKey));
-  root.append(h('button.rd-nv.prev', {'aria-label':'الصفحة السابقة', onclick:()=>{ if(R.pager) R.pager.goto(R.pager.cur - 1, true); }}, M.ic('chevUp')),
-              h('button.rd-nv.next', {'aria-label':'الصفحة التالية', onclick:()=>{ if(R.pager) R.pager.goto(R.pager.cur + 1, true); }}, M.ic('chevUp')));
+  root.append(h('button.rd-nv.prev', {'aria-label':'الصفحة السابقة', onclick:()=>{ if(R.pager) R.pager.step(-1); }}, M.ic('chevUp')),
+              h('button.rd-nv.next', {'aria-label':'الصفحة التالية', onclick:()=>{ if(R.pager) R.pager.step(1); }}, M.ic('chevUp')));
 
   /* ---- boot ---- */
   doLayout();
