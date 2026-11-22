@@ -59,7 +59,11 @@ M.openReader = async function(opts){
   ro = new ResizeObserver(()=>doLayout());
   ro.observe(main);
   function doLayout(){
-    const W = main.clientWidth, H = main.clientHeight; if(!W) return;
+    const W0 = main.clientWidth, H = main.clientHeight; if(!W0) return;
+    /* 4.5: a computer, a tablet, a phone on its side: the page keeps a Mushaf page's proportions in the middle of the screen
+       (it used to stretch to the whole width, and the lines piled on each other) */
+    const PR = 0.62, wide = W0 > H * PR + 8, W = wide ? Math.round(H * PR) : W0;
+    main.classList.toggle('pg-wide', wide); main.style.setProperty('--pgw', W + 'px');
     layout = {W, H};
     const bodyW = W - 34;
     const fs = Math.min(bodyW / 16.6, 46);
@@ -121,8 +125,8 @@ M.openReader = async function(opts){
     let mx = 0; lines.forEach(l=>{ if(l[0] === 'w' && l[1] > mx) mx = l[1]; });
     /* page geometry (font size, line pitch, margins) always comes from the default edition's page, so every edition has identical spacing */
     let mxg = 0; ((M.qcf.data && M.qcf.data[p-1]) || pg)[1].forEach(l=>{ if(l[0] === 'w' && l[1] > mxg) mxg = l[1]; });
-    const fs = bodyW / Math.max(mxg, p < 3 ? 13.4 : 16.6);
     const avail = layout.H - headH - footH - 4;
+    const fs = Math.min(bodyW / Math.max(mxg, p < 3 ? 13.4 : 16.6), (p < 3 ? avail / 9.4 : avail / 15) / 1.9);   // never taller than its line
     const pitch = p < 3 ? Math.min(avail / 9.4, fs * 3.1) : Math.min(avail / 15, fs * 2.05), bh = pitch * .98;
     const body = h('div.mp-body.qb'+(p < 3 ? '.few' : ''), {style:'--lh:'+pitch.toFixed(2)+'px;--qfs:'+fs.toFixed(2)+'px;--bw:'+bodyW.toFixed(1)+'px'});
     lines.forEach(l=>{

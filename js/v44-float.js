@@ -41,19 +41,25 @@ M.on && M.on('settings', k=>{ if(k === 'fbNav' || k === 'fbNp' || typeof k === '
 /* ---------------- the settings page ---------------- */
 const S = M.SETSUB = M.SETSUB || {};
 S.floaters = {title:'الأزرار العائمة', build(b){
-  const seg3 = (val, fn)=>M.seg([['sm', 'صغير'], ['md', 'متوسط'], ['lg', 'كبير']], val, fn);
+  /* each size control carries a live preview circle */
+  const PV = {sm:.82, md:1, lg:1.16};
+  const seg3 = (val, fn, ic)=>{
+    const dot = h('span.fb-pv', {html:M.icon(ic || 's:grid')}); dot.style.transform = 'scale(' + (PV[val] || 1) + ')';
+    const seg = M.seg([['sm', 'صغير'], ['md', 'متوسط'], ['lg', 'كبير']], val, v=>{ dot.style.transform = 'scale(' + (PV[v] || 1) + ')'; fn(v); M.haptic && M.haptic(6); });
+    return h('div.fb-size', seg, h('span.fb-pvbox', dot));
+  };
   const pc = M.popupCfg ? M.popupCfg.u() : {};
   const card = (ic, t, sub, ...rows)=>h('div.card.fb-card', h('div.fb-h', h('span.fb-ic', {html:M.icon(ic)}), h('div.grow', h('b', t), h('small', sub))), ...rows);
   const row = (l, ctl)=>h('div.fb-row', h('span', l), ctl);
   b.append(
     h('div.fb-intro', 'اسحب أي دائرة عائمة لأي مكان، وتلتصق بأقرب حافة. لإغلاقها اسحبها إلى أسفل الشاشة حتى تظهر علامة ✕ وأفلتها عليها.'),
     card('s:grid', 'زر التنقّل', 'الدائرة التي تفتح أقسام التطبيق',
-      row('الحجم', seg3(M.cfg.fbNav || 'md', v=>M.save('fbNav', v))),
+      row('الحجم', seg3(M.cfg.fbNav || 'md', v=>M.save('fbNav', v), 's:grid')),
       row('شفاف حين لا تستخدمه', M.switchEl(M.cfg.bubbleDim !== false, v=>M.save('bubbleDim', v)))),
     card('play', 'مشغّل التلاوة', 'يظهر أثناء الاستماع؛ إسقاطه على ✕ يوقف التلاوة',
-      row('الحجم', seg3(M.cfg.fbNp || 'md', v=>M.save('fbNp', v)))),
+      row('الحجم', seg3(M.cfg.fbNp || 'md', v=>M.save('fbNp', v), 'play'))),
     card('s:mushaf', 'دائرة الختمة والأذكار', 'حين تصغّر نافذة الختمة أو الأذكار',
-      row('الحجم', seg3(pc.bsz || 'sm', v=>{ M.popupCfg && M.popupCfg.uset({bsz:v}); M.popupBubbleSize && M.popupBubbleSize(); })),
+      row('الحجم', seg3(pc.bsz || 'sm', v=>{ M.popupCfg && M.popupCfg.uset({bsz:v}); M.popupBubbleSize && M.popupBubbleSize(); }, 's:mushaf')),
       row('تبدأ مصغّرة', M.switchEl(!!pc.bubble, v=>M.popupCfg && M.popupCfg.uset({bubble:v})))),
     h('button.btn.tonal.block', {style:'margin-top:6px', onclick:()=>{
       try{ M.bubble && M.bubble.reset ? M.bubble.reset() : M.store.set('nbPos', null); M.npReset && M.npReset(); M.popupCfg && M.popupCfg.uset({by:.62, bs:''}); M.popupBubbleSize && M.popupBubbleSize(); }catch(e){}

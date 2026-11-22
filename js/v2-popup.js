@@ -382,19 +382,12 @@ async function showWird(o){
     /* the tools, hidden until «•••» */
     const chip = (lb, fn, on)=>h('button.zen-chip' + (on ? '.active' : ''), {onclick:fn}, lb);
     if(trayOn) card.append(h('div.zen-tray',
+      chip(playing ? 'إيقاف التلاوة' : 'استمع', ()=>play(list), playing),
       chip('التفسير', ()=>{ tafsirOn = !tafsirOn; draw(); }, tafsirOn),
       chip('المصحف', ()=>goApp('surah_' + s)),
       chip('مشاركة', ()=>{ const t = shareTextOf(list); stopAudio(); playing = false; shareTxt = t; draw(); }),
       chip('الإحصائيات', ()=>{ statsOn = !statsOn; draw(); }, statsOn)));
-    /* the figures that matter: verses today, the run of days, how far the khatma is, and when it ends at this pace */
-    const perDay = Math.max(st.week / 7, st.today, 1), leftV = TOTAL - id, days = Math.ceil(leftV / perDay);
-    card.append(h('div.zen-figs',
-      h('span', h('b.num', n(st.today)), 'آية اليوم'),
-      h('span', h('b.num', n(st.streak)), st.streak === 1 ? 'يوم متتالٍ' : 'أيام متتالية'),
-      h('span', h('b.num', n(Math.floor(pct * 100)) + '٪'), 'من الختمة'),
-      h('span', h('b.num', st.week ? n(days) : '—'), 'يومًا للختم')));
     card.append(h('div.zen-actions',
-      h('button.zen-listen' + (playing ? '.on' : ''), {'aria-label':playing ? 'إيقاف التلاوة' : 'استمع إلى الآية', onclick:()=>play(list)}, svgI(playing ? 'M7 5h3v14H7zM14 5h3v14h-3z' : 'M8 5v14l11-7z')),
       h('button.zen-cta', {onclick:confirm}, svgI('M5 13l4 4L19 7'), h('span', okLabel)),
       h('button.zen-more-btn' + (trayOn ? '.active' : ''), {'aria-label':'المزيد من الأدوات', 'aria-expanded':String(trayOn), onclick:()=>{ trayOn = !trayOn; draw(); }}, '•••')));
     if(statsOn) card.append(h('div.zen-stats-bar',

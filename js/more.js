@@ -15,39 +15,124 @@ M.screens.more = {
     const GI = {'عباداتي':['s:tracker', 0], 'القرآن والتلاوة':['s:mushaf', 1], 'الأذكار والأدعية':['s:beads', 2], 'الصلاة والمواسم':['s:mosque', 3],
       'تعلّم وكتب':['s:lantern', 4], 'الصوتيات والبث':['s:radio', 5], 'أدوات':['s:zakat', 6], 'النتائج':['search', 1], 'المثبّتة':['star', 2]};
     const gi = g=>GI[g] || ['s:grid', 1];
-    el.append(h('div.mr-top',
-      h('div.grow', h('h1.title-font', 'المزيد'), h('div.mr-sub', 'كل أقسام التطبيق في مكان واحد')),
-      h('button.mr-tour', {'aria-label':'جولة في التطبيق', onclick:()=>M.startTour && M.startTour()}, M.ic('t:hand-click'), h('span', 'جولة')),
-      h('button.icon-btn.tonal', {'aria-label':'الإعدادات', onclick:()=>M.openSettings()}, M.ic('settings'))));
-    const q = h('input.field.more-q', {type:'search', placeholder:'ابحث في كل الأقسام…', 'aria-label':'بحث في الأقسام', autocomplete:'off', oninput:()=>draw()});
+    /* 4.5: one hero — the title, the search, the tour and the settings — then the settings as tiles, then the sections */
+    const q = h('input.mr-q', {type:'search', placeholder:'ابحث في كل الأقسام…', 'aria-label':'بحث في الأقسام', autocomplete:'off', oninput:()=>draw()});
     const jump = h('div.mr-jump');
-    el.append(h('div.more-bar.mr-bar', h('div.more-qw', h('span.more-qi', {html:M.icon('search')}), q), h('button.icon-btn.tonal', {'aria-label':'جميع الأقسام', onclick:()=>M.openAllSections()}, M.ic('grid'))), jump);
+    const nSec = (M.SECTIONS || []).length;
+    el.append(h('div.mr-hero',
+      h('div.mr-hrow', h('div.grow', h('h1.title-font', 'المزيد'), h('div.mr-sub', M.n(nSec) + ' قسمًا في مكان واحد')),
+        h('button.mr-hb', {'aria-label':'جولة في التطبيق', onclick:()=>M.startTour && M.startTour()}, M.ic('t:hand-click')),
+        h('button.mr-hb', {'aria-label':'ترتيب المجموعات', onclick:()=>orderSheet()}, M.ic('t:arrows-sort')),
+        h('button.mr-hb', {'aria-label':'جميع الأقسام', onclick:()=>M.openAllSections()}, M.ic('grid')),
+        h('button.mr-hb', {'aria-label':'الإعدادات', onclick:()=>M.openSettings()}, M.ic('settings'))),
+      h('div.mr-qw', h('span', {html:M.icon('search')}), q)), jump);
+    const ST = [['t:palette', 'المظهر', '#7a4fb5', ()=>M.openSub('look')], ['t:bell-ringing', 'الإشعارات', '#c4840f', ()=>M.openNotifs && M.openNotifs()],
+      ['t:pray', 'المواقيت', '#1f8a70', ()=>M.openSub('prayer')], ['s:mushaf', 'المصحف', '#2f7fc1', ()=>M.openSub('quran')],
+      ['s:beads', 'الأذكار', '#0f8f9e', ()=>M.openSub('adhkarset')], ['s:grid', 'الأزرار العائمة', '#cf4b63', ()=>M.openSub('floaters')],
+      ['t:language', 'اللغة', '#3f6fd8', ()=>M.openSub('lang')], ['download', 'النسخ الاحتياطي', '#5c7a2e', ()=>M.openSub('backup')]];
+    const setBox = h('section.mr-set', h('div.mr-sh', h('b', 'الإعدادات'), h('button.mr-all', {onclick:()=>M.openSettings()}, 'كل الإعدادات', M.ic('back'))),
+      h('div.mr-sgrid', ...ST.map(([ic, t, c, fn])=>h('button.mr-st', {style:'--g:' + c, onclick:fn}, h('span.mr-sti', {html:M.icon(ic)}), h('span', t)))));
     const box = h('div.more-box.mr-box'); el.append(box);
     const SEC = id=>(M.SECTIONS || []).find(x=>x[0] === id);
     const SKIP = new Set(['quran', 'prayer', 'search', 'notifs', 'health', 'look', 'navbar_cfg', 'settings', 'v2_security']);
-    const group = (title, secs, cls)=>{ const [ic, hue] = gi(title);
-      return h('section.mr-g.mg.mr-c'+hue+(cls ? '.'+cls : ''), {dataset:{g:title}},
-        h('div.mr-gh', h('span.mr-gi', {html:M.icon(ic)}), h('b', title), h('span.mr-gn.num', M.n(secs.length))),
-        h('div.mg-grid.mr-grid', ...secs.map(s=>M.secTile(s, {noStar:true})))); };
+    /* 4.5: sections that are one subject become one tile with a short chooser (search still finds each of them) */
+    const MERGE = [
+      {key:'m_daily', t:'أذكار اليوم', ic:'s:beads', ids:['morning', 'evening', 'after', 'sleep', 'wake'], sub:'الصباح والمساء والصلاة والنوم والاستيقاظ'},
+      {key:'m_lib', t:'موسوعة الأذكار', ic:'s:tafsir', ids:['ibook', 'adhkar2_hisn', 'random'], sub:'حصن المسلم والموسوعة والأذكار المنوّعة'},
+      {key:'m_tasbih', t:'التسبيح والعدّاد', ic:'s:counter', ids:['tasbih', 'tasabih', 'tijan'], sub:'العدّاد والتسبيح والاستغفار وتيجان الذكر'},
+      {key:'m_saved', t:'محفوظاتي', ic:'star', ids:['favs', 'mine'], sub:'المفضلة وأذكارك وأدعيتك'}];
+    const HIDE = new Set(['hal', 'tour']);            // «أدعية لكل حال» lives in the dua library; the tour is a button at the top
+    const MOVE = {khatma:'القرآن والتلاوة'};          // the khatma belongs with the Quran
+    const chooser = m=>{
+      const list = h('div.list.card.mr-chs');
+      m.ids.map(SEC).filter(Boolean).forEach(x=>list.append(M.item({icon:x[2], title:x[1], onClick:()=>{ try{ sh && sh.close && sh.close(); }catch(e){} setTimeout(()=>M.sectionOpen(x[0]), 120); }, trail:M.ic('fwd')})));
+      const sh = M.sheet({title:m.t, content:list});
+    };
+    const mTile = m=>{ const n = m.ids.filter(id=>SEC(id)).length;
+      return h('button.tile.card.sec-tile.mr-merged', {'aria-label':m.t, onclick:()=>chooser(m)}, h('div.ti', {html:M.icon(m.ic)}), h('span.sec-t', m.t), h('span.mr-mn.num', M.n(n))); };
+    const shape = org=>{
+      org.forEach(x=>{ x[1] = x[1].filter(s=>!HIDE.has(s[0])); });
+      Object.entries(MOVE).forEach(([id, g])=>{ const to = org.find(x=>x[0] === g); if(!to) return; org.forEach(x=>{ if(x === to) return; const i = x[1].findIndex(s=>s[0] === id); if(i >= 0) to[1].unshift(...x[1].splice(i, 1)); }); });
+      org.forEach(x=>{
+        const out = [];
+        x[1].forEach(s=>{ const m = MERGE.find(m=>m.ids.includes(s[0])); if(!m){ out.push(s); return; } if(!out.includes(m)) out.push(m); });
+        x[1] = out;
+      });
+      /* a merged tile appears once: in its home group when it is there, otherwise in the first group that has it */
+      const HOME = {m_tasbih:'الأذكار والأدعية', m_daily:'الأذكار والأدعية', m_lib:'الأذكار والأدعية', m_saved:'عباداتي'};
+      MERGE.forEach(m=>{
+        const has = org.filter(x=>x[1].includes(m)); if(has.length < 2) return;
+        const keep = has.find(x=>x[0] === HOME[m.key]) || has[0];
+        has.forEach(x=>{ if(x !== keep) x[1] = x[1].filter(y=>y !== m); });
+      });
+      return org;
+    };
+    /* 4.5: the groups in the order the user chose (new groups keep their place at the end) */
+    const ordered = ()=>M.store.get('mrOrder', []) || [];
+    const sortOrg = org=>{ const o = ordered(); if(!o.length) return org; const pos = g=>{ const i = o.indexOf(g); return i < 0 ? 999 : i; };
+      return org.map((x, i)=>[x, i]).sort((a, b)=>pos(a[0][0]) - pos(b[0][0]) || a[1] - b[1]).map(x=>x[0]); };
+    function orderSheet(){
+      const names = sortOrg(M.orgGroups().map(([g, secs])=>[g, secs.filter(x=>!SKIP.has(x[0]))])).filter(x=>x[1].length).map(x=>x[0]);
+      const list = h('div.mr-ord');
+      const save = ()=>{ M.store.set('mrOrder', names.slice()); draw(); };
+      const paintL = ()=>{
+        list.replaceChildren(...names.map((g, i)=>{ const [ic, hue] = gi(g);
+          const row = h('div.mr-or.mr-c' + hue, {dataset:{i}},
+            h('span.mr-oh', {'aria-label':'اسحب لإعادة الترتيب', html:'<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>'}),
+            h('span.mr-gi', {html:M.icon(ic)}), h('b.grow', g),
+            h('button.mr-oa', {'aria-label':'لأعلى', disabled:i === 0, onclick:()=>{ names.splice(i - 1, 0, names.splice(i, 1)[0]); paintL(); save(); M.haptic && M.haptic(6); }}, '▲'),
+            h('button.mr-oa', {'aria-label':'لأسفل', disabled:i === names.length - 1, onclick:()=>{ names.splice(i + 1, 0, names.splice(i, 1)[0]); paintL(); save(); M.haptic && M.haptic(6); }}, '▼'));
+          drag(row.querySelector('.mr-oh'), row);
+          return row; }));
+      };
+      /* drag by the handle: the row follows the finger, the others make room, the order is kept on release */
+      function drag(handle, row){
+        handle.addEventListener('pointerdown', e=>{
+          e.preventDefault(); try{ handle.setPointerCapture(e.pointerId); }catch(_){}
+          const rows = [...list.children], from = rows.indexOf(row), hgt = row.offsetHeight + 8, y0 = e.clientY; let to = from;
+          row.classList.add('drag'); M.haptic && M.haptic(10);
+          const mv = ev=>{ const dy = ev.clientY - y0; row.style.transform = 'translateY(' + dy + 'px)';
+            to = Math.max(0, Math.min(rows.length - 1, from + Math.round(dy / hgt)));
+            rows.forEach((r, k)=>{ if(r === row) return; const sh = k > from && k <= to ? -hgt : k < from && k >= to ? hgt : 0; r.style.transform = sh ? 'translateY(' + sh + 'px)' : ''; }); };
+          const up = ()=>{ handle.removeEventListener('pointermove', mv); handle.removeEventListener('pointerup', up); handle.removeEventListener('pointercancel', up);
+            rows.forEach(r=>{ r.style.transform = ''; r.classList.remove('drag'); });
+            if(to !== from){ names.splice(to, 0, names.splice(from, 1)[0]); save(); M.haptic && M.haptic(12); }
+            paintL(); };
+          handle.addEventListener('pointermove', mv); handle.addEventListener('pointerup', up); handle.addEventListener('pointercancel', up);
+        });
+      }
+      paintL();
+      M.sheet({title:'ترتيب المجموعات', content:h('div', h('div.mr-ohint', 'اسحب أي مجموعة من المقبض ⠿ أو استخدم الأسهم.'), list,
+        h('button.btn.tonal.block', {style:'margin-top:10px', onclick:()=>{ M.store.set('mrOrder', []); names.splice(0, names.length, ...M.orgGroups().filter(x=>x[1].some(y=>!SKIP.has(y[0]))).map(x=>x[0])); paintL(); draw(); }}, M.ic('refresh'), 'الترتيب الأصلي'))});
+    }
+    /* 4.5: every group folds and opens (tap its title); the choice is remembered */
+    const closed = ()=>new Set(M.store.get('mrClosed', []) || []);
+    const toggle = (title, sec)=>{ const c = closed(), on = !c.has(title); on ? c.add(title) : c.delete(title); M.store.set('mrClosed', [...c]); sec.classList.toggle('closed', on); sec.querySelector('.mr-gh').setAttribute('aria-expanded', String(!on)); M.haptic && M.haptic(6); };
+    const group = (title, secs, cls)=>{ const [ic, hue] = gi(title), shut = cls !== 'res' && closed().has(title);
+      const sec = h('section.mr-g.mg.mr-c'+hue+(cls ? '.'+cls : '')+(shut ? '.closed' : ''), {dataset:{g:title}},
+        h('button.mr-gh', {'aria-expanded':String(!shut), onclick:()=>{ if(cls !== 'res') toggle(title, sec); }}, h('span.mr-gi', {html:M.icon(ic)}), h('b', title), h('span.mr-gn.num', M.n(secs.length)), cls !== 'res' ? h('span.mr-chev', M.ic('chevDown')) : null),
+        h('div.mg-grid.mr-grid', ...secs.map(s=>s && s.key ? mTile(s) : M.secTile(s, {noStar:true}))));
+      return sec; };
     function draw(){
       box.replaceChildren(); jump.replaceChildren(); const v = q.value.trim();
       jump.hidden = !!v;
       if(v){
         const r = M.secFind(v);
         if(!r.length) box.append(h('div.empty', 'لا نتائج'), h('button.btn.tonal.block', {onclick:()=>M.openSearch(v)}, M.ic('search'), 'ابحث في الآيات والأذكار'));
-        else box.append(group('النتائج', r));
+        else box.append(group('النتائج', r, 'res'));
         return;
       }
       const pins = M.secPins().map(SEC).filter(Boolean);
       if(pins.length) box.append(h('section.mr-pins',
         h('div.mr-ph', h('b', 'المثبّتة'), h('small', 'اضغط مطولًا على أي قسم لتثبيته')),
         h('div.mr-pgrid', ...pins.map(s=>{ const t = M.secTile(s, {noStar:true}); t.classList.add('mr-pin'); return t; }))));
-      const org = M.orgGroups().map(([g, secs])=>[g, secs.filter(s=>!SKIP.has(s[0]))]), tools = org.find(x=>x[0] === 'أدوات');
+      const org = sortOrg(shape(M.orgGroups().map(([g, secs])=>[g, secs.filter(s=>!SKIP.has(s[0]))]))), tools = org.find(x=>x[0] === 'أدوات');
       if(tools) org.forEach(x=>{ if(x !== tools){ const i = x[1].findIndex(s=>s[0] === 'dst'); if(i >= 0) tools[1].push(...x[1].splice(i, 1)); } });
       org.forEach(([g, l])=>{ if(!l.length) return; const sec = group(g, l); box.append(sec);
         const [ic, hue] = gi(g);
         jump.append(h('button.mr-chip.mr-c'+hue, {onclick:()=>{ const sc = el.closest('.screen') || el; const top = sec.getBoundingClientRect().top - (el.getBoundingClientRect().top) + (el.scrollTop || 0) - 120;
           (el.scrollHeight > el.clientHeight ? el : sc).scrollTo({top, behavior:'smooth'}); sec.classList.remove('mr-flash'); void sec.offsetWidth; sec.classList.add('mr-flash'); }}, h('span', {html:M.icon(ic)}), g)); });
+      box.append(setBox);   // 4.5: the settings close the page
       if(!pins.length) box.prepend(h('div.mr-tip', M.ic('star'), h('span', 'اضغط مطولًا على أي قسم لتثبيته في الأعلى')));
     }
     draw();

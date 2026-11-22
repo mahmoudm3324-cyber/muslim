@@ -36,6 +36,7 @@ const NF = [
   {id:'fast_thu', g:'worship', t:'صيام الخميس', ic:'moon', on:false, off:60, offLbl:'بعد المغرب (ليلة الصيام) بـ', offMax:300, pool:THU},
   {id:'fast_white', g:'worship', t:'الأيام البيض', ic:'moon', on:false, off:60, offLbl:'بعد المغرب بـ', offMax:300, quiet:true},
   {id:'fast_special', g:'worship', t:'عرفة وعاشوراء', ic:'calendar', on:false, off:60, offLbl:'بعد المغرب بـ', offMax:300, quiet:true},
+  {id:'challenges', g:'worship', t:'تذكير التحديات', ic:'star', on:false, clock:'20:00'},
   {id:'suhoor', g:'worship', t:'تذكير السحور (في رمضان)', ic:'moon', on:false, off:45, offLbl:'قبل الفجر بـ', offMax:150},
   {id:'iftar', g:'worship', t:'اقتراب الإفطار (في رمضان)', ic:'sunrise', on:false, off:5, offLbl:'قبل المغرب بـ', offMax:60},
   {id:'wird', custom:true, g:'worship', t:'ورد القرآن اليومي', ic:'quran', on:false, off:45, offLbl:'قبل العشاء بـ', offMax:240, quiet:true}
@@ -121,7 +122,7 @@ const PRAYER_DHIKR = {
 M.PRAYER_DHIKR = PRAYER_DHIKR;
 /* ---- build the schedule ---- */
 /* the screen a reminder opens when tapped (see M.openDeep) */
-const OPEN = {suhoor:'ramadan', iftar:'ramadan', duarand:'hal', lastthird:'qiyam', midnight:'qiyam', duha:'duha', morning:'morning', evening:'evening', sleep:'sleep', dhikr:'tasbih', salawat:'tasbih', tijan:'tijan',
+const OPEN = {challenges:'challenges', suhoor:'ramadan', iftar:'ramadan', duarand:'hal', lastthird:'qiyam', midnight:'qiyam', duha:'duha', morning:'morning', evening:'evening', sleep:'sleep', dhikr:'tasbih', salawat:'tasbih', tijan:'tijan',
   kahf:'surah_18', ijaba:'duas', wird:'khatma', fast_mon:'fast_week', fast_thu:'fast_week', fast_white:'fast_white', fast_special:'calendar'};
 M.buildReminders = function(days){
   if(M.cfg.nfMaster === false) return [];
@@ -175,6 +176,7 @@ M.buildReminders = function(days){
         }
         case 'kahf': if(dow !== 5) continue; ts = t.sunrise.getTime() + off; title = 'يوم الجمعة'; body = 'سورة الكهف والإكثار من الصلاة على النبي ﷺ'; break;
         case 'ijaba': if(dow !== 5) continue; ts = t.asr.getTime() + off; title = 'ساعة الإجابة'; body = 'آخر ساعة من يوم الجمعة — أكثر من الدعاء'; break;
+        case 'challenges': { const cn = M.challengesNote ? M.challengesNote(day) : null; if(!cn) continue; ts = clock(c.clock || d.clock); title = cn.title; body = cn.body; break; }
         case 'suhoor': { if(M.hijri(day).m !== 9) continue; ts = t.fajr.getTime() - off; title = 'السحور'; body = '«تَسَحَّرُوا فَإِنَّ فِي السَّحُورِ بَرَكَةً» — الفجر ' + M.fmt(t.fajr); break; }
         case 'iftar': { if(M.hijri(day).m !== 9) continue; ts = t.maghrib.getTime() - off; title = 'اقترب الإفطار'; body = 'ذَهَبَ الظَّمَأُ وَابْتَلَّتِ الْعُرُوقُ وَثَبَتَ الْأَجْرُ إِنْ شَاءَ اللَّهُ — المغرب ' + M.fmt(t.maghrib); break; }
         case 'wird': ts = t.isha.getTime() - off; title = 'ورد القرآن'; body = 'ورد اليوم: '+M.cnt(M.cfg.wird || 4, 'صفحة', false, 'صفحات'); break;

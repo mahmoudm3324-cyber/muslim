@@ -230,6 +230,11 @@ function pinPage(){
   document.addEventListener('focusout', ()=>setTimeout(fix, 60));
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) fix(); });
   window.addEventListener('pageshow', fix);
+  /* 4.5: a scrollIntoView (the reciting word, a result…) also scrolls every clipped container above it — the app, a screen
+     frame — and the whole interface slides up under the status bar. Those frames never scroll: put them back at once. */
+  const FRAMES = '#app,#views,#screens,.view,#sheet-root,#tabbar';
+  document.addEventListener('scroll', e=>{ const t = e.target; if(t && t.nodeType === 1 && t.matches(FRAMES) && (t.scrollTop || t.scrollLeft)){ t.scrollTop = 0; t.scrollLeft = 0; } }, true);
+  setInterval(()=>{ document.querySelectorAll(FRAMES).forEach(t=>{ if(t.scrollTop || t.scrollLeft){ t.scrollTop = 0; t.scrollLeft = 0; } }); }, 1500);
 }
 function boot(){
   watchDigits(); pinPage();
