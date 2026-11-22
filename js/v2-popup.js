@@ -19,7 +19,7 @@ const n = x=>M.n(x);
 const now = ()=>Date.now();
 
 /* ---------------- settings ---------------- */
-const W_DEF = {on:true, n:1, open:!NATIVE(), unlock:true, every:0, rec:'', s:1, a:1, khatmas:0, since:'', ts:0};
+const W_DEF = {on:false, n:1, open:!NATIVE(), unlock:true, every:0, rec:'', s:1, a:1, khatmas:0, since:'', ts:0};
 const Z_DEF = {on:false, open:!NATIVE(), unlock:true, every:120, i:0, morning:false, evening:false, after:false, between:false, offM:20, offE:30, offA:12};
 const wcfg = ()=>Object.assign({}, W_DEF, M.store.get('pw', {}) || {});
 const zcfg = ()=>Object.assign({}, Z_DEF, M.store.get('pz', {}) || {});

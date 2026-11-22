@@ -280,3 +280,25 @@ html.has-np .screen{padding-bottom:calc(var(--tabbar-h) + var(--sab) + 150px)}
 .ob-wfeat svg{width:21px;height:21px}
 .ob-wfeat small{font-size:.74rem;font-weight:700;color:var(--ob-fg)}
 .ob-wel .ob-arch-svg{filter:drop-shadow(0 14px 22px color-mix(in oklab,var(--p) 40%,transparent))}
+
+/* ---------------------------------------------------------------- الترحيب (3.10.2): هادئ وثابت */
+.ob-w2{justify-content:center;gap:16px;text-align:start}
+.ob-w2>.ob-w2-top{margin-top:auto}
+.ob-w2-top{display:flex;align-items:center;gap:16px}
+.ob-w2-icon{width:84px;height:84px;flex:none;border-radius:26px;object-fit:cover;box-shadow:0 12px 26px -14px rgba(0,0,0,.45),0 0 0 1px var(--ob-line)}
+.ob-w2-tt small{display:block;font-size:.84rem;font-weight:700;color:var(--ob-gold)}
+.ob-w2-tt h1{font-size:2.3rem;margin:0;line-height:1.3}
+.ob-w2-p{text-align:start;max-width:none!important;margin:0!important}
+.ob-w2-list{display:flex;flex-direction:column;border-radius:22px;background:var(--ob-card);box-shadow:inset 0 0 0 1px var(--ob-line);overflow:hidden}
+.ob-w2-row{display:flex;align-items:center;gap:12px;padding:12px 14px}
+.ob-w2-row+.ob-w2-row{border-top:1px solid var(--ob-line)}
+.ob-w2-row b{display:block;font-size:.95rem}.ob-w2-row small{display:block;font-size:.78rem;color:var(--ob-mut);line-height:1.6}
+.ob-w2-ic{width:40px;height:40px;flex:none;border-radius:13px;display:grid;place-items:center;color:var(--p);background:color-mix(in oklab,var(--p) 12%,transparent)}
+html[data-theme=dark] .ob-w2-ic,html[data-theme=amoled] .ob-w2-ic{color:color-mix(in oklab,var(--p) 55%,#fff);background:color-mix(in oklab,var(--p) 22%,transparent)}
+.ob-w2-ic svg{width:22px;height:22px}
+.ob-w2 .ob-promise{justify-content:flex-start}
+.ob-w2>:last-child{margin-bottom:auto}
+/* no glowing background on any onboarding page */
+.ob .ob-glow,.ob .ob-sparks,.ob .ob-rings{display:none!important}
+.ob .ob-lattice{opacity:.07!important;animation:none!important}
+.ob-w2 .ob-promise span{opacity:1!important;transform:none!important;animation:none!important}

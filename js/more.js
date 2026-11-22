@@ -21,7 +21,7 @@ M.screens.more = {
       h('button.icon-btn.tonal', {'aria-label':'الإعدادات', onclick:()=>M.openSettings()}, M.ic('settings'))));
     const q = h('input.field.more-q', {type:'search', placeholder:'ابحث في كل الأقسام…', 'aria-label':'بحث في الأقسام', autocomplete:'off', oninput:()=>draw()});
     const jump = h('div.mr-jump');
-    el.append(h('div.sec-sticky.more-bar.mr-bar', h('div.more-qw', h('span.more-qi', {html:M.icon('search')}), q), h('button.icon-btn.tonal', {'aria-label':'جميع الأقسام', onclick:()=>M.openAllSections()}, M.ic('grid'))), jump);
+    el.append(h('div.more-bar.mr-bar', h('div.more-qw', h('span.more-qi', {html:M.icon('search')}), q), h('button.icon-btn.tonal', {'aria-label':'جميع الأقسام', onclick:()=>M.openAllSections()}, M.ic('grid'))), jump);
     const box = h('div.more-box.mr-box'); el.append(box);
     const SEC = id=>(M.SECTIONS || []).find(x=>x[0] === id);
     const SKIP = new Set(['quran', 'prayer', 'search', 'notifs', 'health', 'look', 'navbar_cfg', 'settings', 'v2_security']);

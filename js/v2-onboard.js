@@ -78,19 +78,18 @@ function build(mode){
   /* 1 welcome */
   pages.push(()=>{
     const icon = M.cfg.appIcon || 10;
-    const star = (r, n, k)=>{ let d = ''; for(let i = 0; i < n * 2; i++){ const a = Math.PI * i / n - Math.PI / 2, rr = i % 2 ? r * k : r; d += (i ? 'L' : 'M') + (100 + rr * Math.cos(a)).toFixed(1) + ' ' + (100 + rr * Math.sin(a)).toFixed(1); } return d + 'Z'; };
-    const rings = h('div.ob-rings', {'aria-hidden':'true'},
-      sv('svg', {viewBox:'0 0 200 200', class:'ob-ring r1'}, sv('path', {d:star(96, 8, .78), fill:'none', stroke:'var(--ob-gold)', 'stroke-width':'.9'}), sv('circle', {cx:100, cy:100, r:99, fill:'none', stroke:'var(--ob-gold)', 'stroke-width':'.5', 'stroke-dasharray':'2 5'})),
-      sv('svg', {viewBox:'0 0 200 200', class:'ob-ring r2'}, sv('path', {d:star(80, 12, .84), fill:'none', stroke:'var(--ob-gold)', 'stroke-width':'.7'})),
-      h('i.ob-glow'));
-    const sparks = h('div.ob-sparks', {'aria-hidden':'true'}, ...Array.from({length:16}, (_, i)=>h('i', {style:'--x:'+((i * 37 + 11) % 100)+'%;--y:'+((i * 53 + 7) % 92)+'%;--d:'+((i % 7) * 0.45).toFixed(2)+'s;--s:'+(5 + (i % 4) * 3)+'px;--t:'+(2.6 + (i % 5) * 0.7).toFixed(1)+'s'})));
-    const el = h('div.ob-page.ob-wel'+(upd ? '.upd' : ''), sparks,
-      h('div.ob-st.ob-wel-em', rings, arch(h('img', {src:'img/icons/'+icon+'.jpg', alt:''}), true)),
-      h('h1.ob-h.ob-big.title-font.ob-st.ob-shine', 'المسلم'), h('div.ob-rule', {'aria-hidden':'true'}, h('i'), h('b'), h('i')),
-      !upd ? h('div.ob-tag.ob-st', (()=>{ const hr = new Date().getHours(); return hr < 4 ? 'مساء الخير' : hr < 12 ? 'صباح الخير' : hr < 18 ? 'نهارك سعيد' : 'مساء الخير'; })() + ' • أهلًا بك') : null,
-      h('p.ob-p.ob-st', upd ? 'تم تحديث التطبيق إلى الإصدار '+M.n(M.VERSION)+'. هذا أبرز ما أضفناه لك.' : 'رفيقك اليومي للقرآن والصلاة والذكر. نجهّزه على ذوقك في خطوات قصيرة.'),
+    /* 3.10.2: a calm, still welcome — the app icon, its name, what it holds, and its promises (no glow, sparks or rings) */
+    const hr = new Date().getHours();
+    const hello = hr < 4 ? 'مساء الخير' : hr < 12 ? 'صباح الخير' : hr < 18 ? 'نهارك سعيد' : 'مساء الخير';
+    const FEAT = [['s:mushaf', 'المصحف الشريف', 'قراءة وتفسير واستماع لعدة قرّاء'], ['s:mosque', 'المواقيت والقبلة', 'أذان وتنبيه قبل كل صلاة'],
+      ['s:beads', 'الأذكار والأدعية', 'الصباح والمساء والنوم بعدّاد'], ['s:khatma', 'الختمة والورد', 'خطة يومية تتابع بها قراءتك']];
+    const el = h('div.ob-page.ob-wel.ob-w2'+(upd ? '.upd' : ''),
+      h('div.ob-w2-top.ob-st',
+        h('img.ob-w2-icon', {src:'img/icons/'+icon+'.jpg', alt:''}),
+        h('div.ob-w2-tt', h('small', upd ? 'تحديث جديد' : hello + ' • أهلًا بك'), h('h1.ob-h.title-font', 'المسلم'))),
+      h('p.ob-p.ob-st.ob-w2-p', upd ? 'تم تحديث التطبيق إلى الإصدار '+M.n(M.VERSION)+'. هذا أبرز ما أضفناه لك.' : 'رفيقك اليومي للقرآن والصلاة والذكر. نجهّزه على ذوقك في خطوات قصيرة.'),
       upd ? card(h('b.ob-ul-h', 'الجديد في هذا الإصدار'), h('ul.ob-ul', ...(M.whatsNew ? M.whatsNew() : M.WHATS_NEW).map(t=>h('li', t)))) : null,
-      !upd ? h('div.ob-wfeat.ob-st', ...[['s:mushaf', 'المصحف'], ['s:mosque', 'المواقيت'], ['s:beads', 'الأذكار'], ['s:khatma', 'الختمة']].map(([ic, t])=>h('div', h('span', {html:M.icon(ic)}), h('small', t)))) : null,
+      !upd ? h('div.ob-w2-list.ob-st', ...FEAT.map(([ic, t, d])=>h('div.ob-w2-row', h('span.ob-w2-ic', {html:M.icon(ic)}), h('div.grow', h('b', t), h('small', d))))) : null,
       !upd ? h('div.ob-promise.ob-st', ...[['s:shield', 'بلا إعلانات'], ['lock', 'بلا حسابات'], ['download', 'يعمل دون إنترنت']].map(([ic, t])=>h('span', {html:M.icon(ic)}, t))) : null);
     /* a long "what's new" list scrolls: fade the bottom edge while there is more below */
     const more = ()=>el.classList.toggle('more', el.scrollHeight - el.scrollTop - el.clientHeight > 8);
