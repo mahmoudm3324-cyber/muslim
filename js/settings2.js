@@ -424,9 +424,11 @@ S.perf = {title:'الأداء والشاشة', build(b){
   b.append(h('div.list.card', {style:'margin-top:12px'},
     row('الحركات والانتقالات', 'إيقافها يوفّر الطاقة', M.switchEl(M.cfg.anim !== false, v=>M.save('anim', v)))));
   b.append(h('div.section-h', 'شكل حركة فتح الصفحات'));
-  b.append(M.seg([['default', 'الأساسية'], ['zoom', 'تكبير'], ['rise', 'صعود'], ['fade', 'تلاشٍ']], M.cfg.animStyle || 'default', v=>{ M.save('animStyle', v); document.documentElement.dataset.astyle = v; }));
+  b.append(M.seg([['default', 'الأساسية'], ['apple', 'أبل'], ['zoom', 'تكبير'], ['rise', 'صعود'], ['fade', 'تلاشٍ']], M.cfg.animStyle || 'default', v=>{ M.save('animStyle', v); document.documentElement.dataset.astyle = v; }));
+  b.append(note('«أبل»: تنفتح الصفحة من العنصر الذي لمسته وتعود إليه عند الإغلاق، كما في iOS. «الأساسية» تفعل ذلك أيضًا مع الشكل الزجاجي.'));
+  b.append(h('div.list.card', {style:'margin-top:12px'}, row('تصغير الشريط السفلي عند التمرير', 'يصغر الشريط حين تنزل في الصفحة ويعود حين تصعد أو تلمسه', M.switchEl(M.cfg.nbShrink !== false, v=>M.save('nbShrink', v)))));
   b.append(note('«موفّر»: يُلغي تمويه الخلفية خلف الأشرطة ويوقف حركة الخلفية. «كامل»: يضيف تمويهًا زجاجيًا للبطاقات (أثقل على الأجهزة الضعيفة).'));
-  b.append(h('div.list.card', {style:'margin-top:12px'}, row('معدّل تحديث الشاشة', 'يعمل التطبيق بأعلى معدّل تدعمه شاشتك (٩٠ / ١٢٠ هرتز)', h('b.num', M.n(M.hz || 60)+' Hz'))));
+  b.append(h('div.list.card', {style:'margin-top:12px'}, row('معدّل تحديث الشاشة', 'متكيّف: أعلى معدّل تدعمه الشاشة (حتى ١٢٠ هرتز) أثناء اللمس والحركة، وينخفض وحده عند السكون', h('b.num', M.n(M.hz || 60)+' Hz'))));
   if(M.store.get('fxSlow', false)) b.append(h('div.card.pad', {style:'margin-top:12px'}, h('div.small', 'لاحظ التطبيق تقطّعًا على هذا الجهاز فخفّف المؤثرات تلقائيًا.'), h('button.btn.tonal.sm', {style:'margin-top:8px', onclick:()=>{ M.store.set('fxSlow', false); M.applyFx(); M.toast('أُعيدت المؤثرات — سيُعاد القياس'); }}, 'إعادة المؤثرات')));
   b.append(h('div.section-h', 'الشاشة المنحنية الحواف'));
   b.append(M.seg([['auto', 'تلقائي'], [0, 'بدون'], [8, 'خفيف'], [14, 'متوسط'], [22, 'واسع']], M.cfg.edge == null ? 'auto' : M.cfg.edge, v=>M.save('edge', v)));

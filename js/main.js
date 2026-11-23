@@ -187,7 +187,7 @@ M.setTab = function(id){
     if(on && prev !== id) el.scrollTop = 0;
   });
   M.$$('#tabbar .tab').forEach(t=>t.classList.toggle('on', t.dataset.tab === id));
-  moveLens(prev != null);
+  M.moveLens(prev != null);
   document.documentElement.dataset.tab = id;
   M.bgScopeApply(); M.haptic(6); M.emit('tab', id);
 };

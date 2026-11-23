@@ -118,29 +118,39 @@ M.openReader = async function(opts){
     nameMemo.set(mk, d.style.cssText);
     return d;
   }
-  /* 4.5.4 the Basmala line: one very large compound glyph that some browsers (Edge / Chrome on Windows) draw broken —
-     squeezed, doubled, with stray strokes. Like the surah name banner, it is drawn once on a canvas and shown as a mask in the
-     text colour: the same shape on every device, in every edition. */
+  /* 4.6.1 the Basmala line. The page fonts hold it as one very large compound glyph, and that glyph comes out broken
+     (squeezed, doubled, crossed by stray strokes) on Windows — in the page and even when drawn on a canvas, because the
+     canvas uses the same font engine. So it is not taken from the page font at all: it is written in Amiri Quran, an
+     ordinary Uthmani font that every engine shapes correctly, drawn once on a canvas and shown as a mask in the text colour. */
+  const BIS = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ', BISF = '"Amiri Quran"';
   const bisMemo = new Map();
-  function bisMask(parts, fs, H){
+  let bisFont = null;
+  const bisReady = ()=>{ try{ return document.fonts.check('40px ' + BISF, BIS); }catch(e){ return true; } };
+  function bisDraw(fs, H){
     const dpr = Math.min(window.devicePixelRatio || 1, 3);
-    const key = parts.map(x=>x.join('|')).join('/') + '|' + fs.toFixed(1) + '|' + H.toFixed(1) + '|' + dpr;
+    const key = fs.toFixed(1) + '|' + H.toFixed(1) + '|' + dpr;
     let m = bisMemo.get(key);
-    if(!m){
-      const c0 = document.createElement('canvas').getContext('2d');
-      const gap = fs * .18, ws = parts.map(([t, f])=>{ c0.font = fs + 'px "' + f + '"'; const mt = c0.measureText(t); return {w:mt.width, asc:mt.actualBoundingBoxAscent || fs * .7, dsc:mt.actualBoundingBoxDescent || fs * .3}; });
-      const W = Math.ceil(ws.reduce((a, x)=>a + x.w, 0) + gap * (parts.length - 1) + 4);
-      if(!(W > 8)) return null;
-      const cv = document.createElement('canvas'); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
-      const c = cv.getContext('2d'); c.scale(dpr, dpr); c.fillStyle = '#000'; c.textBaseline = 'alphabetic'; c.textAlign = 'left';
-      let x = W - 2;   // right to left: the first part is the rightmost
-      parts.forEach(([t, f], i)=>{ const g = ws[i]; x -= g.w; c.font = fs + 'px "' + f + '"'; c.fillText(t, x, H / 2 + (g.asc - g.dsc) / 2); x -= gap; });
-      m = {u:'url(' + cv.toDataURL('image/png') + ')', W};
-      if(bisMemo.size > 30) bisMemo.delete(bisMemo.keys().next().value);
-      bisMemo.set(key, m);
-    }
+    if(m) return m;
+    const f = Math.round(H * .62);
+    const c0 = document.createElement('canvas').getContext('2d'); c0.font = f + 'px ' + BISF;
+    const mt = c0.measureText(BIS), W = Math.ceil(mt.width + 6);
+    if(!(W > 8)) return null;
+    const asc = mt.actualBoundingBoxAscent || f * .8, dsc = mt.actualBoundingBoxDescent || f * .4;
+    const cv = document.createElement('canvas'); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    const c = cv.getContext('2d'); c.scale(dpr, dpr); c.fillStyle = '#000'; c.font = f + 'px ' + BISF;
+    c.direction = 'rtl'; c.textAlign = 'right'; c.textBaseline = 'alphabetic';
+    c.fillText(BIS, W - 3, H / 2 + (asc - dsc) / 2);
+    m = {u:'url(' + cv.toDataURL('image/png') + ')', W};
+    if(bisMemo.size > 30) bisMemo.delete(bisMemo.keys().next().value);
+    bisMemo.set(key, m);
+    return m;
+  }
+  function bisMask(fs, H){
     const d = h('div.qbm', {'aria-label':'بسم الله الرحمن الرحيم', role:'img'});
-    d.style.cssText = 'width:' + m.W + 'px;max-width:100%;height:' + H.toFixed(1) + 'px;-webkit-mask:' + m.u + ' center/contain no-repeat;mask:' + m.u + ' center/contain no-repeat';
+    const paint = ()=>{ const m = bisDraw(fs, H); if(!m) return; d.style.cssText = 'width:' + m.W + 'px;max-width:100%;height:' + H.toFixed(1) + 'px;-webkit-mask:' + m.u + ' center/contain no-repeat;mask:' + m.u + ' center/contain no-repeat'; };
+    d.style.cssText = 'width:60%;height:' + H.toFixed(1) + 'px;background:none';
+    if(bisReady()) paint();
+    else { bisFont = bisFont || document.fonts.load('40px ' + BISF, BIS).catch(()=>{}); bisFont.then(paint); }
     return d;
   }
   function buildQcfPage(p){
@@ -166,7 +176,7 @@ M.openReader = async function(opts){
         body.append(h('div.ml.qh', {dataset:{s:l[1]}, style:'height:'+bh.toFixed(1)+'px'}, h('div.qbn', nameCanvas(l[2], bodyW, bh))));
       } else if(l[0] === 'b'){
         const bt = Array.isArray(l[1]) ? l[1] : [l[1]], bf = l[3] ? M.qcf.fam(l[3]) : fam;
-        const bm = bisMask(bt.map(t=>[t, bf]), fs, bh);   // every edition: the same safe drawing
+        const bm = bisMask(fs, bh);   // every edition: the same safe drawing
         body.append(bm ? h('div.ml.qbis.qbis-m', bm) : h('div.ml.qbis'+(kind === 'c' ? '.qcc' : ''), ...bt.map(t=>h('span', {style:'font-family:'+bf}, t))));
       } else {
         const row = h('div.ml.mw.qw'+(kind === 'c' ? '.qcc' : ''), {style:'font-family:'+fam});
@@ -317,10 +327,18 @@ M.openReader = async function(opts){
     /* presses during a turn are counted and played one after another (at most five ahead) */
     let pend = 0;
     const flushPend = ()=>{ if(!pend) return; const d = Math.sign(pend); pend -= d; setTimeout(()=>api.step(d), 20); };
+    /* 4.6.1 two pages side by side turn with the paper curl, like one page does — but only the outer page lifts, and
+       its fold travels to the spine and stops there: the sheet ends lying on the other page, as in a printed Mushaf.
+       Forward (towards the end) the left page is peeled from its free edge and laid over the right one; back, the right
+       page is laid over the left. Layers: the spread being opened (under), the half that stays, the turning page
+       (clipped where it is still flat), and the lifted part mirrored across the fold, showing the next page on its back. */
     const book = (()=>{
       let st = null;
+      const G = ()=>M.mushafCurl && M.mushafCurl.geo;
       const halfOf = (el, side)=>{ const x = el && el.querySelector('.msp-half.' + side); return x ? x.cloneNode(true) : h('div.msp-half'); };
-      function begin(dir){
+      const pgBox = (child, left, flip)=>h('div.bk-pg' + (flip ? '.bk-flip' : ''), {style:'left:' + (left ? '0' : '50%')}, child);
+      function begin(dir, y){
+        const g = G(); if(!g) return null;
         const target = cur + dir; if(target < 1 || target > MAX()) return null;
         const curEl = get(cur), toEl = get(target); if(!curEl || !toEl) return null;
         const to = dir > 0 ? slides.next : slides.prev, other = dir > 0 ? slides.prev : slides.next;
@@ -331,35 +349,71 @@ M.openReader = async function(opts){
         slides.cur.style.transform = 'translate3d(0,0,0)'; slides.cur.style.zIndex = 2; slides.cur.style.visibility = 'visible';
         slides.cur.style.clipPath = dir > 0 ? 'inset(0 0 0 50%)' : 'inset(0 50% 0 0)';   // the half that does not turn
         other.style.visibility = 'hidden';
-        const shade = h('i.bk-shade');
-        const leaf = h('div.bk-leaf' + (dir > 0 ? '.fw' : '.bw'),
-          h('div.bk-face', halfOf(curEl, dir > 0 ? 'l' : 'r')),
-          h('div.bk-face.bk-back', halfOf(toEl, dir > 0 ? 'r' : 'l')), shade);
-        track.append(leaf); track.classList.add('bk-on');
-        st = {dir, leaf, shade, target};
+        const fwd = dir > 0, W = layout.W, H = layout.H;
+        const ov = h('i.bk-ov');
+        const front = h('div.bk-front', pgBox(halfOf(curEl, fwd ? 'l' : 'r'), fwd), ov);
+        const shU = h('i.bk-shu');
+        const fo = h('i.bk-fo');
+        const fi = h('div.bk-fi', {style:'width:' + W + 'px;height:' + H + 'px'}, pgBox(halfOf(toEl, fwd ? 'r' : 'l'), fwd, true), fo);
+        const fw = h('div.bk-fw', {style:'width:' + W + 'px;height:' + H + 'px'}, fi);
+        track.append(front, shU, fw); track.classList.add('bk-on');
+        st = {dir, target, front, ov, shU, fw, fi, fo, t:0, a:0, y:y == null ? H * .75 : y};
         return st;
       }
-      function set(t){
+      function render(){
+        const g = G(); if(!st || !g) return;
+        const W = layout.W, H = layout.H, fwd = st.dir > 0, t = g.clamp(st.t, 0, 1);
+        const nx = Math.cos(st.a), ny = Math.sin(st.a);
+        const half = fwd ? [[0, 0], [W / 2, 0], [W / 2, H], [0, H]] : [[W / 2, 0], [W, 0], [W, H], [W / 2, H]];
+        const dots = half.map(q=>nx * q[0] + ny * q[1]), dMin = Math.min(...dots), dMax = Math.max(...dots);
+        const d = fwd ? dMin + t * (dMax - dMin) : dMax - t * (dMax - dMin);
+        const lifted = g.clipHalf(half, nx, ny, d, fwd), flat = g.clipHalf(half, nx, ny, d, !fwd);
+        const on = lifted.length >= 3 && t > .002;
+        st.front.style.clipPath = g.poly(flat);
+        st.fw.style.display = st.shU.style.display = on ? '' : 'none';
+        st.fw.style.transform = 'matrix(' + (1 - 2 * nx * nx).toFixed(5) + ',' + (-2 * nx * ny).toFixed(5) + ',' + (-2 * nx * ny).toFixed(5) + ',' + (1 - 2 * ny * ny).toFixed(5) + ',' + (2 * d * nx).toFixed(2) + ',' + (2 * d * ny).toFixed(2) + ')';
+        st.fi.style.clipPath = g.poly(lifted);
+        st.shU.style.clipPath = g.poly(lifted);
+        const P0x = nx * d, P0y = ny * d, s = fwd ? 1 : -1, k = Math.min(1, Math.max(.25, 1 - Math.abs(t - .5) * .5));
+        st.fo.style.background = g.grad(-s * nx, -s * ny, W, H, P0x, P0y, [[0, 'rgba(0,0,0,.30)'], [10, 'rgba(255,255,255,.22)'], [48, 'rgba(255,255,255,0)'], [W, 'rgba(0,0,0,.08)']]);
+        st.ov.style.background = g.grad(s * nx, s * ny, W, H, P0x, P0y, [[0, 'rgba(0,0,0,' + (.34 * k).toFixed(2) + ')'], [22, 'rgba(0,0,0,' + (.12 * k).toFixed(2) + ')'], [84, 'rgba(0,0,0,0)']]);
+        st.shU.style.background = g.grad(-s * nx, -s * ny, W, H, P0x, P0y, [[0, 'rgba(0,0,0,.30)'], [40, 'rgba(0,0,0,.1)'], [110, 'rgba(0,0,0,0)']]);
+      }
+      let raf = 0;
+      function set(t, ddy){
         if(!st) return;
-        t = Math.max(0, Math.min(1, t));
-        st.leaf.style.transform = 'rotateY(' + (st.dir > 0 ? 180 * t : -180 * t).toFixed(2) + 'deg)';
-        st.shade.style.opacity = (Math.sin(t * Math.PI) * .5).toFixed(3);
-        st.t = t;
+        st.t = Math.max(0, Math.min(1, t));
+        if(ddy != null) st.a = Math.max(-.4, Math.min(.4, Math.atan2(ddy * .5 * (st.dir > 0 ? 1 : -1), Math.max(Math.abs(dx), 90))));
+        if(!raf) raf = requestAnimationFrame(()=>{ raf = 0; render(); });
       }
       function clean(){
+        cancelAnimationFrame(raf); raf = 0;
         if(!st) return;
-        st.leaf.remove(); track.classList.remove('bk-on'); slides.cur.style.clipPath = '';
+        cancelAnimationFrame(st.anim || 0);
+        [st.front, st.shU, st.fw].forEach(e=>e.remove()); track.classList.remove('bk-on'); slides.cur.style.clipPath = '';
         st = null;
       }
       function end(go, ms){
         if(!st) return;
-        const s0 = st, d = ms || Math.round(260 + 280 * (go ? 1 - (s0.t || 0) : (s0.t || 0)));
-        s0.leaf.style.transition = 'transform ' + d + 'ms cubic-bezier(.3,.15,.25,1)';
-        s0.shade.style.transition = 'opacity ' + d + 'ms ease';
-        requestAnimationFrame(()=>set(go ? 1 : 0));
-        setTimeout(()=>{ if(st !== s0) return; clean(); if(go) cur = s0.target; dx = 0; setT(false); fill(); anim = false; if(go) onPage(PG(cur)); flushPend(); }, d + 30);
+        const s0 = st, t0 = s0.t || 0, t1 = go ? 1 : 0, a0 = s0.a;
+        const dur = ms || Math.round(240 + 360 * Math.abs(t1 - t0));
+        const ease = x=>1 - Math.pow(1 - x, 3), ts = performance.now();
+        const step = now=>{
+          if(st !== s0) return;
+          const x = Math.min(1, (now - ts) / dur), e = ease(x);
+          s0.t = t0 + (t1 - t0) * e; s0.a = a0 * (1 - e); render();
+          if(x < 1){ s0.anim = requestAnimationFrame(step); return; }
+          clean(); if(go) cur = s0.target; dx = 0; setT(false); fill(); anim = false; if(go) onPage(PG(cur)); flushPend();
+        };
+        s0.anim = requestAnimationFrame(step);
       }
-      return {begin, set, end, cancel:()=>{ clean(); }, get active(){ return !!st; }, get dir(){ return st ? st.dir : 0; }};
+      /* a turn from the arrows or the keyboard: a gentle diagonal peel from the lower corner */
+      function auto(dir){
+        if(!begin(dir, layout.H * .8)) return false;
+        st.a = (dir > 0 ? 1 : -1) * (.18 + Math.random() * .12); st.t = 0; render(); end(true, 640);
+        return true;
+      }
+      return {begin, set, end, auto, cancel:()=>{ clean(); }, get active(){ return !!st; }, get dir(){ return st ? st.dir : 0; }};
     })();
     function commit(delta){
       const np = cur + delta; if(np < 1 || np > MAX()){ snap(); return; }
@@ -367,7 +421,7 @@ M.openReader = async function(opts){
       if(SPm){
         anim = true; if(M.cfg.qFlipSound !== false) paperSound();
         if(book.active) book.cancel();
-        if(book.begin(delta > 0 ? 1 : -1)){ book.set(0); book.end(true, 620); return; }
+        if(book.auto(delta > 0 ? 1 : -1)) return;
         anim = false;
       }
       if(curlOn() && !SPm){
@@ -399,7 +453,7 @@ M.openReader = async function(opts){
         if(SPm && !(cur === MAX() && dx > 0) && !(cur === 1 && dx < 0)){
           const dir = dx > 0 ? 1 : -1;
           if(book.active && book.dir !== dir) book.cancel();
-          if(book.active || book.begin(dir)){ book.set(Math.abs(dx) / (layout.W * .62)); return; }
+          if(book.active || book.begin(dir, down.ry)){ book.set(Math.abs(dx) / (layout.W * .9), dy); return; }
         }
         if(!SPm && curlOn() && !(cur === MAX() && dx > 0) && !(cur === 1 && dx < 0)){
           try{
@@ -875,7 +929,7 @@ M.openReader = async function(opts){
           h('div.sh-meta', h('span', meta.mk ? 'مكية' : 'مدنية'), h('i'), h('span', M.cnt(meta.n, 'آية')), h('i'), h('span', 'الصفحة '+arNum(meta.page)))));
       if(s !== 1 && s !== 9){ ayahQcf(1, 1); if(bisG){ const vb = h('div.vbism', {style:'font-family:'+M.qcf.fam(bisG[0])}, bisG[1]); b.append(vb);
         /* the same safe drawing as on the pages, once its font is in */
-        M.qcf.ensure(bisG[0]).then(ok=>{ if(!ok || !vb.isConnected) return; const px = parseFloat(getComputedStyle(vb).fontSize) || 28, m = bisMask([[bisG[1], M.qcf.fam(bisG[0])]], px, Math.round(px * 1.7)); if(m){ vb.replaceChildren(m); vb.classList.add('vbism-m'); } }); } }
+        M.qcf.ensure(bisG[0]).then(ok=>{ if(!ok || !vb.isConnected) return; const px = parseFloat(getComputedStyle(vb).fontSize) || 28, m = bisMask(px, Math.round(px * 1.7)); if(m){ vb.replaceChildren(m); vb.classList.add('vbism-m'); } }); } }
       for(let a = 1; a <= meta.n; a++){
         const id = Q.starts[s-1] + a - 1, k = KEY(s, a);
         const el = h('article.va', {dataset:{k, s, a}},

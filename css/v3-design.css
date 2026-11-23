@@ -1285,3 +1285,31 @@ html[data-wide] .view-body{padding-inline:max(20px,calc((100% - 860px) / 2))}
 #screens,#tabbar,#views,#sheet-root,#toast-root{transition:left .35s var(--ease,ease),right .35s var(--ease,ease)}
 /* the pop-up cards and their circle keep off the bent sides too */
 html:not(.pop-float) .pop-root{left:var(--edge-l,0px);right:var(--edge-r,0px)}
+
+/* 4.6.1 the spread turns with the paper curl, stopping at the spine (replaces the flat 3D leaf) */
+.pg-track.bk-on{perspective:none}
+.bk-front,.bk-fw,.bk-shu{position:absolute;left:0;top:0;pointer-events:none}
+.bk-front{inset:0;z-index:3}
+.bk-shu{inset:0;z-index:4}
+.bk-fw{z-index:5;transform-origin:0 0;will-change:transform}
+.bk-fi{position:absolute;left:0;top:0;overflow:hidden}
+.bk-pg{position:absolute;top:0;bottom:0;width:50%;overflow:hidden;background:var(--rt-bg,#fffdf7);direction:rtl}
+.bk-pg>.msp-half{position:absolute;inset:0}
+.bk-flip{transform:scaleX(-1)}
+.bk-ov,.bk-fo{position:absolute;inset:0;pointer-events:none}
+
+/* 4.6.1 iOS motion (js/v461-apple.js) */
+html[data-skin] .view.v-zoom,html[data-skin] .view.v-zoom.leaving,html .view.v-zoom{animation:none!important}
+.view.v-zoom{will-change:transform,clip-path}
+html[data-skin] #tabbar .lens.held{transform:translateX(var(--lens-x,0)) scale(1.1,1.12);transition:transform .35s cubic-bezier(.3,1.4,.5,1),width .28s cubic-bezier(.2,.8,.2,1)}
+html[data-skin] #tabbar .tab{transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
+html[data-skin] #tabbar .tab:active{transform:scale(.92)}
+html[data-skin] #tabbar .bar{transition:transform .5s cubic-bezier(.32,.72,0,1),opacity .3s;transform-origin:50% 100%}
+html.nb-mini[data-skin]:not([data-nbmode=dock]) #tabbar .bar{transform:scale(.8) translateY(6px)}
+html[data-skin] #tabbar .lb{transition:opacity .25s}
+html.nb-mini[data-skin]:not([data-nbmode=dock]) #tabbar .lb{opacity:0}
+html[data-astyle=apple] .view{animation:vEnter .32s cubic-bezier(.32,.72,0,1) both!important}
+html[data-astyle=apple] .view.leaving{animation:vLeave .22s ease-out both!important}
+html[data-astyle=apple] .view.v-zoom,html[data-astyle=apple] .view.v-zoom.leaving{animation:none!important}
+/* 4.6.1 the glass bar stays legible over any page: without blur (battery saver) it is nearly solid, with blur it frosts more */
+html[data-fx=low][data-skin] #tabbar .bar{background:color-mix(in oklab,var(--s0) 97%,var(--p) 3%)!important}

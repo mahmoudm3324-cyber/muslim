@@ -115,7 +115,7 @@ function make(track, slides, getL){
   api.destroy = cleanup;
   return api;
 }
-M.mushafCurl = {make, enabled:()=>!reduced()};
+M.mushafCurl = {make, enabled:()=>!reduced(), geo:{clipHalf, poly, grad, clamp}};
 
 /* ------------------------------------------------------------------ */
 /* 2) MUSHAF EDITIONS SCREEN                                           */

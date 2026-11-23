@@ -199,8 +199,16 @@ function sizeBtn(){
 function bubAim(root, card){
   try{
     const r = root.getBoundingClientRect(), c = card.getBoundingClientRect(); if(!c.width) return;
-    const rtl = getComputedStyle(root).direction === 'rtl', y = Math.max(.08, Math.min(.86, +ucfg().by || .62));
-    const bx = rtl ? r.left + 12 + 32 : r.right - 12 - 32, by = r.top + r.height * y + 32;
+    /* 4.6.1 aim at where the circle really is (the side and height it was left at, its size), not at a default corner */
+    const b = root.querySelector('.pop-bubble');
+    let bx, by;
+    if(b && b.style.left && b.style.top){
+      const S = parseFloat(b.style.width) || b.offsetWidth || 48;
+      bx = r.left + parseFloat(b.style.left) + S / 2; by = r.top + parseFloat(b.style.top) + S / 2;
+    } else {
+      const u = ucfg(), rtl = getComputedStyle(root).direction === 'rtl', side = u.bs || (rtl ? 'l' : 'r'), y = Math.max(.08, Math.min(.86, +u.by || .62));
+      bx = side === 'r' ? r.right - 12 - 32 : r.left + 12 + 32; by = r.top + r.height * y + 32;
+    }
     root.style.setProperty('--bx', Math.round(bx - (c.left + c.width / 2))+'px'); root.style.setProperty('--by', Math.round(by - (c.top + c.height / 2))+'px');
   }catch(e){}
 }
