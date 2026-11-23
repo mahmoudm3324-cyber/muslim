@@ -1339,7 +1339,7 @@ html[data-fx=low][data-skin] #tabbar .bar{background:color-mix(in oklab,var(--s0
 .wd-item-b{display:flex;flex-direction:column;gap:4px}
 .wd-item-act{flex-wrap:wrap;margin-top:6px}
 .wd-note{line-height:1.8}
-.wd-top{position:sticky;top:0;z-index:3;display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 0 12px;margin:0 -16px 6px;background:color-mix(in oklab,var(--bg) 92%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--card-border)}
+.wd-top{position:sticky;top:0;z-index:3;display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px 0 10px;margin:0 0 6px;background:var(--s0);box-shadow:0 0 0 100vmax var(--s0);clip-path:inset(0 -100vmax);border-bottom:1px solid var(--card-border)}
 .wd-stage{min-height:90px;display:flex;align-items:center;justify-content:center;padding:6px 16px;width:100%}
 .wd-szs{width:auto;max-width:calc(100% - 32px)}
 .wd-szs small{opacity:.7;font-size:.72em}
@@ -1355,7 +1355,7 @@ html[data-fx=low][data-skin] #tabbar .bar{background:color-mix(in oklab,var(--s0
 .wd-tpl{display:flex;flex-wrap:wrap;gap:8px}
 .wd-tplb{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:14px;background:var(--card-bg);box-shadow:inset 0 0 0 1px var(--card-border);color:inherit;font:inherit;font-size:.86rem}
 .wd-tplb i{width:18px;height:18px;border-radius:6px;border:2px solid}
-.wd-actions{position:sticky;bottom:0;padding:10px 0 calc(10px + var(--sab,0px));background:linear-gradient(transparent,var(--bg) 30%)}
+.wd-actions{position:sticky;bottom:0;padding:10px 0 calc(10px + var(--sab,0px));background:linear-gradient(transparent,var(--s0) 30%)}
 .wd-code{font:600 1.05rem/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.02em;padding:14px;border-radius:14px;background:var(--card-bg);box-shadow:inset 0 0 0 1px var(--card-border);text-align:center;word-break:break-all;user-select:all;-webkit-user-select:all;margin-bottom:10px}
 .wd-steps{line-height:2;padding-inline-start:20px;margin:10px 0}
 .wd-ios{display:flex;flex-direction:column;gap:8px;padding:4px 2px 14px}
@@ -1372,3 +1372,5 @@ html[data-fx=low][data-skin] #tabbar .bar{background:color-mix(in oklab,var(--s0
 .wn-l{margin:4px 0 10px;padding-inline-start:20px;line-height:1.9}
 .wn-l li{margin-bottom:6px}
 .wn-l.old{opacity:.75;font-size:.92em}
+#view-wd-edit .view-body{overflow-x:hidden}
+.wd-stage .wd-frame{max-width:100%}

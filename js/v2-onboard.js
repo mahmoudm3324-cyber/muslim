@@ -54,7 +54,9 @@ function build(mode){
   const view = M.openView({title:'', id:'onboarding', noHead:true, nopad:true, build:b=>b.append(root), onClose:()=>{ try{ M.stopSound && M.stopSound(); }catch(e){} pageOff.forEach(f=>f()); off.forEach(f=>f()); }});
   view.onBack = ()=>{ if(step > 0 && !busy){ go(step - 1); } return true; };
 
-  function finish(){ if(!upd && !M.store.get('tourDone', 0)) setTimeout(offerTour, 700); try{ M.stopSound && M.stopSound(); }catch(e){} M.store.set('onboarded', 1); M.store.set('seenVersion', M.VERSION); M.store.set('nfDefaults2', 1); M.store.set('nfDefaults3', 1); M.store.del && M.store.del('onbResume'); notifApply(); view.close(); M.refreshScreen && M.refreshScreen(); }
+  function finish(){ if(!upd && !M.store.get('tourDone', 0)) setTimeout(offerTour, 700);
+    setTimeout(()=>{ try{ const d = new Date(); for(let i = 0; i < 30; i++) M.prayerTimes(M.addDays(d, i)); M.loadQuran && M.loadQuran(); M.syncNative && M.syncNative(true); }catch(e){} }, 400);   /* what «أوشكنا على الانتهاء» used to do, quietly */
+    try{ M.stopSound && M.stopSound(); }catch(e){} M.store.set('onboarded', 1); M.store.set('seenVersion', M.VERSION); M.store.set('nfDefaults2', 1); M.store.set('nfDefaults3', 1); M.store.del && M.store.del('onbResume'); notifApply(); view.close(); M.refreshScreen && M.refreshScreen(); }
   function go(n){
     if(busy || n < 0) return; if(n >= pages.length) return finish();
     dir = n >= step ? 1 : -1; step = n; draw(true);
@@ -99,14 +101,9 @@ function build(mode){
       h('div.ob-w2-top.ob-st',
         h('img.ob-w2-icon', {src:'img/icons/'+icon+'.jpg', alt:''}),
         h('div.ob-w2-tt', h('small', upd ? 'تحديث جديد' : hello + ' • أهلًا بك'), h('h1.ob-h.title-font', 'المسلم'))),
-      h('p.ob-p.ob-st.ob-w2-p', upd ? 'تم تحديث التطبيق إلى الإصدار '+M.n(M.VERSION)+'. هذا أبرز ما أضفناه لك.' : 'رفيقك اليومي للقرآن والصلاة والذكر. نجهّزه على ذوقك في خطوات قصيرة.'),
+      h('p.ob-p.ob-st.ob-w2-p', upd ? 'تم تحديث التطبيق إلى الإصدار '+M.n(M.VERSION)+'. هذا أبرز ما أضفناه لك.' : 'رفيقك اليومي للقرآن والصلاة والذكر. نجهّزه على ذوقك في خطوات قصيرة، وكلها تتغيّر لاحقًا من الإعدادات.'),
       upd ? card(h('b.ob-ul-h', 'الجديد في الإصدار ' + M.n(M.VERSION)), h('ul.ob-ul', ...(M.WHATS_LATEST || (M.whatsNew ? M.whatsNew() : M.WHATS_NEW).slice(0, 3)).map(t=>h('li', t)))) : null,
       upd ? quickSet() : null,
-      !upd ? h('div.ob-icons.ob-st', h('small', 'اختر أيقونة التطبيق — يتلوّن التطبيق بلونها'), h('div.ob-icrow', ...Array.from({length:14}, (_, k)=>{ const i = k + 1;
-        return h('button.ob-ic' + ((M.cfg.appIcon || 10) === i ? '.on' : ''), {'aria-label':'الأيقونة ' + M.n(i), onclick:function(){
-          try{ window.Android && Android.setAppIcon && Android.setAppIcon(i); }catch(e){} try{ M.setIconAccent(i); }catch(e){}
-          tint(i); const im = el.querySelector('.ob-w2-icon'); if(im) im.src = 'img/icons/' + i + '.jpg';
-          this.parentNode.querySelectorAll('.ob-ic').forEach(x=>x.classList.toggle('on', x === this)); M.haptic && M.haptic(8); }}, h('img', {src:'img/icons/' + i + '.jpg', alt:'', decoding:'async'})); }))) : null,
       !upd ? h('div.ob-w2-list.ob-st', ...FEAT.map(([ic, t, d])=>h('div.ob-w2-row', h('span.ob-w2-ic', {html:M.icon(ic)}), h('div.grow', h('b', t), h('small', d))))) : null,
       !upd ? h('div.ob-promise.ob-st', ...[['s:shield', 'بلا إعلانات'], ['lock', 'بلا حسابات'], ['download', 'يعمل دون إنترنت']].map(([ic, t])=>h('span', {html:M.icon(ic)}, t))) : null);
     /* a long "what's new" list scrolls: fade the bottom edge while there is more below */
@@ -154,65 +151,45 @@ function build(mode){
     return {el, primary:'متابعة'};
   });
 
-  /* 2b mark every prayer you complete (a little try: tap a prayer) */
-  pages.push(()=>{
-    const PR = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
-    let tt = null; try{ tt = M.prayerTimes(new Date()); }catch(e){}
-    const grid = h('div.ob3-pr.ob-st', ...PR.map(k=>h('button.ob3-pt-t', {onclick:function(){ this.classList.toggle('on'); M.haptic && M.haptic(this.classList.contains('on') ? 14 : 6); }},
-      h('span.ob3-ck', {html:M.icon('check')}), h('span.ob3-ic', {html:M.icon('p:' + k)}), h('b', M.prayerLabel(k)), h('small.num', tt ? M.n(M.fmt(tt[k])) : ''))));
-    return {el: h('div.ob-page', h('div.ob3-big.ob-st', grid), h('div.ob3-tx.ob-st', h('h1.ob-h.title-font', 'سجّل كل صلاة تؤديها'), h('p.ob-p', 'اجعل الصلاة عادة ثابتة: علّم صلواتك كل يوم وتابع أيامك المتتالية. جرّب الضغط على صلاة.'))), primary:'متابعة'};
-  });
-
-  /* 3 language + numerals */
-  pages.push(()=>{
-    const langs = h('div.ob-langs.ob-st');
-    M.LANGS.forEach(([id, n, e])=>langs.append(h('button.ob-opt'+(M.lang === id ? '.on' : ''), {dataset:{noi18n:1}, onclick:()=>{
-      if(id === M.lang) return; M.store.set('onbResume', 3); M.setLang(id);
-    }}, h('b', n), h('small', e), h('span.ob-ck', {html:M.icon('check')}))));
-    const dg = M.seg([['hindi', '​١٢٣ عربية'], ['latin', '​123 English']], M.cfg.digits === 'latin' ? 'latin' : 'hindi', v=>{ M.save('digits', v); });
-    return {el: h('div.ob-page', ...head('globe', 'اللغة والأرقام', 'اختر لغة الواجهة وشكل الأرقام.'), langs, ...((M.lang || 'ar') === 'ar' ? [lab('شكل الأرقام'), h('div.ob-st', dg)] : [])), primary:'متابعة'};
-  });
-
-  /* 3b about you: the name for the greeting + the text size */
+  /* 3 about you: the greeting name, the language and numerals, the text size — one page */
   pages.push(()=>{
     const hello = h('div.ob-hello.title-font', 'السلام عليكم' + (M.cfg.userName ? ' يا ' + M.cfg.userName : ''));
     const name = h('input.field', {type:'text', maxlength:24, placeholder:'اسمك (اختياري)', value:M.cfg.userName || '', oninput:e=>{ const v = e.target.value.trim(); M.save('userName', v); hello.textContent = 'السلام عليكم' + (v ? ' يا ' + v : ''); }});
+    const langs = h('div.ob-langs.ob-langs2.ob-st');
+    M.LANGS.forEach(([id, n])=>langs.append(h('button.ob-chip'+(M.lang === id ? '.on' : ''), {dataset:{noi18n:1}, onclick:()=>{ if(id === M.lang) return; M.store.set('onbResume', 2); M.setLang(id); }}, n)));
+    const dg = M.seg([['hindi', '​١٢٣ عربية'], ['latin', '​123 English']], M.cfg.digits === 'latin' ? 'latin' : 'hindi', v=>{ M.save('digits', v); });
     const sample = h('div.ob-sample.qfont', 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ');
     const sizes = [[0.9, 'صغير'], [1, 'متوسط'], [1.12, 'كبير'], [1.28, 'أكبر']];
-    const cur = M.cfg.fontScale || 1;
-    const paintS = v=>{ sample.style.fontSize = (1.5 * v) + 'rem'; };
-    paintS(cur);
-    const near = sizes.reduce((a, b)=>Math.abs(b[0] - cur) < Math.abs(a[0] - cur) ? b : a)[0];
+    const cur = M.cfg.fontScale || 1, paintS = v=>{ sample.style.fontSize = (1.5 * v) + 'rem'; }; paintS(cur);
+    const near = sizes.reduce((x, y)=>Math.abs(y[0] - cur) < Math.abs(x[0] - cur) ? y : x)[0];
     const seg = M.seg(sizes.map(([v, l])=>[String(v), l]), String(near), v=>{ M.save('fontScale', +v); paintS(+v); });
-    return {el: h('div.ob-page', ...head('t:user', 'نتعرّف عليك', 'نحيّيك باسمك في الرئيسية، ونضبط حجم الخط على راحتك.'),
-      card(hello, name), lab('حجم الخط في التطبيق'), card(sample), h('div.ob-st', seg)), primary:'متابعة'};
+    return {el: h('div.ob-page', ...head('t:user', 'نتعرّف عليك', 'نحيّيك باسمك، ونضبط اللغة وحجم الخط على راحتك.'),
+      card(hello, name),
+      lab('لغة الواجهة'), langs,
+      ...((M.lang || 'ar') === 'ar' ? [lab('شكل الأرقام'), h('div.ob-st', dg)] : []),
+      lab('حجم الخط'), card(sample), h('div.ob-st', seg)), primary:'متابعة'};
   });
 
-  /* 4 location */
+  /* 4 location and the times: where you are, today's times there, and (folded) how they are worked out */
   pages.push(()=>{
     const nm = h('div.ob-loc.title-font', M.cfg.loc ? M.location().name : 'لم يُحدَّد بعد');
-    const btn = h('button.btn.tonal.block', {onclick:async function(){
-      this.disabled = true; try{ const l = await M.detectLocation(); M.save('loc', l); nm.textContent = l.name; M.toast('تم تحديد موقعك'); }catch(e){ M.toast('تعذّر تحديد الموقع — اختر مدينتك من القائمة'); } this.disabled = false;
-    }}, M.ic('pin'), 'السماح وتحديد موقعي');
-    const cities = h('div.ob-cities.ob-st');
-    M.CITIES.slice(0, 18).forEach(c=>cities.append(h('button.ob-chip', {onclick:function(){ M.save('loc', {name:c[0], lat:c[1], lng:c[2], tz:c[3], auto:false}); nm.textContent = c[0]; cities.querySelectorAll('.on').forEach(x=>x.classList.remove('on')); this.classList.add('on'); }}, c[0])));
-    return {el: h('div.ob-page', ...head('pin', 'موقعك لحساب المواقيت', 'نحتاج موقعك التقريبي لحساب مواقيت الصلاة واتجاه القبلة.'),
-      card(h('div.ob-mut', 'الموقع الحالي'), nm, btn),
-      h('div.ob-card.ob-priv.ob-st', h('span.ob-fi', {html:M.icon('s:shield')}), h('div', h('b', 'خصوصيتك'), h('small', 'تُحسب المواقيت على جهازك، ويُحفظ الموقع في إعدادات التطبيق على جهازك فقط. التطبيق بلا حسابات وبلا إعلانات.'))),
-      lab('أو اختر مدينتك'), cities), primary:'متابعة'};
-  });
-
-  /* 5 calculation */
-  pages.push(()=>{
     const prev = h('div.ob-times');
     const paint = ()=>{ try{ const tt = M.prayerTimes(new Date()); let nk = null; try{ nk = M.nextPrayer().next.k; }catch(e){} prev.replaceChildren(...PR5.map(k=>h('div'+(k === nk ? '.on' : ''), h('small', M.prayerLabel(k, new Date())), h('b', M.n(M.fmt(tt[k])))))); }catch(e){} };
+    const btn = h('button.btn.tonal.block', {onclick:async function(){
+      this.disabled = true; try{ const l = await M.detectLocation(); M.save('loc', l); nm.textContent = l.name; paint(); M.toast('تم تحديد موقعك'); }catch(e){ M.toast('تعذّر تحديد الموقع — اختر مدينتك من القائمة'); } this.disabled = false;
+    }}, M.ic('pin'), 'تحديد موقعي');
+    const cities = h('div.ob-cities.ob-st');
+    M.CITIES.slice(0, 12).forEach(c=>cities.append(h('button.ob-chip', {onclick:function(){ M.save('loc', {name:c[0], lat:c[1], lng:c[2], tz:c[3], auto:false}); nm.textContent = c[0]; paint(); cities.querySelectorAll('.on').forEach(x=>x.classList.remove('on')); this.classList.add('on'); }}, c[0])));
     const sel = h('select.field', {'aria-label':'طريقة الحساب', onchange:e=>{ M.save('method', e.target.value); paint(); }}, M.METHODS.map(([v, n])=>h('option', {value:v, selected:v === M.cfg.method}, n)));
+    const more = h('details.ob-more.ob-st', h('summary', h('span.grow', 'طريقة الحساب ووقت العصر ونظام الساعة'), M.ic('chevDown')),
+      h('div.ob-more-b', lab('طريقة الحساب'), sel,
+        lab('وقت العصر'), M.seg([['shafi', 'الجمهور'], ['hanafi', 'الحنفي']], M.cfg.madhhab === 'hanafi' ? 'hanafi' : 'shafi', v=>{ M.save('madhhab', v); paint(); }),
+        lab('نظام الساعة'), M.seg([['12', M.n(12)+' ساعة'], ['24', M.n(24)+' ساعة']], M.cfg.h24 ? '24' : '12', v=>{ M.save('h24', v === '24'); paint(); })));
     paint();
-    return {el: h('div.ob-page', ...head('clock', 'حساب المواقيت', 'اتركها «تلقائي» إن لم تكن متأكدًا، ويمكنك تغييرها لاحقًا.'),
-      card(h('div.ob-mut', 'مواقيت اليوم في '+M.location().name), prev),
-      lab('طريقة الحساب'), h('div.ob-st', sel),
-      lab('وقت العصر'), h('div.ob-st', M.seg([['shafi', 'الجمهور'], ['hanafi', 'الحنفي']], M.cfg.madhhab === 'hanafi' ? 'hanafi' : 'shafi', v=>{ M.save('madhhab', v); paint(); })),
-      lab('نظام الساعة'), h('div.ob-st', M.seg([['12', M.n(12)+' ساعة'], ['24', M.n(24)+' ساعة']], M.cfg.h24 ? '24' : '12', v=>{ M.save('h24', v === '24'); paint(); }))), primary:'متابعة'};
+    return {el: h('div.ob-page', ...head('pin', 'موقعك ومواقيتك', 'لحساب مواقيت الصلاة واتجاه القبلة على جهازك. اترك الحساب «تلقائي» إن لم تكن متأكدًا.'),
+      card(h('div.ob-mut', 'الموقع الحالي'), nm, prev, btn),
+      lab('أو اختر مدينتك'), cities, more,
+      h('div.ob-card.ob-priv.ob-st', h('span.ob-fi', {html:M.icon('s:shield')}), h('div', h('b', 'خصوصيتك'), h('small', 'تُحسب المواقيت على جهازك، ويبقى الموقع فيه فقط. بلا حسابات وبلا إعلانات.')))), primary:'متابعة'};
   });
 
   /* 6 notifications: writes the real keys (notifyIn, adhanTone, nf.pre_*, liveNotif) */
@@ -307,37 +284,6 @@ function build(mode){
       h('div.ob-lab.ob-st.ob-lab-row', h('span', 'اختياراتك'), count), grid), primary:'متابعة'};
   });
 
-  /* 7b' the home screen's cards */
-  if(M.HOME_ORDER) pages.push(()=>{
-    const list = h('div.ob3-cards.ob-st');
-    const order = (M.homeOrder ? M.homeOrder() : M.HOME_ORDER.map(x=>x[0]));
-    order.forEach(k=>{ const d = M.HOME_ORDER.find(x=>x[0] === k); if(!d || k === 'custom') return;
-      const b = h('button.ob3-card' + (M.homeOn(k) ? '.on' : ''), {onclick:()=>{ const x = Object.assign({}, M.cfg.homeBlocks); x[k] = !M.homeOn(k); M.save('homeBlocks', x); b.classList.toggle('on', M.homeOn(k)); M.haptic && M.haptic(6); }},
-        h('div.grow', h('b', d[1]), d[2] ? h('small', d[2]) : null), h('span.ob3-cc', {html:M.icon('check')}));
-      list.append(b); });
-    return {el: h('div.ob-page', ...head('t:layout-dashboard', 'بطاقات الرئيسية', 'اختر ما يظهر في الشاشة الرئيسية، وغيّر ترتيبه لاحقًا من الإعدادات ← البطاقات.'), list), primary:'متابعة'};
-  });
-
-  /* 7c the floating card (verse khatma): on or off, as a small circle, and the hours it may appear in */
-  if(M.popupCfg) pages.push(()=>{
-    const P = M.popupCfg, nat = !!(window.Android && window.Android.popupConfig);
-    const w = P.w(), u = P.u();
-    const row = (ic, t, d, sw)=>h('div.ob-row.ob-st', h('span.ob-fi', {html:M.icon(ic)}), h('div.grow', h('b', t), h('small', d)), sw);
-    const winBox = h('div.ob-win');
-    const paintWin = ()=>{ const W = P.u().win || {};
-      winBox.hidden = !W.on;
-      winBox.replaceChildren(h('label', h('small', 'من'), h('input.field', {type:'time', value:W.from || '08:00', onchange:e=>P.uset({win:Object.assign({}, P.u().win, {from:e.target.value || '08:00'})})})),
-        h('label', h('small', 'إلى'), h('input.field', {type:'time', value:W.to || '22:00', onchange:e=>P.uset({win:Object.assign({}, P.u().win, {to:e.target.value || '22:00'})})}))); };
-    paintWin();
-    return {el: h('div.ob-page', ...head('s:khatma', 'النافذة العائمة', nat ? 'تعرض لك آيات من ختمتك عند فتح الهاتف. اجعلها هادئة كما تحب.' : 'تعرض لك آيات من ختمتك عند فتح التطبيق. اجعلها هادئة كما تحب.'),
-      h('div.ob-group.ob-st',
-        row('s:khatma', 'ورد الآيات العائم', 'آيات من ختمتك تقرؤها وتنتقل إلى ما بعدها', M.switchEl(!!w.on, v=>P.wset({on:v}))),
-        row('t:hand-click', 'تظهر كدائرة صغيرة', 'بدل النافذة الكاملة: دائرة تضغطها لتفتح الورد، فلا تقاطعك', M.switchEl(!!u.bubble, v=>P.uset({bubble:v}))),
-        row('clock', 'في ساعات محددة فقط', 'لا تظهر خارج الوقت الذي تختاره', M.switchEl(!!(u.win && u.win.on), v=>{ P.uset({win:Object.assign({from:'08:00', to:'22:00'}, P.u().win, {on:v})}); paintWin(); })),
-        winBox),
-      h('p.ob-note.ob-st', 'تغيّر ذلك لاحقًا من «الختمة» ← إعدادات النافذة.')), primary:'متابعة'};
-  });
-
   /* 8 theme / skin with live preview */
   pages.push(()=>{
     const pv = h('div.ob-pv.ob-st');
@@ -349,53 +295,25 @@ function build(mode){
     const g = h('div.ob-skins.ob-st'); const sk = (id, l)=>{ const c = h('button.ob-opt'+(M.resolveSkin() === id ? '.on' : ''), {onclick:()=>{ M.save('skin', id); g.querySelectorAll('.ob-opt').forEach(x=>x.classList.toggle('on', x === c)); }}, h('b', l), h('span.ob-ck', {html:M.icon('check')})); return c; };
     g.append(sk('glass', 'Liquid Glass'), sk('material', 'Material You'));
     const sw = h('div.swatches.ob-st'); M.ACCENTS.forEach(([c, n])=>sw.append(h('button.swatch'+(M.cfg.accentSrc === 'user' && M.cfg.accent === c ? '.on' : ''), {'aria-label':n, style:'--c:'+c, onclick:function(){ M.save('accentSrc', 'user'); M.save('accent', c); sw.querySelectorAll('.swatch').forEach(x=>x.classList.remove('on')); this.classList.add('on'); }})));
+    const icons = M.can('appIcon') ? h('div.ob-icrow.ob-st', ...Array.from({length:14}, (_, k)=>{ const i = k + 1;
+      return h('button.ob-ic' + ((M.cfg.appIcon || 10) === i ? '.on' : ''), {'aria-label':'الأيقونة ' + M.n(i), onclick:function(){
+        try{ window.Android && Android.setAppIcon && Android.setAppIcon(i); }catch(e){} try{ M.setIconAccent(i); }catch(e){}
+        tint(i); this.parentNode.querySelectorAll('.ob-ic').forEach(x=>x.classList.toggle('on', x === this)); M.haptic && M.haptic(8); }}, h('img', {src:'img/icons/' + i + '.jpg', alt:'', decoding:'async'})); })) : null;
     return {el: h('div.ob-page', ...head('palette', 'اجعله تطبيقك', 'اختر المظهر واللون، ويظهر التغيير فورًا.'), pv,
       lab('السمة'), h('div.ob-st', M.seg([['auto', 'تلقائي'], ['light', 'فاتح'], ['dark', 'داكن'], ['amoled', 'AMOLED']], M.cfg.theme, v=>M.save('theme', v))),
-      lab('الشكل'), g, lab('اللون'), sw), primary:'متابعة'};
+      lab('الشكل'), g, lab('اللون'), sw, icons ? lab('أيقونة التطبيق') : null, icons), primary:'متابعة'};
   });
 
-  /* 9 almost ready: real light work */
-  pages.push(()=>{
-    const tasks = [
-      ['تهيئة المواقيت', async()=>{ const d = new Date(); for(let i = 0; i < 30; i++) M.prayerTimes(M.addDays(d, i)); }],
-      ['تجهيز القرآن', async()=>{ await M.loadQuran(); }],
-      ['تجهيز الأذكار', async()=>{ Object.values(M.ADHKAR || {}).forEach(g=>Array.isArray(g) && g.length); }],
-      ['حفظ تفضيلاتك', async()=>{ M.syncNative(true); }]
-    ];
-    const rows = tasks.map(([t])=>h('div.ob-prog.ob-st', h('span.ob-spin'), h('b', t)));
-    const el = h('div.ob-page', ...head('sparkle', 'أوشكنا على الانتهاء', 'نجهّز التطبيق على اختياراتك.'), h('div.ob-card.ob-st.ob-progs', ...rows));
-    return {el, primary:'متابعة', lockUntilDone:true, run: async(setDone)=>{
-      let alive = true; pageOff.push(()=>alive = false);
-      const t0 = Date.now(), fast = reduced();
-      for(let i = 0; i < tasks.length && alive; i++){
-        const r = rows[i]; r.classList.add('run');
-        try{ await Promise.race([tasks[i][1](), wait(900)]); }catch(e){ console.error(e); }
-        if(!fast) await wait(380); if(!alive) return;
-        r.classList.remove('run'); r.classList.add('done'); r.querySelector('.ob-spin').replaceChildren(M.ic('check'));
-        if(Date.now() - t0 > 2500) { for(let j = i + 1; j < tasks.length; j++){ rows[j].classList.add('done'); rows[j].querySelector('.ob-spin').replaceChildren(M.ic('check')); } break; }
-      }
-      if(alive) setDone();
-    }};
-  });
-
-  /* 10 widgets + live notification: the real widget preview pictures and a faithful mock of the real notification (Android only) */
-  if(M.can('widgets')) pages.push(()=>{
-    let t = null; try{ t = M.prayerTimes(new Date()); }catch(e){}
+  /* 10 widgets (and on Android the live notification): the ready shapes, and «صمّم ودجتك» with one design drawn live */
+  const native = !!window.Android || !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.native);
+  if(native) pages.push(()=>{
+    const and = !!window.Android, design = M.wDesigns ? M.wDesigns.framed(M.wDesigns.TEMPLATES[0], 'm', 300) : null;
     const wimg = (k, cls)=>h('img.ob-wi'+(cls || ''), {src:'img/wprev/'+k+'.png', alt:'', decoding:'async'});
-    const nm = h('b'), tm = h('span.ob-nt-time'), pct = h('i'), rest = h('div.ob-nt-rest');
-    const where = M.location().name+' • '+(M.fmtHijri ? M.fmtHijri(M.hijri(new Date())) : '');
-    const tick = ()=>{ try{ const i = M.nextPrayer(); nm.textContent = M.prayerLabel(i.next.k)+' • '+M.n(M.fmt(i.next.t)); tm.textContent = M.n(M.fmtDur(i.next.t - new Date())); const tot = i.next.t - i.prev.t; pct.style.width = Math.max(2, Math.min(100, (1 - (i.next.t - Date.now())/tot)*100))+'%'; }catch(e){} };
-    tick(); pageOff.push(M.every(tick));
-    if(t) rest.textContent = PR5.map(k=>M.prayerLabel(k, new Date())+' '+M.n(M.fmt(t[k]))).join('   ');
-    const el = h('div.ob-page', ...head('grid', 'الودجت وإشعار الصلاة', 'هكذا تظهر الصلاة القادمة على شاشتك الرئيسية وفي شريط الإشعارات.'),
-      h('div.ob-nt.ob-st',
-        h('div.ob-nt-h', h('span.ob-nt-ic', {html:M.icon('s:mushaf')}), h('span', 'المسلم'), h('i', '•'), h('span', 'الصلاة القادمة'), h('i', '•'), tm),
-        h('div.ob-nt-t', nm), h('div.ob-nt-s', where), h('div.ob-nt-bar', pct), rest),
-      h('div.ob-st', wimg('next2')),
-      h('div.ob-wrow.ob-st', wimg('countdown'), wimg('azkarpro')),
-      h('div.ob-st', wimg('qayah')),
-      h('p.ob-note.ob-st', 'لإضافة ودجت: اضغط مطولًا على الشاشة الرئيسية ← الأدوات ← «المسلم».'));
-    return {el, primary:'تفعيل الإشعار الدائم', onPrimary:()=>{ M.save('liveNotif', true); notifApply(); finish(); }, second:'لاحقًا', onSecond:finish, noSkip:true};
+    const el = h('div.ob-page', ...head('grid', 'الودجت على شاشتك', and ? 'أشكال جاهزة كثيرة، أو صمّم ودجتك بنفسك: ما يظهر فيه وألوانه وحجمه.' : 'ودجت للشاشة الرئيسية وشاشة القفل، أو صمّم ودجتك بنفسك وضعه برمز قصير.'),
+      design ? h('div.ob-wd.ob-st', design, h('small', 'مثال لتصميم تصنعه من «الإعدادات ← الودجت ← صمّم ودجتك»')) : null,
+      and ? h('div.ob-wrow.ob-st', wimg('countdown'), wimg('moon')) : null,
+      h('p.ob-note.ob-st', and ? 'لإضافة ودجت: اضغط مطولًا على الشاشة الرئيسية ← الأدوات ← «المسلم».' : 'لإضافة ودجت: اضغط مطولًا على الشاشة الرئيسية ← «تعديل» ← «إضافة أدوات» ← «المسلم».'));
+    return {el, primary:'صمّم ودجتك الآن', onPrimary:()=>{ finish(); setTimeout(()=>M.openSub && M.openSub('widgets'), 500); }, second:'إنهاء', onSecond:finish, noSkip:true};
   });
 
   function draw(animate){

@@ -30,12 +30,13 @@
     const s0 = src; src = null;
     const r = s0.getBoundingClientRect(), el = v.el, vr = el.getBoundingClientRect();
     if(!visible(r) || !vr.width || !vr.height) return;
+    if(r.width > vr.width * .8) return;   // a full-width row opens with the usual push, as list rows do on iOS; tiles and cards zoom
     const f = fit(r, vr), rad = radius(s0);
     el.classList.add('v-zoom');
     el.animate([
-      {transformOrigin:'0 0', transform:'translate(' + f.tx + 'px,' + f.ty + 'px) scale(' + f.s.toFixed(4) + ')', clipPath:'inset(0px 0px ' + f.cut.toFixed(1) + 'px 0px round ' + (rad / f.s).toFixed(1) + 'px)', opacity:0},
+      {transformOrigin:'0 0', transform:'translate(' + f.tx + 'px,' + f.ty + 'px) scale(' + f.s.toFixed(4) + ')', clipPath:'inset(0px 0px ' + f.cut.toFixed(1) + 'px 0px round ' + (rad / f.s).toFixed(1) + 'px)', webkitClipPath:'inset(0px 0px ' + f.cut.toFixed(1) + 'px 0px round ' + (rad / f.s).toFixed(1) + 'px)', opacity:0},
       {offset:.22, opacity:1},
-      {transformOrigin:'0 0', transform:'translate(0px,0px) scale(1)', clipPath:'inset(0px 0px 0px 0px round 0px)', opacity:1}
+      {transformOrigin:'0 0', transform:'translate(0px,0px) scale(1)', clipPath:'inset(0px 0px 0px 0px round 0px)', webkitClipPath:'inset(0px 0px 0px 0px round 0px)', opacity:1}
     ], {duration:480, easing:EASE});
     /* the item it grew from steps back while its page is open */
     const under = document.getElementById('screens');
@@ -63,9 +64,9 @@
     if(!visible(r) || !vr.width) return;
     const f = fit(r, vr), rad = radius(s0);
     el.animate([
-      {transformOrigin:'0 0', transform:'translate(0px,0px) scale(1)', clipPath:'inset(0px 0px 0px 0px round 0px)', opacity:1},
+      {transformOrigin:'0 0', transform:'translate(0px,0px) scale(1)', clipPath:'inset(0px 0px 0px 0px round 0px)', webkitClipPath:'inset(0px 0px 0px 0px round 0px)', opacity:1},
       {offset:.8, opacity:1},
-      {transformOrigin:'0 0', transform:'translate(' + f.tx + 'px,' + f.ty + 'px) scale(' + f.s.toFixed(4) + ')', clipPath:'inset(0px 0px ' + f.cut.toFixed(1) + 'px 0px round ' + (rad / f.s).toFixed(1) + 'px)', opacity:0}
+      {transformOrigin:'0 0', transform:'translate(' + f.tx + 'px,' + f.ty + 'px) scale(' + f.s.toFixed(4) + ')', clipPath:'inset(0px 0px ' + f.cut.toFixed(1) + 'px 0px round ' + (rad / f.s).toFixed(1) + 'px)', webkitClipPath:'inset(0px 0px ' + f.cut.toFixed(1) + 'px 0px round ' + (rad / f.s).toFixed(1) + 'px)', opacity:0}
     ], {duration:320, easing:EASE, fill:'forwards'});
   }
   /* the screen behind comes forward again once the last page is closed, whichever way it was closed */

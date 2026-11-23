@@ -193,3 +193,25 @@ html[data-theme=dark] .ob-nt-bar i,html[data-theme=amoled] .ob-nt-bar i{backgrou
 .ob-wel.upd .ob-big{font-size:2.2rem}
 .ob-wel.upd .ob-ul{line-height:1.8;font-size:.86rem}
 .ob-wel.upd .ob-ul li+li{margin-top:6px}
+
+/* 4.6.3 the shorter welcome: language chips, the folded calculation choices, the widget page */
+.ob-langs2{display:flex;flex-wrap:wrap;gap:8px}
+.ob-langs2 .ob-chip.on{color:var(--on-p,#fff)}
+.ob-more{border-radius:20px;background:var(--ob-card);box-shadow:inset 0 0 0 1px var(--ob-line);overflow:hidden}
+.ob-more>summary{display:flex;align-items:center;gap:8px;padding:14px 16px;font-weight:600;font-size:.9rem;cursor:pointer;list-style:none}
+.ob-more>summary::-webkit-details-marker{display:none}
+.ob-more>summary svg{width:18px;height:18px;opacity:.6;transition:transform .25s}
+.ob-more[open]>summary svg{transform:rotate(180deg)}
+.ob-more-b{display:flex;flex-direction:column;gap:8px;padding:0 16px 16px}
+.ob-more-b .ob-lab{margin-top:6px}
+.ob-card .ob-times{margin:4px 0 6px}
+.ob-wd{display:flex;flex-direction:column;align-items:center;gap:10px;padding:6px 0}
+.ob-wd small{opacity:.7;text-align:center;font-size:.78rem}
+.ob-icrow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.ob-icrow .ob-ic{width:46px;height:46px;border-radius:13px;padding:0;border:0;overflow:hidden;box-shadow:0 0 0 1px var(--ob-line);background:none;transition:transform .2s,box-shadow .2s}
+.ob-icrow .ob-ic img{width:100%;height:100%;object-fit:cover;display:block}
+.ob-icrow .ob-ic.on{box-shadow:0 0 0 3px var(--ic,var(--p));transform:scale(1.06)}
+/* the welcome page: room to breathe now that it is shorter */
+.ob-w2 .ob-w2-top{margin-top:18px}
+.ob-w2 .ob-w2-icon{box-shadow:0 14px 34px -14px rgba(0,0,0,.45)}
+.ob-w2 .ob-w2-list{margin-top:10px}
