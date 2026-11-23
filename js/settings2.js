@@ -626,12 +626,48 @@ S.widgets = {title:'الودجت (الأدوات)', build(b){
     h('div.row-flex.gap-s', {style:'margin-top:10px;flex-wrap:wrap'}, h('button.btn.sm', {onclick:()=>M.openOnlineBg(async url=>{ let small = url; try{ const bl = await (await fetch(url)).blob(); small = await M.imageToDataURL(bl, 720, .82); }catch(e){} setBg('custom', small); })}, M.ic('download'), 'تنزيل خلفيات'),
       h('button.btn.tonal.sm', {onclick:()=>file.click()}, M.ic('image'), 'صورة من جهازي')), fadeBox,
     note(window.Android ? 'تُطبَّق الخلفية والألوان فورًا على كل ودجت مضاف. عند اختيار صورة يصير النص أبيض. تفسير آية اليوم يُحمَّل مرة واحدة عند توفر الإنترنت.' : 'الودجت متاح في تطبيق الأندرويد فقط؛ المعاينة أعلاه تقريبية.'));
+  /* 4.6.2 the page in three panes: «صمّم ودجتك» (the user's own widgets, js/v462-wdesign.js), the ready shapes, and colours.
+     On the iPhone the ready shapes are the iPhone's own widgets (they work out their data by themselves and do not read the
+     app's colours, so there is no colours pane there). */
+  const IOS = !window.Android && !!(M.isIOS || window.isIOSApp);
+  const design = h('div.wgc-pane', {hidden:true}, M.wDesignPane ? M.wDesignPane() : null);
+  const IOSW = [
+    ['الصلاة القادمة', 'اسم الصلاة القادمة ووقتها والوقت المتبقي عليها', 'صغير • متوسط • شاشة القفل', 'clock'],
+    ['مواقيت اليوم', 'مواقيت الصلوات الخمس والشروق مع التاريخ الهجري', 'متوسط • كبير', 'list'],
+    ['حلقة الصلاة القادمة', 'ما مضى بين الصلاتين وما بقي للقادمة', 'صغير • شاشة القفل', 't:hourglass'],
+    ['قائمة الصلوات', 'الصلوات الخمس في قائمة صغيرة', 'صغير', 'list'],
+    ['الآن والتالية', 'الصلاة الحالية والصلاة التالية', 'صغير', 'clock'],
+    ['اليوم', 'التاريخ الهجري والميلادي مع الصلاة القادمة', 'متوسط', 'calendar'],
+    ['مواقيت الأسبوع', 'مواقيت الصلوات الخمس لسبعة أيام', 'كبير', 'calendar'],
+    ['الكل في واحد', 'التاريخ والصلاة القادمة ومواقيت اليوم وآية اليوم', 'كبير', 't:apps'],
+    ['التاريخ الهجري', 'اليوم والتاريخ الهجري (أم القرى) والميلادي', 'صغير • شاشة القفل', 'moon'],
+    ['الشهر الهجري', 'تقويم الشهر الهجري واليوم مظلَّل', 'كبير', 'calendar'],
+    ['القمر', 'طور القمر الليلة مع التاريخ الهجري', 'صغير', 'moon'],
+    ['آية اليوم', 'آية جديدة كل يوم، نفس آية اليوم في التطبيق', 'متوسط • كبير', 'quran'],
+    ['ذكر اليوم', 'ذكر من السنة يتجدد كل يوم', 'صغير • متوسط • شاشة القفل', 'beads'],
+    ['حديث اليوم', 'حديث نبوي جديد كل يوم', 'متوسط • كبير', 'quran'],
+    ['المسبحة', 'اضغط الدائرة للتسبيح من الشاشة الرئيسية', 'صغير', 'beads'],
+    ['ودجت من تصميمك', 'صمّمه في تبويب «صمّم ودجتك» وألصق رمزه في إعدادات الودجت', 'صغير • متوسط • كبير', 'palette']];
+  const iosGallery = h('div.wgc-pane', {hidden:true},
+    h('div.wgc-hero', h('div.grow', h('b', M.n(IOSW.length) + ' ودجت للآيفون'), h('div.small.muted', 'للشاشة الرئيسية وشاشة القفل')), h('span.wgc-badge', {html:M.icon('t:apps')})),
+    h('div.wgi-list', ...IOSW.map(([t, d, sz, ic])=>h('div.wgi', h('span.wgi-ic', {html:M.icon(ic)}), h('div.grow', h('b', t), h('div.small.muted', d), h('div.wgi-sz', sz))))),
+    h('div.card.pad.wgc-how', h('div.bold', 'طريقة الإضافة'), h('ol.small', {style:'line-height:2;margin:6px 0 0;padding-inline-start:20px'},
+      h('li', 'اضغط مطولًا على الشاشة الرئيسية حتى تهتز الأيقونات'), h('li', 'اضغط «تعديل» ثم «إضافة أدوات» وابحث عن «المسلم»'), h('li', 'اختر الشكل والحجم ثم «إضافة أداة»'),
+      h('li', 'لاختيار المدينة أو شكل الوقت: اضغط مطولًا على الودجت ← «تعديل الأداة»'))),
+    note('ودجت الآيفون يحسب المواقيت بنفسه للمدينة التي تختارها له، فيعمل حتى دون فتح التطبيق.'));
+  const panes = IOS ? [['d', 'صمّم ودجتك', design], ['g', 'ودجت الآيفون', iosGallery]] : [['d', 'صمّم ودجتك', design], ['g', 'الأشكال الجاهزة', gallery], ['l', 'الألوان والخلفية', look]];
   const main = h('div.wgc-main', {role:'tablist'});
-  const showPane = id=>{ gallery.hidden = id !== 'g'; look.hidden = id !== 'l'; M.$$('button', main).forEach(x=>{ const on = x.dataset.p === id; x.classList.toggle('on', on); x.setAttribute('aria-selected', String(on)); }); if(id === 'g') drawList(); };
-  [['g', 'الأشكال'], ['l', 'المظهر والألوان']].forEach(([id, name])=>main.append(h('button.wgc-mt', {type:'button', role:'tab', dataset:{p:id}, onclick:()=>showPane(id)}, name)));
-  b.append(main, gallery, look);
-  if(window.Android && !M.cfg.wdg) apply(); else { draw(); paint(); }
-  mark(); fadeUi(); autoUi(); showPane('g');
+  const showPane = id=>{
+    panes.forEach(([pid, , el])=>{ el.hidden = pid !== id; });
+    M.$$('button', main).forEach(x=>{ const on = x.dataset.p === id; x.classList.toggle('on', on); x.setAttribute('aria-selected', String(on)); });
+    if(id === 'g' && !IOS) drawList();
+    M.store.set('wgPane', id);
+  };
+  panes.forEach(([id, name])=>main.append(h('button.wgc-mt', {type:'button', role:'tab', dataset:{p:id}, onclick:()=>showPane(id)}, name)));
+  b.append(main, ...panes.map(x=>x[2]));
+  if(!IOS){ if(window.Android && !M.cfg.wdg) apply(); else { draw(); paint(); } mark(); fadeUi(); autoUi(); }
+  const last = M.store.get('wgPane', 'd');
+  showPane(panes.some(x=>x[0] === last) ? last : 'd');
 }};
 
 /* ---- help ---- */

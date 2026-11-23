@@ -10,8 +10,8 @@
   const WIDE = matchMedia('(min-width: 980px) and (min-aspect-ratio: 5/4)');
   const ROW = 4;                                   // grid row unit (px): the board is measured in these
   const GAP = 14;                                  // space under a card
-  const FULL = '.page-top,.prayer-hero,.home-top';  // across both columns
-  const BOARDS = '#screen-home,#screen-prayer,#screen-more .mr-box';
+  const FULL = '.page-top,.prayer-hero,.home-top,.catgrid';  // across both columns
+  const BOARDS = '#screen-home,#screen-prayer,#screen-adhkar,#screen-more .mr-box';
   const calm = ()=>M.cfg.anim === false || matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const placed = new WeakMap();                    // element -> {c, r, n} last placement
@@ -36,7 +36,7 @@
       const c = full ? 0 : (colH[1] < colH[0] - 2 ? 2 : 1);
       let r = full ? Math.max(colH[0], colH[1]) : colH[c - 1];
       grp.forEach((e, k)=>{
-        const hgt = e.getBoundingClientRect().height, last = k === grp.length - 1;
+        const hgt = e.offsetHeight, last = k === grp.length - 1;   // the laid-out height: an entrance animation's scale must not count
         const n = Math.max(1, Math.ceil((hgt + (last ? GAP : 8)) / ROW));
         const p = placed.get(e);
         if(!p || p.c !== c || p.r !== r || p.n !== n){

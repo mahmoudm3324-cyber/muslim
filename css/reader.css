@@ -264,8 +264,8 @@ html:is([data-theme=dark],[data-theme=amoled]) .reader[data-taj=off][data-rt=aut
 @media (hover:hover) and (pointer:fine){
   .rd-nv{display:grid;place-items:center;position:absolute;top:50%;z-index:9;width:40px;height:40px;margin-top:-20px;border-radius:50%;background:color-mix(in oklab,var(--rt-bg) 82%,transparent);color:var(--rt-fg);box-shadow:0 2px 10px rgba(0,0,0,.25);opacity:0;transition:opacity .2s}
   .rd-nv svg{width:20px;height:20px}
-  .rd-nv.prev{right:8px}.rd-nv.prev svg{transform:rotate(90deg)}
-  .rd-nv.next{left:8px}.rd-nv.next svg{transform:rotate(-90deg)}
+  .rd-nv.prev{right:8px}.rd-nv.prev svg{transform:rotate(-90deg)}   /* 4.6.2 the arrow shows where the page moves: back = the right page turns leftwards */
+  .rd-nv.next{left:8px}.rd-nv.next svg{transform:rotate(90deg)}    /* forward = the left page turns over to the right, as in a printed Mushaf */
   .reader:hover .rd-nv{opacity:.75}.rd-nv:hover{opacity:1!important}
   .reader.imm .rd-nv{display:none}
 }

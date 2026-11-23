@@ -1305,11 +1305,70 @@ html[data-skin] #tabbar .lens.held{transform:translateX(var(--lens-x,0)) scale(1
 html[data-skin] #tabbar .tab{transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
 html[data-skin] #tabbar .tab:active{transform:scale(.92)}
 html[data-skin] #tabbar .bar{transition:transform .5s cubic-bezier(.32,.72,0,1),opacity .3s;transform-origin:50% 100%}
-html.nb-mini[data-skin]:not([data-nbmode=dock]) #tabbar .bar{transform:scale(.8) translateY(6px)}
+html.nb-mini[data-skin]:not([data-nbmode=dock]) #tabbar .bar{transform:scale(.9) translateY(4px)}
 html[data-skin] #tabbar .lb{transition:opacity .25s}
-html.nb-mini[data-skin]:not([data-nbmode=dock]) #tabbar .lb{opacity:0}
 html[data-astyle=apple] .view{animation:vEnter .32s cubic-bezier(.32,.72,0,1) both!important}
 html[data-astyle=apple] .view.leaving{animation:vLeave .22s ease-out both!important}
 html[data-astyle=apple] .view.v-zoom,html[data-astyle=apple] .view.v-zoom.leaving{animation:none!important}
 /* 4.6.1 the glass bar stays legible over any page: without blur (battery saver) it is nearly solid, with blur it frosts more */
 html[data-fx=low][data-skin] #tabbar .bar{background:color-mix(in oklab,var(--s0) 97%,var(--p) 3%)!important}
+
+/* 4.6.2 the Mushaf pages are drawn in special glyph fonts: a native text selection copies nothing useful, and a mouse drag that
+   selects text scrolls the hidden overflow sideways (two half spreads side by side). Turning pages never selects text. */
+.rd-main .pg-track,.rd-main .pg-track *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+
+/* 4.6.2 «صمّم ودجتك» (js/v462-wdesign.js): the live widget, drawn by the same rules as the Android and iPhone widgets */
+.wd-frame{position:relative;flex:none;margin-inline:auto;direction:rtl}
+.wd-w{position:absolute;top:0;right:0;transform-origin:top right;border-radius:22px;overflow:hidden;box-shadow:0 10px 28px -12px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.06);font-family:"Readex Pro","Readex",system-ui,sans-serif}
+.wd-t{position:absolute;white-space:nowrap;line-height:1.5;overflow:visible}
+.wd-t.b{font-weight:700}.wd-t.r{font-weight:400}.wd-t.q,.wd-p.q{font-family:"Amiri Quran",serif}
+.wd-p{position:absolute;display:flex;align-items:center;overflow:hidden}
+.wd-p>span{display:block;width:100%}
+.wd-p.b{font-weight:700}
+.wd-pill{position:absolute;border-radius:10px}
+.wd-bar{position:absolute;height:4px;border-radius:2px;overflow:hidden;display:flex;justify-content:flex-start}
+.wd-bar>i{display:block;height:100%;border-radius:2px}
+.wd-pane{display:flex;flex-direction:column;gap:10px}
+.wd-hero{display:flex;align-items:center;gap:12px;padding:16px;border-radius:var(--card-r,22px);background:linear-gradient(135deg,var(--p),color-mix(in oklab,var(--p) 70%,#000));color:var(--on-p)}
+.wd-hero b{font-size:1.1rem}.wd-hero .small{opacity:.85}
+.wd-hero .btn{background:color-mix(in oklab,var(--on-p) 16%,transparent);color:var(--on-p);box-shadow:none}
+.wd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.wd-card{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 8px;border-radius:var(--card-r,22px);background:var(--card-bg);box-shadow:inset 0 0 0 1px var(--card-border);color:inherit}
+.wd-item{display:flex;flex-direction:column;gap:12px;padding:14px}
+.wd-item-pv{display:flex;justify-content:center;padding:6px 0}
+.wd-item-b{display:flex;flex-direction:column;gap:4px}
+.wd-item-act{flex-wrap:wrap;margin-top:6px}
+.wd-note{line-height:1.8}
+.wd-top{position:sticky;top:0;z-index:3;display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 0 12px;margin:0 -16px 6px;background:color-mix(in oklab,var(--bg) 92%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--card-border)}
+.wd-stage{min-height:90px;display:flex;align-items:center;justify-content:center;padding:6px 16px;width:100%}
+.wd-szs{width:auto;max-width:calc(100% - 32px)}
+.wd-szs small{opacity:.7;font-size:.72em}
+.wd-ed{display:flex;flex-direction:column;gap:8px;padding-bottom:90px}
+.wd-blocks{display:flex;flex-direction:column;gap:6px}
+.wd-blk{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:16px;background:var(--card-bg);box-shadow:inset 0 0 0 1px var(--card-border)}
+.wd-bi{width:32px;height:32px;display:grid;place-items:center;border-radius:10px;background:color-mix(in oklab,var(--p) 14%,transparent);color:var(--p);flex:none}
+.wd-bi svg{width:18px;height:18px}
+.wd-blk .icon-btn.sm{width:34px;height:34px}
+.wd-dn svg{transform:rotate(180deg)}
+.wd-add{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.wd-add .chip svg{width:14px;height:14px}
+.wd-tpl{display:flex;flex-wrap:wrap;gap:8px}
+.wd-tplb{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:14px;background:var(--card-bg);box-shadow:inset 0 0 0 1px var(--card-border);color:inherit;font:inherit;font-size:.86rem}
+.wd-tplb i{width:18px;height:18px;border-radius:6px;border:2px solid}
+.wd-actions{position:sticky;bottom:0;padding:10px 0 calc(10px + var(--sab,0px));background:linear-gradient(transparent,var(--bg) 30%)}
+.wd-code{font:600 1.05rem/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.02em;padding:14px;border-radius:14px;background:var(--card-bg);box-shadow:inset 0 0 0 1px var(--card-border);text-align:center;word-break:break-all;user-select:all;-webkit-user-select:all;margin-bottom:10px}
+.wd-steps{line-height:2;padding-inline-start:20px;margin:10px 0}
+.wd-ios{display:flex;flex-direction:column;gap:8px;padding:4px 2px 14px}
+.wgi-list{display:flex;flex-direction:column;gap:8px}
+.wgi{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:18px;background:var(--card-bg);box-shadow:inset 0 0 0 1px var(--card-border)}
+.wgi-ic{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:12px;background:color-mix(in oklab,var(--p) 14%,transparent);color:var(--p)}
+.wgi-ic svg{width:20px;height:20px}
+.wgi-sz{margin-top:4px;font-size:.74rem;color:var(--p);font-weight:600}
+.wd-item-act{flex-wrap:nowrap!important;align-items:center}
+.wd-item-act .btn{flex:0 1 auto;white-space:nowrap;padding-inline:12px}
+.wd-item-act .icon-btn{flex:none}
+/* 4.6.2 «ما الجديد» */
+.wn-sheet{padding:0 4px 18px}
+.wn-l{margin:4px 0 10px;padding-inline-start:20px;line-height:1.9}
+.wn-l li{margin-bottom:6px}
+.wn-l.old{opacity:.75;font-size:.92em}

@@ -118,39 +118,33 @@ M.openReader = async function(opts){
     nameMemo.set(mk, d.style.cssText);
     return d;
   }
-  /* 4.6.1 the Basmala line. The page fonts hold it as one very large compound glyph, and that glyph comes out broken
-     (squeezed, doubled, crossed by stray strokes) on Windows — in the page and even when drawn on a canvas, because the
-     canvas uses the same font engine. So it is not taken from the page font at all: it is written in Amiri Quran, an
-     ordinary Uthmani font that every engine shapes correctly, drawn once on a canvas and shown as a mask in the text colour. */
-  const BIS = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ', BISF = '"Amiri Quran"';
+  /* 4.6.2 the Basmala line, as printed in the Madinah Mushaf. The page fonts hold it as one glyph about ten letters wide;
+     some font engines (Windows) break a glyph that large — squeezed, doubled, crossed by stray strokes — in the page and on a
+     canvas alike. So its outline was taken out of the Mushaf font once (data/bismillah.json, the three Basmala glyphs of the
+     QCF4 fonts) and is drawn here as a vector shape, a mask in the page's text colour: the Mushaf's own Basmala, the same on
+     every device, at the size the font would give it. */
+  let bisData = null, bisLoad = null;
   const bisMemo = new Map();
-  let bisFont = null;
-  const bisReady = ()=>{ try{ return document.fonts.check('40px ' + BISF, BIS); }catch(e){ return true; } };
-  function bisDraw(fs, H){
-    const dpr = Math.min(window.devicePixelRatio || 1, 3);
-    const key = fs.toFixed(1) + '|' + H.toFixed(1) + '|' + dpr;
-    let m = bisMemo.get(key);
-    if(m) return m;
-    const f = Math.round(H * .62);
-    const c0 = document.createElement('canvas').getContext('2d'); c0.font = f + 'px ' + BISF;
-    const mt = c0.measureText(BIS), W = Math.ceil(mt.width + 6);
-    if(!(W > 8)) return null;
-    const asc = mt.actualBoundingBoxAscent || f * .8, dsc = mt.actualBoundingBoxDescent || f * .4;
-    const cv = document.createElement('canvas'); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
-    const c = cv.getContext('2d'); c.scale(dpr, dpr); c.fillStyle = '#000'; c.font = f + 'px ' + BISF;
-    c.direction = 'rtl'; c.textAlign = 'right'; c.textBaseline = 'alphabetic';
-    c.fillText(BIS, W - 3, H / 2 + (asc - dsc) / 2);
-    m = {u:'url(' + cv.toDataURL('image/png') + ')', W};
-    if(bisMemo.size > 30) bisMemo.delete(bisMemo.keys().next().value);
-    bisMemo.set(key, m);
+  const bisGet = ()=>bisLoad || (bisLoad = fetch('data/bismillah.json').then(r=>r.json()).then(j=>(bisData = j)).catch(()=>{ bisLoad = null; return null; }));
+  function bisUrl(cp){
+    if(bisMemo.has(cp)) return bisMemo.get(cp);
+    const g = bisData && (bisData[cp] || bisData.F8D6); if(!g) return null;
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + g.x + ' ' + g.y + ' ' + g.w + ' ' + g.h + '"><path transform="scale(1,-1)" d="' + g.d + '"/></svg>';
+    const m = {u:'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) + '")', w:g.w / g.upm, h:g.h / g.upm};
+    bisMemo.set(cp, m);
     return m;
   }
-  function bisMask(fs, H){
+  /* fs: the font size the page would use for the glyph; H: the line's height; t: the glyph text (its code picks the variant) */
+  function bisMask(fs, H, t){
+    const cp = t ? (String(t).codePointAt(0) || 0).toString(16).toUpperCase() : 'F8D6';
     const d = h('div.qbm', {'aria-label':'بسم الله الرحمن الرحيم', role:'img'});
-    const paint = ()=>{ const m = bisDraw(fs, H); if(!m) return; d.style.cssText = 'width:' + m.W + 'px;max-width:100%;height:' + H.toFixed(1) + 'px;-webkit-mask:' + m.u + ' center/contain no-repeat;mask:' + m.u + ' center/contain no-repeat'; };
+    const paint = ()=>{
+      const m = bisUrl(cp); if(!m) return;
+      const w = m.w * fs, hh = Math.min(H, m.h * fs);
+      d.style.cssText = 'width:' + w.toFixed(1) + 'px;max-width:100%;height:' + hh.toFixed(1) + 'px;-webkit-mask:' + m.u + ' center/contain no-repeat;mask:' + m.u + ' center/contain no-repeat';
+    };
     d.style.cssText = 'width:60%;height:' + H.toFixed(1) + 'px;background:none';
-    if(bisReady()) paint();
-    else { bisFont = bisFont || document.fonts.load('40px ' + BISF, BIS).catch(()=>{}); bisFont.then(paint); }
+    if(bisData) paint(); else bisGet().then(paint);
     return d;
   }
   function buildQcfPage(p){
@@ -176,7 +170,7 @@ M.openReader = async function(opts){
         body.append(h('div.ml.qh', {dataset:{s:l[1]}, style:'height:'+bh.toFixed(1)+'px'}, h('div.qbn', nameCanvas(l[2], bodyW, bh))));
       } else if(l[0] === 'b'){
         const bt = Array.isArray(l[1]) ? l[1] : [l[1]], bf = l[3] ? M.qcf.fam(l[3]) : fam;
-        const bm = bisMask(fs, bh);   // every edition: the same safe drawing
+        const bm = bisMask(fs, bh, bt[0]);   // every edition: the Mushaf's Basmala, drawn safely
         body.append(bm ? h('div.ml.qbis.qbis-m', bm) : h('div.ml.qbis'+(kind === 'c' ? '.qcc' : ''), ...bt.map(t=>h('span', {style:'font-family:'+bf}, t))));
       } else {
         const row = h('div.ml.mw.qw'+(kind === 'c' ? '.qcc' : ''), {style:'font-family:'+fam});
@@ -413,14 +407,15 @@ M.openReader = async function(opts){
         st.a = (dir > 0 ? 1 : -1) * (.18 + Math.random() * .12); st.t = 0; render(); end(true, 640);
         return true;
       }
-      return {begin, set, end, auto, cancel:()=>{ clean(); }, get active(){ return !!st; }, get dir(){ return st ? st.dir : 0; }};
+      /* cancel (a relayout, a turn the other way): the pager must never stay marked as animating */
+      return {begin, set, end, auto, cancel:()=>{ if(st){ clean(); anim = false; } }, get active(){ return !!st; }, get dir(){ return st ? st.dir : 0; }};
     })();
     function commit(delta){
       const np = cur + delta; if(np < 1 || np > MAX()){ snap(); return; }
       lastDir = delta > 0 ? 1 : -1;
       if(SPm){
-        anim = true; if(M.cfg.qFlipSound !== false) paperSound();
         if(book.active) book.cancel();
+        anim = true; if(M.cfg.qFlipSound !== false) paperSound();
         if(book.auto(delta > 0 ? 1 : -1)) return;
         anim = false;
       }
@@ -929,7 +924,7 @@ M.openReader = async function(opts){
           h('div.sh-meta', h('span', meta.mk ? 'مكية' : 'مدنية'), h('i'), h('span', M.cnt(meta.n, 'آية')), h('i'), h('span', 'الصفحة '+arNum(meta.page)))));
       if(s !== 1 && s !== 9){ ayahQcf(1, 1); if(bisG){ const vb = h('div.vbism', {style:'font-family:'+M.qcf.fam(bisG[0])}, bisG[1]); b.append(vb);
         /* the same safe drawing as on the pages, once its font is in */
-        M.qcf.ensure(bisG[0]).then(ok=>{ if(!ok || !vb.isConnected) return; const px = parseFloat(getComputedStyle(vb).fontSize) || 28, m = bisMask(px, Math.round(px * 1.7)); if(m){ vb.replaceChildren(m); vb.classList.add('vbism-m'); } }); } }
+        M.qcf.ensure(bisG[0]).then(ok=>{ if(!ok || !vb.isConnected) return; const px = parseFloat(getComputedStyle(vb).fontSize) || 28, m = bisMask(px, Math.round(px * 1.7), bisG[1]); if(m){ vb.replaceChildren(m); vb.classList.add('vbism-m'); } }); } }
       for(let a = 1; a <= meta.n; a++){
         const id = Q.starts[s-1] + a - 1, k = KEY(s, a);
         const el = h('article.va', {dataset:{k, s, a}},
@@ -988,7 +983,7 @@ M.openReader = async function(opts){
     if(M.views[M.views.length - 1] !== view || M.sheetStack.length) return;
     const t = e.target; if(t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
     if(R.mode !== 'pages' || !R.pager) return;
-    let d = 0; if(e.key === 'ArrowLeft' || e.key === 'PageDown') d = 1; else if(e.key === 'ArrowRight' || e.key === 'PageUp') d = -1;
+    let d = 0; if(e.key === 'ArrowRight' || e.key === 'PageDown') d = 1; else if(e.key === 'ArrowLeft' || e.key === 'PageUp') d = -1;   // 4.6.2 the same as the arrows on the page: → turns forward
     if(!d) return; e.preventDefault(); (R.pager.step ? R.pager.step(d) : R.pager.goto(R.pager.cur + d, true));
   };
   document.addEventListener('keydown', onKey); off.push(()=>document.removeEventListener('keydown', onKey));

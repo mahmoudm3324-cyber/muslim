@@ -29,7 +29,7 @@ const OPEN = {
   security:()=>M.openSecuritySettings && M.openSecuritySettings(), sleep:()=>M.openSleepTimer && M.openSleepTimer(),
   backup:()=>M.openSub('backup'), data:()=>M.openSub('data'),
   lang:()=>M.openSub('lang'), fonts:()=>M.openSub('fonts'), general:()=>M.openSub('general'),
-  about:()=>M.openSub('about'), help:()=>M.openSub('help'), share:()=>M.share('تطبيق «المسلم»: مصحف، مواقيت، أذكار، قبلة وأكثر — بدون إعلانات.')
+  about:()=>M.openSub('about'), help:()=>M.openSub('help'), news:()=>M.openWhatsNew(), tour:()=>{ M.views.slice().reverse().forEach(v=>v.close()); setTimeout(()=>M.startTour && M.startTour(), 350); }, share:()=>M.share('تطبيق «المسلم»: مصحف، مواقيت، أذكار، قبلة وأكثر — بدون إعلانات.')
 };
 const method = ()=>(M.METHODS.find(m=>m[0] === M.cfg.method) || [, 'تلقائي'])[1] || '';
 const onoff = v=>v ? 'مفعّل' : 'غير مفعّل';
@@ -39,7 +39,6 @@ const langName = ()=>((M.LANGS || []).find(l=>l[0] === M.lang) || [0, 'العر�
 const GROUPS = [
   ['look', 't:palette', 'المظهر', [
     ['look', 't:palette', 'المظهر والخلفية', 'الواجهة، السمة، اللون، الخلفية', 'look', 'theme skin glass material dark light amoled accent color background wallpaper transparency solid contrast شفافية تباين ثيم داكن فاتح ليلي زجاج ماتيريال لون خلفية خلفيات'],
-    ['floaters', 's:grid', 'الأزرار العائمة', 'الحجم والمكان والإغلاق بالسحب', 'floaters', 'floating bubble button player khatma size الزر العائم دائرة حجم سحب'],
     ['perf', 't:bolt', 'الأداء والحركة', 'الحركات، السلاسة، الحواف المنحنية', 'perf', 'animation motion performance fps 120hz edge curved حركات انتقالات اداء بطارية'],
     ['heroimg', 't:photo', 'صورة بطاقة الصلاة', 'من جهازك أو صور جاهزة', 'heroimg', 'hero image prayer card picture photo صورة بطاقة'],
     ['icon', 't:app-window', 'أيقونة التطبيق', 'تغيير الأيقونة ولونها', 'icon', 'app icon launcher ايقونة'],
@@ -52,35 +51,35 @@ const GROUPS = [
     ['alarm', 't:alarm', 'منبّه الصلاة', 'يرنّ حتى توقفه', 'alarm', 'alarm wake fajr منبه ايقاظ فجر'],
     ['focus', 't:moon-stars', 'وضع الهدوء وقت الصلاة', ()=>onoff(M.cfg.focus && M.cfg.focus.on), 'focus', 'silent vibrate focus quiet هدوء صامت اهتزاز'],
     ['live', 't:notification', 'الصلاة القادمة في الإشعارات', ()=>onoff(M.cfg.liveNotif), 'live', 'ongoing live notification now bar samsung live update countdown اشعار دائم حي شريط']]],
-  ['quran', 't:book-2', 'القرآن', [
+  ['quran', 't:book-2', 'القرآن والأذكار', [
     ['quran', 't:book-2', 'المصحف', 'القراءة، الترجمة، التفسير، القارئ', 'quran', 'quran mushaf reading translation tafsir reciter recitation مصحف قراءة ترجمة تفسير قارئ تلاوة'],
-    ['downloads', 't:cloud-download', 'التنزيلات', 'التلاوات والتفاسير وصفحات المصحف للعمل دون اتصال', 'downloads', 'downloads offline recitation tafsir pages تنزيل تحميل دون اتصال']]],
-  ['adhkar', 't:circles-relation', 'الأذكار والأدعية', [
+    ['downloads', 't:cloud-download', 'التنزيلات', 'التلاوات والتفاسير وصفحات المصحف للعمل دون اتصال', 'downloads', 'downloads offline recitation tafsir pages تنزيل تحميل دون اتصال'],
     ['adhkarset', 't:circles-relation', 'صفحات الأذكار', 'التشكيل، الشرح، الإغلاق التلقائي', 'adhkarset', 'adhkar azkar tashkeel diacritics morning evening اذكار تشكيل صباح مساء'],
     ['randset', 't:sparkles', 'الأذكار المنوعة', 'الخلفية، النص، التغيير التلقائي', 'randset', 'random dhikr background text auto change اذكار منوعة'],
     ['counterset', 's:counter', 'العدّاد', 'الصوت والاهتزاز والحجم', 'counterset', 'counter tasbih vibration sound size عداد مسبحة'],
     ['duas', 't:heart-handshake', 'أدعيتي', 'تذكير يومي بأدعيتك', 'duas', 'my duas personal supplications ادعيتي دعاء'],
     ['audio', 't:volume', 'الملفات الصوتية', 'الكتم، التكرار، السرعة', 'audio', 'audio mute repeat speed playback صوت كتم تكرار سرعة']]],
-  ['cal', 't:calendar-month', 'التقويم والتاريخ', [
-    ['date', 't:calendar-month', 'ضبط التاريخ', 'بداية الأسبوع، شكل العرض', 'date', 'date week start format hijri gregorian تاريخ بداية الاسبوع هجري ميلادي'],
-    ['calendar', 't:calendar', 'التقويم الهجري', 'البلد، تعديل الشهر، نوع الحساب', 'calendar', 'hijri calendar adjust umm al qura country تقويم هجري ام القرى تعديل']]],
-  ['nav', 't:home-2', 'الرئيسية والشريط', [
+  ['nav', 't:home-2', 'الرئيسية والتنقّل', [
     ['home', 't:home-2', 'الواجهة الرئيسية', 'الاسم، الأوقات، الاختصارات', 'home', 'home screen name shortcuts رئيسية اسم اختصارات'],
     ['cards', 't:layout-dashboard', 'بطاقات الواجهة الرئيسية', 'إظهار وترتيب وإضافة', 'cards', 'cards order show hide بطاقات ترتيب اخفاء'],
-    ['navbar', 't:apps', 'تخصيص الشريط والدائرة', 'الشريط السفلي، الدائرة العائمة، دائرة التشغيل', 'navbar', 'navigation bar bottom floating bubble now playing شريط سفلي دائرة عائمة']]],
-  ['sec', 't:lock', 'الأمان والخصوصية', [
-    ['security', 't:lock', 'الأمان وأدوات إضافية', 'قفل التطبيق، وضع كبار السن، مؤقت النوم', 'security', 'security app lock fingerprint senior large sleep timer privacy قفل بصمة كبار السن مؤقت نوم خصوصية']]],
-  ['data', 't:cloud-upload', 'النسخ الاحتياطي والبيانات', [
-    ['backup', 't:cloud-upload', 'نسخ احتياطية', 'تلقائية يوميًا واستعادة', 'backup', 'backup restore snapshot نسخ احتياطي استعادة'],
-    ['data', 't:file-export', 'تصدير واستيراد البيانات', 'ملف واحد، وإعادة الضبط', 'data', 'export import reset data file تصدير استيراد اعادة ضبط']]],
-  ['lang', 't:language', 'اللغة والأرقام', [
+    ['navbar', 't:apps', 'تخصيص الشريط والدائرة', 'الشريط السفلي، الدائرة العائمة، دائرة التشغيل', 'navbar', 'navigation bar bottom floating bubble now playing شريط سفلي دائرة عائمة'],
+    ['floaters', 's:grid', 'الأزرار العائمة', 'الحجم والمكان والإغلاق بالسحب', 'floaters', 'floating bubble button player khatma size الزر العائم دائرة حجم سحب']]],
+  ['lang', 't:language', 'اللغة والتاريخ', [
     ['lang', 't:language', 'اللغة', langName, 'lang', 'language english french turkish german spanish لغة'],
     ['fonts', 't:typography', 'الخط والأرقام', 'الحجم، الأرقام، نظام الوقت', 'fonts', 'font size digits numbers 12 24 hour time format خط حجم ارقام ساعة'],
-    ['general', 't:settings-cog', 'الاهتزاز والصوت', 'مؤثرات التطبيق', 'general', 'haptics vibration sound effects اهتزاز صوت مؤثرات']]],
-  ['about', 't:info-circle', 'حول التطبيق', [
-    ['about', 't:info-circle', 'مزايا التطبيق', ()=>'الإصدار '+(M.VERSION || '1.0'), 'about', 'about features version licenses sources حول مزايا اصدار تراخيص مصادر'],
+    ['date', 't:calendar-month', 'ضبط التاريخ', 'بداية الأسبوع، شكل العرض', 'date', 'date week start format hijri gregorian تاريخ بداية الاسبوع هجري ميلادي'],
+    ['calendar', 'calendar', 'التقويم الهجري', 'البلد، تعديل الشهر، نوع الحساب', 'calendar', 'hijri calendar adjust umm al qura country تقويم هجري ام القرى تعديل']]],
+  ['data', 'lock', 'الخصوصية والبيانات', [
+    ['security', 'lock', 'الأمان وأدوات إضافية', 'قفل التطبيق، وضع كبار السن، مؤقت النوم', 'security', 'security app lock fingerprint senior large sleep timer privacy قفل بصمة كبار السن مؤقت نوم خصوصية'],
+    ['backup', 't:cloud-upload', 'نسخ احتياطية', 'تلقائية يوميًا واستعادة', 'backup', 'backup restore snapshot نسخ احتياطي استعادة'],
+    ['data', 't:file-export', 'تصدير واستيراد البيانات', 'ملف واحد، وإعادة الضبط', 'data', 'export import reset data file تصدير استيراد اعادة ضبط']]],
+  ['about', 't:info-circle', 'عام', [
+    ['general', 't:settings-cog', 'الاهتزاز والمؤثرات', 'اهتزاز اللمس وأصوات الأزرار', 'general', 'haptics vibration sound effects اهتزاز صوت مؤثرات'],
     ['help', 't:lifebuoy', 'مساعدة', 'أسئلة شائعة', 'help', 'help faq support مساعدة اسئلة'],
-    ['share', 't:share-3', 'انشر التطبيق', 'ساهم في الأجر بمشاركته', 'share', 'share app نشر مشاركة']]]
+    ['about', 't:info-circle', 'مزايا التطبيق', ()=>'الإصدار '+(M.VERSION || '1.0'), 'about', 'about features version licenses sources حول مزايا اصدار تراخيص مصادر'],
+    ['share', 't:share-3', 'انشر التطبيق', 'ساهم في الأجر بمشاركته', 'share', 'share app نشر مشاركة'],
+    ['news', 't:sparkles', 'ما الجديد', ()=>'في الإصدار '+M.n(M.VERSION || ''), 'news', 'whats new changelog update version جديد تحديث اصدار'],
+    ['tour', 'compass', 'جولة تعريفية', 'تعرّف على أقسام التطبيق في دقيقة', 'tour', 'tour guide intro onboarding جولة شرح تعريف']]]
 ];
 
 /* single settings (deeper than a screen): [screen, title, keywords, tab?] — the screen opens and the row flashes */
@@ -107,7 +106,7 @@ const DEEP = [
   ['general', 'الاهتزاز', 'haptics vibration'], ['general', 'الصوت', 'sound effects']
 ];
 /* screens and single settings that only one platform supports (M.can in core.js): left out elsewhere */
-const NEED = {icon:'appIcon', widgets:'widgets', alarm:'alarmRing', focus:'focusMode', live:'liveNotif'};
+const NEED = {icon:'appIcon', alarm:'alarmRing', focus:'focusMode', live:'liveNotif'};
 const NEED_DEEP = {'إيقاف الأذان بزر الصوت':'keyStop', 'قفل التطبيق':'appLock'};
 GROUPS.forEach(g=>{ g[3] = g[3].filter(r=>!NEED[r[4]] || M.can(NEED[r[4]])); });
 for(let i = DEEP.length - 1; i >= 0; i--){ const d = DEEP[i]; if((NEED[d[0]] && !M.can(NEED[d[0]])) || (NEED_DEEP[d[1]] && !M.can(NEED_DEEP[d[1]]))) DEEP.splice(i, 1); }

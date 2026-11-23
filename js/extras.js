@@ -300,13 +300,14 @@ M.openOnboarding = function(mode){
 // what's new: plain text for everyone, or [text, capability, text where that capability is missing (optional)]
 /* what the update screen shows: this version only */
 M.WHATS_LATEST = [
-  'البسملة تُكتب الآن بخط عثماني يظهر سليمًا على كل الأجهزة، ومنها ويندوز',
-  'تقليب الصفحتين بحركة الورق المعروفة، وتقف الورقة عند منتصف المصحف كالكتاب',
-  'حركة أبل: الصفحة تنفتح من العنصر الذي لمسته وتعود إليه، والشريط السفلي يتحرك كالسائل ويصغر عند التمرير',
-  'النافذة المنبثقة للختمة تصغر نحو دائرتها أينما كانت، والجزيرة الديناميكية لم تعد تُقص',
-  'معدّل تحديث متكيّف حتى ١٢٠ هرتز على الآيفون والأندرويد'
+  'صمّم ودجتك: اختر ما يظهر فيه وألوانه وحجمه، وأضفه للشاشة الرئيسية على الأندرويد، أو برمز قصير على الآيفون',
+  'البسملة بخط مصحف المدينة نفسه، سليمة على كل الأجهزة',
+  'أسهم المصحف تتبع اتجاه تقليب الورق، وإصلاح انزياح الصفحتين على الكمبيوتر',
+  'إصلاح ودجت الختمة في الشريط وودجت القمر في المقاسات المربعة',
+  'الإعدادات في مجموعات أوضح، ومعها «ما الجديد» و«جولة تعريفية»'
 ];
 M.WHATS_NEW = [
+  'صمّم ودجتك، وبسملة مصحف المدينة، وإعدادات أوضح',
   'حركة أبل والتقليب كالكتاب والبسملة السليمة وتحديث حتى ١٢٠ هرتز',
   'شاشات التابلت بالعرض والمنحنية: عمودان وحركة عند التدوير وإضاءة للحواف',
   'إصلاح شكل البسملة في أول السور على بعض الأجهزة، ومراجعة صفحات المصحف كاملة',
@@ -344,6 +345,14 @@ M.WHATS_NEW = [
   ['على الآيفون: لم يعد التطبيق يفتح على شاشة بيضاء', 'siri', '']
 ];
 M.whatsNew = ()=>M.WHATS_NEW.map(x=>typeof x === 'string' ? x : (M.can(x[1]) ? x[0] : x[2])).filter(Boolean);
+/* 4.6.2 «ما الجديد» (Settings › عام): this version's changes, then the earlier ones */
+M.openWhatsNew = function(){
+  const now = M.WHATS_LATEST || [], before = M.whatsNew().filter(t=>!now.includes(t)).slice(0, 14);
+  const b = M.h('div.wn-sheet',
+    M.h('div.section-h', 'في الإصدار ' + M.n(M.VERSION || '')), M.h('ul.wn-l', ...now.map(t=>M.h('li', t))),
+    before.length ? M.h('div.section-h', 'قبل ذلك') : null, before.length ? M.h('ul.wn-l.old', ...before.map(t=>M.h('li', t))) : null);
+  M.sheet({title:'ما الجديد', content:b});
+};
 /* the welcome opens at once on a first run (before the splash lifts), and once more after each update to say what is new */
 M.maybeOnboard = ()=>{
   const first = !M.store.get('onboarded', 0), seen = M.store.get('seenVersion', '');

@@ -232,7 +232,7 @@ function pinPage(){
   window.addEventListener('pageshow', fix);
   /* 4.5: a scrollIntoView (the reciting word, a result…) also scrolls every clipped container above it — the app, a screen
      frame — and the whole interface slides up under the status bar. Those frames never scroll: put them back at once. */
-  const FRAMES = '#app,#views,#screens,.view,#sheet-root,#tabbar';
+  const FRAMES = '#app,#views,#screens,.view,#sheet-root,#tabbar,.rd-main,.pg-track,.pg-slide,.mspread,.msp-half';   // 4.6.2 the Mushaf pager too: a mouse-drag selection or a find-in-page could scroll it sideways by half a spread
   document.addEventListener('scroll', e=>{ const t = e.target; if(t && t.nodeType === 1 && t.matches(FRAMES) && (t.scrollTop || t.scrollLeft)){ t.scrollTop = 0; t.scrollLeft = 0; } }, true);
   setInterval(()=>{ document.querySelectorAll(FRAMES).forEach(t=>{ if(t.scrollTop || t.scrollLeft){ t.scrollTop = 0; t.scrollLeft = 0; } }); }, 1500);
 }

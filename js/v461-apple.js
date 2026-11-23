@@ -39,7 +39,9 @@
     ], {duration:480, easing:EASE});
     /* the item it grew from steps back while its page is open */
     const under = document.getElementById('screens');
-    if(under && !M.views.some(x=>x !== v && !x.closed)) under.animate([{transform:'scale(1)', filter:'brightness(1)'}, {transform:'scale(.96)', filter:'brightness(.92)'}], {duration:480, easing:EASE, fill:'forwards'}).id = 'apple-under';
+    /* (no brightness filter on a device the app found slow: the scale alone stays on the GPU) */
+    const lite = root.dataset.fx === 'low';
+    if(under && !M.views.some(x=>x !== v && !x.closed)) under.animate(lite ? [{transform:'scale(1)'}, {transform:'scale(.96)'}] : [{transform:'scale(1)', filter:'brightness(1)'}, {transform:'scale(.96)', filter:'brightness(.92)'}], {duration:480, easing:EASE, fill:'forwards'}).id = 'apple-under';
     v._zsrc = s0;
     const close0 = v.close;
     v.close = function(){
@@ -50,7 +52,7 @@
   function restoreUnder(){
     const under = document.getElementById('screens'); if(!under) return;
     under.getAnimations().filter(a=>a.id === 'apple-under').forEach(a=>{
-      const back = under.animate([{transform:'scale(.96)', filter:'brightness(.92)'}, {transform:'scale(1)', filter:'brightness(1)'}], {duration:300, easing:EASE});
+      const back = under.animate([{transform:'scale(.96)', filter:'brightness(.92)'}, {transform:'scale(1)', filter:'brightness(1)'}], {duration:calm() ? 1 : 300, easing:EASE});
       a.cancel(); back.id = 'apple-back';
     });
   }
