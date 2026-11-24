@@ -1,0 +1,107 @@
+/* 4.7 contrast fixes — found by tests/contrast.mjs, which measures text against the pixels actually drawn (CSS values cannot see what a gradient,
+   a glass card or a photo makes of the background). Loaded last. Each rule pairs a text colour with the background it really sits on.
+   Rule of thumb used here: on a coloured plate, light theme → --p (dark) with white text; dark theme → --p-deep (defined in v3-design) with white text. */
+
+/* 1. Material skin: a coloured card's plate is the pale container (--pc), but the 4.5.3 rule gave its words the white --on-p → white on pale (1.1:1) */
+html[data-skin=material] .card.accent:not(.hero):not(.prayer-hero) .muted,
+html[data-skin=material] .card.accent:not(.hero):not(.prayer-hero) .small,
+html[data-skin=material] .card.accent:not(.hero):not(.prayer-hero) .tiny{color:color-mix(in oklab,var(--on-pc) 86%,transparent)!important}
+html[data-skin=material] .card.accent:not(.hero):not(.prayer-hero) .bold,
+html[data-skin=material] .card.accent:not(.hero):not(.prayer-hero) .title-font{color:var(--on-pc)!important}
+
+/* 2. The next-prayer card keeps white words, so its plate must be dark: with a picture (any skin) and, in the light theme, also without one (material) */
+html:not([data-theme=dark]):not([data-theme=amoled]) .card.accent:is(.prayer-hero,.hero):has(.hero-photo),
+html[data-skin=material]:not([data-theme=dark]):not([data-theme=amoled]) .card.accent:is(.prayer-hero,.hero){
+  background:linear-gradient(150deg,color-mix(in oklab,var(--p) 78%,#06161b),color-mix(in oklab,var(--p) 52%,#04100f));color:#fff}
+html[data-skin] .prayer-hero .hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,18,23,.3),rgba(3,18,23,.55))}
+html .card.accent.prayer-hero :is(.nx-n,.cd){text-shadow:0 1px 12px rgba(0,0,0,.4)}
+
+/* 3. «المزيد» header: its light corner made the white subtitle pale; the plate now starts from the deep accent */
+.mr-hero{background:radial-gradient(130% 150% at 100% 0%,color-mix(in oklab,var(--p-deep) 88%,#fff) 0%,var(--p-deep) 45%,color-mix(in oklab,var(--p-deep) 70%,#000) 100%)}
+.mr-hero .mr-sub{color:rgba(255,255,255,.95)!important;opacity:1!important}
+
+/* 4. The Quran header and its buttons */
+.qx-hero{background:linear-gradient(150deg,color-mix(in oklab,var(--p-deep) 80%,#000) 0%,color-mix(in oklab,var(--p-deep) 55%,#06231f) 100%)}
+html .qx-hero .qx-k,html .qx-hero .qx-m{color:#fff!important}
+html[data-skin] .qx-hero .btn.tonal,.qx-hero .btn.tonal.qx-listen{background:rgba(255,255,255,.16)!important;color:#fff!important}
+
+/* 5. segmented controls: the chosen segment is a deep plate with white words; the others use the normal secondary text colour */
+html[data-skin] .seg button.on{background:color-mix(in oklab,var(--p-deep) 88%,#000);color:#fff}
+html[data-skin] .seg button:not(.on){color:var(--on-sv);opacity:1}
+
+/* 6. small labels */
+.sur-tr{color:var(--on-sv)!important;opacity:1!important}                                         /* the English surah name: was a mix of two transparencies */
+.badge.gold{color:color-mix(in oklab,var(--gold) 45%,var(--on-s))}
+html[data-theme=dark] .badge.gold,html[data-theme=amoled] .badge.gold{color:color-mix(in oklab,var(--gold) 70%,#fff)}
+.mr-mn{color:color-mix(in oklab,var(--g) 62%,var(--on-s))}
+html[data-theme=dark] .mr-mn,html[data-theme=amoled] .mr-mn{color:color-mix(in oklab,var(--g) 70%,#fff)}
+.item.ptime.now .t{color:var(--p-ink)}
+.ht.next .tiny,.ht.next .muted{color:color-mix(in oklab,var(--on-pc) 84%,transparent)!important}
+
+/* 7. Glass skin, dark: the card was white at 14% over a page that has light glow patches, which made a mid-grey plate (muted words ≈ 2.3:1).
+      A dark under-layer keeps the glass look and gives every word a dark plate. */
+html[data-skin=glass][data-theme=dark],html[data-skin=glass][data-theme=amoled]{
+  --card-bg:linear-gradient(160deg,rgba(255,255,255,.11),rgba(255,255,255,.03)),linear-gradient(rgba(5,11,13,.58),rgba(5,11,13,.58))}
+/* glass, light: the coloured plate's pale corner weakened its white words */
+html[data-skin=glass]:not([data-theme=dark]):not([data-theme=amoled]) .card.accent:not(.hero):not(.prayer-hero){
+  background:linear-gradient(150deg,color-mix(in oklab,var(--p) 94%,#fff),color-mix(in oklab,var(--p) 60%,#000))}
+.mr-hero{background:radial-gradient(130% 150% at 100% 0%,color-mix(in oklab,var(--p-deep) 94%,#fff) 0%,var(--p-deep) 45%,color-mix(in oklab,var(--p-deep) 70%,#000) 100%)}
+.mr-hero .mr-sub{text-shadow:0 1px 3px rgba(0,0,0,.25)}
+html[data-skin] .qx-hero .btn.tonal,.qx-hero .btn.tonal.qx-listen{background:rgba(255,255,255,.12)!important}
+/* 8. glass badges: the skin's own .badge colour (--p on a pale chip) beat the gold/“now” variants and was too light */
+html[data-skin=glass] .badge{color:var(--p-ink,var(--p))}
+html[data-skin=glass][data-theme=dark] .badge,html[data-skin=glass][data-theme=amoled] .badge{color:color-mix(in oklab,var(--p) 72%,#fff)}
+html[data-skin=glass] .badge.gold{color:color-mix(in oklab,var(--gold) 45%,var(--on-s))}
+html[data-skin=glass][data-theme=dark] .badge.gold,html[data-skin=glass][data-theme=amoled] .badge.gold{color:color-mix(in oklab,var(--gold) 70%,#fff)}
+
+/* 9. section pages. Three causes, found by tests/contrast.mjs --views:
+      · teal / gold / green words on their own pale tint (the tint is ~10% of the same colour, so the words need a deeper shade),
+      · white words on the mid-tone banners of a few pages,
+      · words faded with opacity on top of a muted colour. */
+:root{--gold-ink:color-mix(in oklab,var(--gold,#c9a24b) 50%,#000);--ok-ink:color-mix(in oklab,var(--ok,#2e9d6a) 58%,#000)}
+html[data-theme=dark],html[data-theme=amoled]{--gold-ink:color-mix(in oklab,var(--gold,#c9a24b) 80%,#fff);--ok-ink:color-mix(in oklab,var(--ok,#2e9d6a) 70%,#fff)}
+.dh-count b,.dh-top .dh-no,.dh-fadl b,.rq-why b,.gd-n,.kd2-dn,.mf-a .btn.tonal,.kv-today b,.zk2-det>summary,.nf-s,.ts-ay,.lib-av{color:var(--p-ink)}
+.dh-rep,.kv-k,.tj-stars i{color:var(--gold-ink)}
+.badge.ok,.dd-f .badge.ok,.dh-meta .badge.ok,.ad2-meta .badge.ok{color:var(--ok-ink)}
+.cal-c .cal-g{opacity:.85}
+/* banners that carry white words: a uniform dark veil under the words (an inset shadow paints over the background and under the content) */
+.dh-hero,.ch-hero,.ts-hero,.cl3-hero,.ram-hero2{box-shadow:inset 0 0 0 999px rgba(0,0,0,.17)}
+
+/* 10. every selected chip: white words on a gradient whose pale end was ≈ 3:1 (≈ 20 pages share this one rule) */
+html[data-skin] .chip.on,html[data-skin] .sb-ch.on{background:color-mix(in oklab,var(--p-deep) 88%,#000);color:#fff}
+html[data-skin] .sb-ch.on .sb-ch-g{color:#fff}
+/* banner sub-titles were drawn at 86% opacity on a mid-tone plate */
+.dh-hs,.dl-hs,.ch-hs{opacity:1!important;color:rgba(255,255,255,.96)}
+.dh-hero{box-shadow:inset 0 0 0 999px rgba(0,0,0,.26)}
+.nf-s{opacity:.9}
+html:not([data-theme=dark]):not([data-theme=amoled]) .kd2-big b{color:color-mix(in oklab,#e08e0b 55%,#000)}
+.qp-sub{opacity:1}
+
+/* 11. glass skin, dark theme (measured with the GPU on, so the frosted glass is drawn like on a phone) */
+html[data-skin=glass][data-theme=dark] .seg button:not(.on),html[data-skin=glass][data-theme=amoled] .seg button:not(.on){color:var(--on-s);opacity:.92}
+html[data-skin=glass][data-theme=dark] .badge.gold,html[data-skin=glass][data-theme=amoled] .badge.gold{background:rgba(0,0,0,.34);color:color-mix(in oklab,var(--gold) 62%,#fff)}
+html[data-skin=glass][data-theme=dark] .page-top .sub,html[data-skin=glass][data-theme=amoled] .page-top .sub{color:var(--on-s);opacity:.9}
+html[data-skin=glass] .card.accent:not(.hero):not(.prayer-hero) :is(.muted,.small,.tiny){color:color-mix(in oklab,var(--on-p) 92%,transparent)!important}
+html[data-skin=glass][data-theme=dark] .pl-chip .pl-s,html[data-skin=glass][data-theme=amoled] .pl-chip .pl-s{color:var(--on-s);opacity:.85}
+/* banners: one corner radius (the pages had 22, 24, 30 and 32 beside the usual 28) */
+.nm-hero,.ram-hero2,.dr-hero,.tj-hero,.kd2-hero,.oc-hero,.nfx-hero,.lk-hero,.pops-hero,.cl3-hero{border-radius:var(--hero-r,28px)}
+.qx-h.section-h,.section-h.qx-h{font-size:1.02rem}
+/* weekday names: the 7 share a narrow grid, so their size follows the screen and not the text-size setting (loaded last: v3-design sets .cl3 .cal-dow) */
+.cl3 .cal-dow,.cal-dow{font-size:clamp(9.5px,3.2vw,12px)}
+
+/* 12. long words and long labels (German, Turkish, French… and the largest text size on a 320px screen): text may break inside a word rather than leave its box.
+       overflow-wrap:anywhere only acts when a word would otherwise overflow, and it lets boxes shrink below their longest word. */
+#app,#sheet-root,.pop-root{overflow-wrap:anywhere;hyphens:auto;-webkit-hyphens:auto}
+button>span,button>b,button>small,.tile>span,.chip,.badge,.item>.grow,.card .grow{min-width:0}
+/* single-line labels that must stay on one line end in an ellipsis instead of spilling */
+.dh-tool>span,.lib-p-s,.lib-sec-t,.lib-sec-s,.sb-tool>span,.lk-th>b,.bg-t>span,.sb-ch-t,.dl-qk>b,.mr-st>span,.sec-t{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.dh-tool,.lib-p,.lib-sec,.sb-tool,.lk-th,.bg-t,.dl-qk,.mr-st{min-width:0}
+.dua-tint,.kd2-tile{min-width:0;overflow:hidden}
+.topic-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.topic-grid>*{min-width:0}
+.kd2-grid>*,.dl-quick>*,.lib-secs>*,.lib-pgrid>*,.bg-grid>*,.mr-sgrid>*,.nm-grid>*{min-width:0}
+/* a button in a row of actions may wrap onto two lines when its label is long */
+.row-flex.gap-s>.btn,.cd-bar>.btn{white-space:normal;height:auto;min-height:var(--tap,44px);line-height:1.3;padding-block:6px}
+
+/* 13. weekday names are translated after they are drawn, so the 3-letter cut in calendar.js cannot see them: one column holds what fits, the rest ends in an ellipsis (the full name is in the title) */
+.cal-dow{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}

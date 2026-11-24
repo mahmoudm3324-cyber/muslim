@@ -174,7 +174,7 @@ M.openCalendar = function(){
     const grid = h('div.cal-grid');
     const ws = M.cfg.weekStart == null ? 6 : M.cfg.weekStart;
     const DN = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
-    for(let i = 0; i < 7; i++) grid.append(h('div.cal-dow'+((ws + i) % 7 === 5 ? '.fri' : ''), DN[(ws + i) % 7].replace(/^ال/, '')));
+    for(let i = 0; i < 7; i++) { const full = DN[(ws + i) % 7].replace(/^ال/, ''); grid.append(h('div.cal-dow'+((ws + i) % 7 === 5 ? '.fri' : ''), {title:full}, /[A-Za-zÀ-ÿĞğİıŞş]/.test(full) ? full.slice(0, 3) : full)); }   // a Latin-script name is cut to 3 letters: nine-letter «Cumartesi» does not fit one of seven columns
     const off = (first.getDay() - ws + 7) % 7; for(let i = 0; i < off; i++) grid.append(h('div.cal-c.empty'));
     const nts = notes(); const cells = {};
     const detail = h('div.cal-detail');

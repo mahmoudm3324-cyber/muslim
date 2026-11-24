@@ -516,50 +516,81 @@ async function showDhikr(o){
   const multi = !!set, meta = SETS[set || 'between'];
   const pr = set === 'after' ? (o.pr || lastPrayer()) : '';
   const sug = multi ? null : adhkarNow();
+  /* 4.7 the same card as the khatma's, size for size: the hairline of progress on top, the small head (count · title · size / circle / strip / close),
+     the text centred (swipe it sideways to move on), one big button and the quiet «•••» that shows the other tools. */
+  const zbtn = (lb, kid, fn)=>h('button.zen-close', {'aria-label':lb, title:lb, onclick:fn}, kid);
+  const svgI = d=>{ const w = document.createElement('span'); w.style.display = 'contents'; w.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + d + '"/></svg>'; return w.firstChild; };
+  let trayOn = false;
+  const SZN = {sm:'صغير', md:'متوسط', lg:'كبير'};
+  function swipe(zone, target){
+    let x0 = null, y0 = 0, dx = 0;
+    zone.addEventListener('pointerdown', e=>{ if(e.target.closest('button')) return; x0 = e.clientX; y0 = e.clientY; dx = 0; target.classList.add('dragging'); });
+    zone.addEventListener('pointermove', e=>{ if(x0 == null) return; const ddx = e.clientX - x0, ddy = e.clientY - y0;
+      if(Math.abs(ddy) > Math.abs(ddx) && Math.abs(ddx) < 12) return; dx = ddx;
+      const c = Math.max(-80, Math.min(80, dx * .45)); target.style.transform = 'translateX(' + c + 'px)'; target.style.opacity = String(Math.max(.45, 1 - Math.abs(c) / 130)); });
+    const end = ()=>{ if(x0 == null) return; const d = dx; x0 = null; dx = 0; target.classList.remove('dragging'); target.style.transform = ''; target.style.opacity = '';
+      if(Math.abs(d) < 38) return;
+      M.store.set('zenHint', 1); stopAudio();
+      if(d > 0){ if(multi){ if(i < items.length - 1){ i++; cnt = 0; draw('right'); } } else { i = (i + 1) % items.length; cnt = 0; draw('right'); } }
+      else { if(multi){ if(i > 0){ i--; cnt = 0; draw('left'); } } else { i = (i + items.length - 1) % items.length; cnt = 0; draw('left'); } }
+      M.haptic && M.haptic(8); };
+    zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end);
+  }
+  function count(){
+    const d = items[i]; if(cnt >= d.n){ if(multi) next(); else close('done'); return; }
+    cnt++; dhikrLog(1); M.haptic && M.haptic(cnt === d.n ? 30 : 8);
+    if(cnt >= d.n && multi){ draw(); setTimeout(()=>{ if(open && open.kind === 'dhikr') next(); }, 450); return; }
+    draw();
+  }
   function draw(dir){
     const sz = SZ();
     card.replaceChildren(grab());
     root.classList.toggle('pop-mini', mini && !finished);
-    if(mini && !finished){   // folded: the dhikr's name, the count, and a tap to count
-      const d = items[i], left = Math.max(0, d.n - cnt);
-      card.append(minBar(multi ? meta.t+' • '+n(i + 1)+'/'+n(items.length) : 'ذكرٌ لك الآن', String(d.t).slice(0, 42)+(String(d.t).length > 42 ? '…' : ''),
-        h('button.icon-btn.pop-minok.pop-mincnt', {'aria-label':'عدّ', onclick:()=>{ if(cnt >= d.n) return; cnt++; dhikrLog(1); M.haptic && M.haptic(cnt === d.n ? 30 : 8);
-          if(cnt >= d.n){ if(multi){ draw(); setTimeout(()=>{ if(open && open.kind === 'dhikr') next(); }, 450); return; } } draw(); }}, left ? h('b.num', n(left)) : M.ic('check')),
-        ()=>{ mini = false; draw(); }));
-      return;
-    }
-    const sub = multi ? (finished ? 'تمّت' : n(i + 1)+' من '+n(items.length)+(pr ? ' • صلاة '+(PR_AR[pr] || '') : '')) : 'اضغط الدائرة مع كل مرة';
-    card.append(h('div.pop-head', h('div.pop-badge.z', M.ic(meta.ic)),
-      h('div.grow', h('div.pop-kicker', multi ? meta.t : (o.set === 'between' ? meta.t : 'ذكرٌ لك الآن')), h('div.pop-pos', sub)),
-      finished ? null : bubBtn(), finished ? null : minBtn(()=>{ mini = true; stopAudio(); draw(); }), sizeBtn(),
-      h('button.icon-btn.pop-x', {'aria-label':'إغلاق', onclick:()=>close('x')}, M.ic('close'))));
-    if(multi) card.append(h('div.pop-bar.pop-setbar', h('i', {style:'width:'+((finished ? items.length : i) / items.length * 100).toFixed(1)+'%'})));
+    root.classList.toggle('zen-strip', mini && !finished);
     if(finished){
       card.append(h('div.pop-done', h('div.pop-done-ic', M.ic('check')), h('b.title-font', 'أتممتَ '+meta.t), h('div.muted', 'تقبّل الله منك، وجعلها حصنًا لك.'),
         h('button.btn.block', {onclick:()=>close('done')}, 'تقبّل الله')));
       return;
     }
-    const d = items[i], done = cnt >= d.n, pct = Math.min(1, cnt / d.n);
-    card.append(h('div.pw-folio.pz-folio', h('i.pw-c.c1'), h('i.pw-c.c2'), h('i.pw-c.c3'), h('i.pw-c.c4'),
-      h('div.pop-dhikr'+(d.q ? '.q.qfont' : '')+(dir ? '.slide-'+dir : ''), d.t),
-      d.f || d.src ? h('div.pop-fadl', d.f || d.src) : null));
-    const tap = h('button.pop-tap'+(done ? '.done' : ''), {'aria-label':'عدّ', onclick:()=>{
-      if(cnt >= d.n) return; cnt++; dhikrLog(1); M.haptic && M.haptic(cnt === d.n ? 30 : 8);
-      if(cnt >= d.n && multi){ draw(); setTimeout(()=>{ if(open && open.kind === 'dhikr') next(); }, 450); return; }
-      draw(); }},
-      M.ring(pct, Math.round((d.n > 1 ? 116 : 96) * (sz === 'sm' ? .7 : sz === 'md' ? .86 : 1)), sz === 'sm' ? 5 : 7, h('div.pop-tap-in', done ? M.ic('check') : h('b.num', n(cnt)), h('span', done ? 'تمّ' : (d.n > 1 ? 'من '+n(d.n) : 'اضغط')))));
-    card.append(h('div.pop-tapwrap', tap));
-    const tools = [];
-    if(d.snd) tools.push(h('button.pop-tool', {onclick:()=>{ if(audio){ stopAudio(); draw(); return; } stopAudio(); audio = new Audio('audio/'+d.snd+'.mp3'); audio.onended = ()=>{ audio = null; if(open) draw(); }; audio.play().catch(()=>{ audio = null; }); draw(); }}, M.ic(audio ? 'pause' : 'volume'), h('span', audio ? 'إيقاف' : 'استمع')));
-    if(!multi) tools.push(h('button.pop-tool', {onclick:()=>{ stopAudio(); i = (i + 1) % items.length; cnt = 0; draw('next'); }}, M.ic('refresh'), h('span', 'ذكر آخر')));
-    tools.push(h('button.pop-tool', {onclick:()=>goApp(multi ? (set === 'after' ? 'adhkar' : set) : 'tasbih')}, M.ic(multi ? 'list' : 'beads'), h('span', multi ? 'في التطبيق' : 'السبحة')));
-    card.append(h('div.pop-tools', ...tools));
-    if(sug) card.append(h('button.pop-sug', {onclick:()=>{ close('set'); setTimeout(()=>showDhikr({set:sug.id}), 260); }}, M.ic(sug.id === 'morning' ? 'sunrise' : 'moon'), h('div.grow', h('b', sug.t), h('small', sug.s)), M.ic('fwd')));
-    if(multi) card.append(h('div.pop-acts',
-      h('button.icon-btn.tonal.pop-nav', {'aria-label':'السابق', disabled:i === 0, onclick:()=>{ if(i > 0){ i--; cnt = 0; draw('prev'); } }}, M.ic('back')),
-      h('button.btn.grow'+(done ? '' : '.tonal'), {onclick:()=>next()}, i === items.length - 1 ? 'إنهاء' : (done ? 'التالي' : 'تخطَّ')),
-      h('button.icon-btn.tonal.pop-nav', {'aria-label':'إغلاق', onclick:()=>close('later')}, M.ic('clock'))));
-    else card.append(h('div.pop-acts', h('button.btn.grow'+(done ? '' : '.tonal'), {onclick:()=>close('done')}, done ? 'تقبّل الله' : 'لاحقًا')));
+    const d = items[i], done = cnt >= d.n, pct = multi ? (i + (done ? 1 : cnt / d.n)) / items.length : Math.min(1, cnt / d.n);
+    root.style.setProperty('--zen-pct', (pct * 100).toFixed(2));
+    card.append(h('div.zen-track', {'aria-hidden':'true'}, h('i', {style:'width:' + (pct * 100).toFixed(2) + '%'})));
+    const label = done ? (multi ? (i === items.length - 1 ? 'إنهاء' : 'التالي') : 'تقبّل الله') : (d.n > 1 ? 'عدّ · ' + n(cnt) + ' من ' + n(d.n) : 'قلتها');
+    if(mini){   // the strip: «✓ عدّ», the text (swipe it), and the way back to the card
+      const bt = h('span.zen-bar-text' + (d.q ? '.qfont' : ''), String(d.t));
+      const row = h('div.zen-bar-row', h('button.zen-cta.zen-cta-s', {onclick:count}, '✓ ' + (done ? (multi ? 'التالي' : 'تمّ') : (d.n > 1 ? n(cnt) + '/' + n(d.n) : 'قلتها'))), bt,
+        zbtn('توسيع', svgI('M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7'), ()=>{ mini = false; draw(); }));
+      card.append(row); swipe(row, bt);
+      return;
+    }
+    const title = multi ? meta.t + (pr ? ' · صلاة ' + (PR_AR[pr] || '') : '') : (o.set === 'between' ? meta.t : 'ذكرٌ لك الآن');
+    card.append(h('div.zen-head',
+      h('span.zen-pct.num', multi ? n(i + 1) + '/' + n(items.length) : (d.n > 1 ? n(cnt) + '/' + n(d.n) : n(Math.floor(pct * 100)) + '٪')),
+      h('div.zen-kicker', title),
+      h('div.zen-win-icons',
+        zbtn('حجم النافذة: ' + SZN[sz], h('span.zen-sz', {dataset:{s:sz}}, h('i'), h('i'), h('i')), ()=>{ setSize(({sm:'md', md:'lg', lg:'sm'})[SZ()]); M.haptic && M.haptic(8); M.toast && M.toast('حجم النافذة: ' + SZN[SZ()]); }),
+        zbtn('تصغير إلى دائرة', h('i.zen-bub-ico'), ()=>bubble(true)),
+        zbtn('تصغير إلى شريط', svgI('M5 12h14'), ()=>{ mini = true; stopAudio(); draw(); }),
+        zbtn('إغلاق', svgI('M18 6L6 18M6 6l12 12'), ()=>close('x')))));
+    const box = h('div.zen-ayah' + (d.q ? '.qfont' : '') + (dir ? '.slide-' + (dir === 'next' ? 'right' : dir === 'prev' ? 'left' : dir) : ''), String(d.t));
+    const wrap = h('div.zen-ayah-wrap', box, d.f || d.src ? h('div.zen-basm', d.f || d.src) : null,
+      M.store.get('zenHint', 0) ? null : h('div.zen-swipe-hint', '‹ اسحب يمينًا أو يسارًا للتنقّل ›'));
+    card.append(wrap); swipe(wrap, box);
+    /* the tools, hidden until «•••» */
+    const chip = (lb, fn, on)=>h('button.zen-chip' + (on ? '.active' : ''), {onclick:fn}, lb);
+    if(trayOn){
+      const tray = h('div.zen-tray');
+      if(d.snd) tray.append(chip(audio ? 'إيقاف' : 'استمع', ()=>{ if(audio){ stopAudio(); draw(); return; } stopAudio(); audio = new Audio('audio/'+d.snd+'.mp3'); audio.onended = ()=>{ audio = null; if(open) draw(); }; audio.play().catch(()=>{ audio = null; }); draw(); }, !!audio));
+      if(!multi) tray.append(chip('ذكر آخر', ()=>{ stopAudio(); i = (i + 1) % items.length; cnt = 0; draw('next'); }));
+      if(multi){ tray.append(chip('السابق', ()=>{ if(i > 0){ stopAudio(); i--; cnt = 0; draw('prev'); } })); if(!done) tray.append(chip('تخطَّ', ()=>next())); }
+      tray.append(chip(multi ? 'في التطبيق' : 'السبحة', ()=>goApp(multi ? (set === 'after' ? 'adhkar' : set) : 'tasbih')));
+      if(sug) tray.append(chip(sug.t, ()=>{ close('set'); setTimeout(()=>showDhikr({set:sug.id}), 260); }));
+      tray.append(chip('لاحقًا', ()=>close(multi ? 'later' : 'done')));
+      card.append(tray);
+    }
+    card.append(h('div.zen-actions',
+      h('button.zen-cta', {onclick:count}, svgI('M5 13l4 4L19 7'), h('span', label)),
+      h('button.zen-more-btn' + (trayOn ? '.active' : ''), {'aria-label':'المزيد من الأدوات', 'aria-expanded':String(trayOn), onclick:()=>{ trayOn = !trayOn; draw(); }}, '•••')));
   }
   function next(){
     stopAudio();

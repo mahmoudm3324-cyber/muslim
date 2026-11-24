@@ -1,0 +1,15 @@
+/* 4.8: the time card, the khatma ring, the calm reading mode */
+.smart-card{display:flex;align-items:center;gap:14px;width:100%;text-align:start;margin-top:12px;min-height:72px}
+.smart-card .grow{min-width:0}
+.smart-card .grow>*{overflow-wrap:anywhere}
+.smart-ic{flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--pc);color:var(--on-pc)}
+.smart-ic svg{width:24px;height:24px}
+.smart-go{flex:none;opacity:.55;display:grid;place-items:center}
+.smart-go svg{width:20px;height:20px}
+.smart-mush{display:grid;place-items:center;color:var(--p-ink,var(--p))}
+.smart-mush svg{width:22px;height:22px}
+.kh-ring .ring{flex:none}
+html[dir=rtl] .smart-go svg{transform:scaleX(-1)}
+/* calm reading: a warm veil that lets the touches through */
+.reader .rd-calm{position:absolute;inset:0;pointer-events:none;z-index:30;background:linear-gradient(180deg,rgba(255,168,64,.55),rgba(255,138,32,.62));mix-blend-mode:multiply;transition:opacity 1.2s ease}
+.reader.calm .rd-main{transition:filter 1.2s ease}
