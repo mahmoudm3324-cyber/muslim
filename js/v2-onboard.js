@@ -144,7 +144,7 @@ function build(mode){
       mk.classList.toggle('night', !!night); mk.classList.toggle('low', k === 'sunrise' || k === 'maghrib');
       name.classList.remove('in'); void name.offsetWidth; name.classList.add('in'); };
     const el = h('div.ob-page.ob3-tl', stars, clouds, arc, scene, city,
-      h('div.ob3-tx.ob-st', h('h1.ob-h.title-font', 'مشاهد حيّة لمواقيتك'), h('p.ob-p', 'تشرق الشمس وتغرب، ويطلع القمر، وتتغيّر ألوان السماء مع كل صلاة من الفجر إلى العشاء.')));
+      h('div.ob3-tx.ob-st', h('h1.ob-h.title-font', 'مشاهد حيّة لمواقيتك'), h('p.ob-p', 'تشرق الشمس وتغرب، ويطلع القمر، وتتغيّر ألوان السماء مع كل صلاة — وكذلك خلفية التطبيق نفسها، بسحابها وشمسها وقمرها.')));
     show();
     el.addEventListener('click', e=>{ if(e.target.closest('button')) return; i = (i + 1) % PR.length; show(); M.haptic && M.haptic(6); });   // a tap moves on too
     if(!reduced()){ iv = setInterval(()=>{ i = (i + 1) % PR.length; show(); }, 1900); pageOff.push(()=>{ clearInterval(iv); delete root.dataset.sky; }); }

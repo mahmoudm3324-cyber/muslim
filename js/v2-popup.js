@@ -301,6 +301,7 @@ function shell(kind){
 /* ---- verse khatma card ---- */
 async function showWird(o){
   o = o || {};
+  if(o.auto && M.calmQuiet && M.calmQuiet()) return false;   // 4.9 the calm reading mode: a pop-up that comes by itself waits while the Mushaf is open at night
   try{ await M.loadQuran(); }catch(e){ if(IS_PAGE) close('err'); return false; }
   if(open) close('replace');
   const {root, card, key} = shell('wird');   // root: the card's layer (gets .pop-mini when folded)
@@ -499,6 +500,7 @@ function setItems(set){
 }
 async function showDhikr(o){
   o = o || {};
+  if(o.auto && M.calmQuiet && M.calmQuiet()) return false;   // 4.9 the calm reading mode: a pop-up that comes by itself waits while the Mushaf is open at night
   const set = SETS[o.set] && o.set !== 'between' ? o.set : '';
   let items = null;
   if(set){ try{ await M.loadQuran(); }catch(e){} items = setItems(set); }

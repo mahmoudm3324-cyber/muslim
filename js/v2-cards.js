@@ -268,6 +268,7 @@ M.openCards = function(init){
   const TABS = [['text', 'النص', 'note'], ['bg', 'الخلفية', 'image'], ['font', 'الخط', 'type'], ['frame', 'الإطار', 'layers'], ['size', 'المقاس', 'fullscreen']];
   function drawTabs(){ tabs.replaceChildren(...TABS.map(([k, l, ic])=>h('button.cd-tab'+(st.tab === k ? '.on' : ''), {'aria-pressed':st.tab === k ? 'true' : 'false', onclick:()=>{ st.tab = k; drawTabs(); drawPanel(); }}, M.ic(ic), h('span', l)))); }
   function drawPresets(){
+    if(!thumbs){ setTimeout(()=>{ makeThumbs(); drawPresets(); }, 90); return; }   // 4.9 the 12 thumbnails took ~350 ms: the page opens first, they follow
     const th = makeThumbs();
     presets.replaceChildren(...PRESETS.map(p=>h('button.cd-pre'+(st.bg === p.bg && st.frame === p.frame && st.font === p.font ? '.on' : ''), {style:'background-image:url("'+th[p.bg]+'")', 'aria-label':'نمط '+p.n, onclick:()=>{ Object.assign(st, {bg:p.bg, font:st.source === 'ayah' ? 'Amiri Quran' : p.font, color:p.color, frame:p.frame, view:{x:0, y:0, z:1}}); drawPresets(); if(st.tab !== 'text') drawPanel(); redraw(); }},
       h('span.cd-pre-a', {style:'font-family:"'+p.font+'",serif'}, 'بسم الله'), h('span.cd-pre-n', p.n))));

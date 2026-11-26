@@ -81,7 +81,7 @@ function checkbox(on, onClick, cls){
 /* ---- main view ---- */
 M.openTracker = function(opts){
   opts = opts || {};
-  const S = {tab:opts.tab || 'day', date:new Date(), ws:T.weekStart(new Date())};
+  const S = {tab:opts.tab || M.tabMem('tracker', 'day'), date:new Date(), ws:T.weekStart(new Date())};
   S.date.setHours(12,0,0,0);
   const body = h('div.trk');
   const tabs = h('div');
@@ -92,7 +92,7 @@ M.openTracker = function(opts){
 
   function drawTabs(){
     tabs.innerHTML = '';
-    tabs.append(M.seg([['day','اليوم'],['prayers','الصلوات'],['week','الأسبوع'],['stats','الإنجازات']], S.tab, v=>{ S.tab = v; paint(); }));
+    tabs.append(M.seg([['day','اليوم'],['prayers','الصلوات'],['week','الأسبوع'],['stats','الإنجازات']], S.tab, v=>{ S.tab = M.tabMem('tracker', null, v); paint(); }));
     tabs.style.margin = '4px 0 12px';
   }
   function paint(keepScroll){

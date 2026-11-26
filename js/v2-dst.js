@@ -8,12 +8,14 @@ function off(tz, d){   // UTC offset of tz at instant d, in minutes
   if(offs.has(k)) return offs.get(k);
   let v = 0;
   try{
-    const p = new Intl.DateTimeFormat('en-US', {timeZone:tz, hourCycle:'h23', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit'}).formatToParts(d).reduce((o, x)=>(o[x.type] = +x.value, o), {});
+    const f = fmts[tz] || (fmts[tz] = new Intl.DateTimeFormat('en-US', {timeZone:tz, hourCycle:'h23', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit'}));   // 4.9 one formatter per zone: building it was most of the page's 300 ms
+    const p = f.formatToParts(d).reduce((o, x)=>(o[x.type] = +x.value, o), {});
     v = Math.round((Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) - Math.floor(d.getTime() / 1000) * 1000) / 60000);
   }catch(e){}
   if(offs.size > 4000) offs.clear();
   offs.set(k, v); return v;
 }
+const fmts = {};
 const info = {};
 function zone(tz){
   if(info[tz]) return info[tz];

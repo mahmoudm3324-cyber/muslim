@@ -1,4 +1,4 @@
-const V='muslim-4.8.0-1100';
+const V='muslim-4.9.0-1102';
 // install: keep the page and everything it loads (read from index.html itself, so the list never goes stale) for offline use
 self.addEventListener('install',e=>{e.waitUntil((async()=>{
   try{

@@ -18,7 +18,7 @@ const M = window.M = window.M || {};
   if(window.visualViewport) visualViewport.addEventListener('resize', function(){ setTimeout(back, 60); });
   document.addEventListener('focusout', function(){ setTimeout(back, 120); });
 }catch(e){} })();
-M.VERSION = '4.8.0';
+M.VERSION = '4.9.0';
 M.$ = (s,r)=>(r||document).querySelector(s);
 M.$$ = (s,r)=>Array.from((r||document).querySelectorAll(s));
 
@@ -83,7 +83,9 @@ M.store = {
   },
   del(k){ delete mem[k]; try{ localStorage.removeItem('ms:'+k); }catch(e){} },
   keys(){ try{ return Object.keys(localStorage).filter(k=>k.startsWith('ms:')).map(k=>k.slice(3)); }catch(e){ return Object.keys(mem); } }
-};
+};/* 4.9 a section's last tab: comes back next time the section opens (M.tabMem(key, default) to read, M.tabMem(key, null, value) to keep) */
+M.tabMem = function(k, d, v){ const all = M.store.get('tabMem', {}) || {}; if(v != null){ all[k] = v; M.store.set('tabMem', all); return v; } return all[k] != null ? all[k] : d; };
+
 
 /* ---------- platform: which shell runs the page, and what it can do ----------
    android = the Android app (window.Android from MainActivity), ios = the iPhone app (window.isIOSApp, a smaller bridge), web = a browser.

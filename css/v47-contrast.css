@@ -105,3 +105,38 @@ button>span,button>b,button>small,.tile>span,.chip,.badge,.item>.grow,.card .gro
 
 /* 13. weekday names are translated after they are drawn, so the 3-letter cut in calendar.js cannot see them: one column holds what fits, the rest ends in an ellipsis (the full name is in the title) */
 .cal-dow{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+
+/* 14. (4.9) found by the section-page measure and by looking at every page
+   · the kids' tiles: white words at the bottom of a gradient that started pale — the tile now deepens toward its words */
+.kd2-tile{background:linear-gradient(160deg,color-mix(in oklab,var(--c) 90%,#fff) 0%,var(--c) 38%,color-mix(in oklab,var(--c) 60%,#000) 100%)}
+.kd2-tt{text-shadow:0 1px 6px rgba(0,0,0,.28)}
+.kd2-tt small{opacity:1}
+/* · the dhikr banners (orange morning, …): a deeper veil under the white words and buttons */
+.dh-hero{box-shadow:inset 0 0 0 999px rgba(0,0,0,.3),0 10px 24px -18px var(--h1)!important}   /* v3-design gives its shadow with !important: the earlier veils (.17, .26) never showed */
+.dh-tool,.dl-one-w{background:rgba(255,255,255,.2)}
+/* · the source of a hadith: gold words on their own gold tint */
+.dl-src{color:var(--gold-ink)}
+/* · the Quran player's disc: its centre was a pale tint under white words */
+.qp-art::before{background:radial-gradient(circle at 30% 25%,color-mix(in oklab,var(--p) 78%,#fff),color-mix(in oklab,var(--p-deep,var(--p)) 90%,#000) 78%)}
+.qp-sn{opacity:.95}
+/* · the calendar: Friday's column and the day picked are tinted, their small numbers need the deeper ink */
+.cal-c.fri .cal-h,.cal-c.today .cal-g,.cal-c.sel .cal-g{color:var(--p-ink);opacity:1}
+.cd-rel{color:var(--p-ink)}
+
+/* 15. (4.9) words were cut in the middle («المناسبا / ت»): the long-word rule of §12 also reached segmented controls and chips.
+   A label there keeps its words whole; the row scrolls sideways if four long labels really do not fit. */
+.seg{overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button,.chip,.zen-chip,.qx-chip,.mr-chip,.tab .lb{overflow-wrap:normal;word-break:normal;hyphens:manual;-webkit-hyphens:manual}
+.seg button{flex:1 1 auto;min-width:min-content;padding-inline:8px}
+
+/* 16. (4.9) smallest words found by tests/ui-audit.mjs (were 9.6–10.9px): a reading floor of about 11.5px; the day digits in narrow grids keep 11px */
+.pl-chip .pl-s,.qx-chip small,.sb-stats span,.hero2-st span,.kh-plan .num,.kv-today small,.kv-bar .num,.ks-t span,.ts-dk span,.ts-ring-in small{font-size:max(11.5px,.72rem)}
+.ks-d span,.cl3 .cal-c .cal-g,.cal-c .cal-g,.cl3-pt small{font-size:max(11px,.69rem)}
+.ring .rt .ts-ring-in small,.ts-ring-in small.num{font-size:max(11px,.69rem)}
+/* 17. (4.9) «reduce motion» in the phone's settings: the last two endless decorations also rest */
+@media (prefers-reduced-motion:reduce){.kd2-mascot,.dr-stars,.dr-stars *{animation:none!important}}
+/* 18. (4.9) the last two of the five tabs: the «المزيد» header's light corner under its subtitle, and «استمع» on the Quran header */
+.mr-hero{background:linear-gradient(150deg,color-mix(in oklab,var(--p-deep) 90%,#fff) 0%,var(--p-deep) 45%,color-mix(in oklab,var(--p-deep) 72%,#000) 100%)}
+html[data-skin] .qx-hero .btn.tonal,.qx-hero .btn.tonal.qx-listen{background:rgba(0,0,0,.2)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.28)}
+.qz-sc small{font-size:max(11.5px,.72rem)}

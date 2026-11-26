@@ -143,13 +143,13 @@ const notes = ()=>M.store.get('dnotes', {});
 M.openCalendar = function(){
   const today = new Date(); today.setHours(12);
   const th = M.hijri(today);
-  const S = {y:th.y, m:th.m, tab:'cal'};
+  const S = {y:th.y, m:th.m, tab:M.tabMem('cal', 'cal')};
   const content = h('div');
   const view = M.openView({title:'التقويم الهجري', id:'calendar', build:b=>{ b.classList.add('cl3'); b.append(content); }});
 
   function paint(){
     content.innerHTML = '';
-    content.append(h('div.row-flex.gap-s', {style:'margin:4px 0 12px'}, h('div.grow', M.seg([['cal','التقويم'],['times','المواقيت'],['conv','المحوّل'],['occ','المناسبات']], S.tab, v=>{ S.tab = v; paint(); })), h('button.icon-btn.tonal', {'aria-label':'القمر', onclick:()=>M.openMoon()}, M.ic('moon'))));
+    content.append(h('div.row-flex.gap-s', {style:'margin:4px 0 12px'}, h('div.grow', M.seg([['cal','التقويم'],['times','المواقيت'],['conv','المحوّل'],['occ','المناسبات']], S.tab, v=>{ S.tab = M.tabMem('cal', null, v); paint(); })), h('button.icon-btn.tonal', {'aria-label':'القمر', onclick:()=>M.openMoon()}, M.ic('moon'))));
     (S.tab === 'cal' ? month : S.tab === 'times' ? times : S.tab === 'conv' ? conv : occ)(content);
     content.append(bannerMini());   // 4.4: the calculation method is a quiet line at the end, not a card on top
   }

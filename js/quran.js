@@ -133,7 +133,7 @@ M.on('player', updateMini);
 M.updateMini = updateMini;
 
 /* =================== Quran tab =================== */
-const st = M.qState = {tab:'surah', q:''};
+const st = M.qState = {tab:M.tabMem('quranList', 'surah'), q:''};
 M.screens.quran = {
   icon:'s:mushaf', label:'المصحف',
   build(el){
@@ -195,7 +195,7 @@ M.screens.quran = {
       return;
     }
     if(st.tab === 'marks') st.tab = 'surah';
-    const seg = M.seg([['surah','السور'],['juz','الأجزاء'],['hizb','الأحزاب'],['pages','الصفحات']], st.tab, v=>{ st.tab = v; renderList(); });
+    const seg = M.seg([['surah','السور'],['juz','الأجزاء'],['hizb','الأحزاب'],['pages','الصفحات']], st.tab, v=>{ st.tab = M.tabMem('quranList', null, v); renderList(); });
     const q = h('input.field', {placeholder:'ابحث بالاسم أو في نص الآيات…', value:st.q, type:'search', enterkeyhint:'search', oninput:M.debounce(e=>{ st.q = e.target.value; renderList(); }, 180)});
     const listHost = h('div.q-list');
     el.append(h('div.sec-sticky.qx-idx', seg, q), listHost);

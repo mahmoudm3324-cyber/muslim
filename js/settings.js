@@ -238,7 +238,7 @@ M.settingsEntries = entries;   // used by the test-suite
       chips.replaceChildren(...M.BG_GROUPS.map(([k, l])=>h('button.chip' + (grp === k ? '.on' : ''), {onclick:()=>{ grp = k; M.store.set('bgGrp', k); fill(); }}, l)));
       grid.replaceChildren();
       const all = grp === 'all';
-      if(all || grp === 'colors'){ grid.append(tile('aurora', 'أورورا', 'background:linear-gradient(135deg,var(--pc),var(--s2))'), tile('none', 'سادة', 'background:var(--s1)')); }
+      if(all || grp === 'colors'){ grid.append(tile('sky', 'سماء متحركة', 'background:linear-gradient(180deg,#bfe0f5,#f7e6d4)', M.ic('s:sun')), tile('aurora', 'أورورا', 'background:linear-gradient(135deg,var(--pc),var(--s2))'), tile('none', 'سادة', 'background:var(--s1)')); }
       M.PHOTOS.filter(p=>all || p[2] === grp).forEach(([n, l])=>grid.append(tile('photo:'+n, l, 'background:url(img/bg/t'+n+'.jpg) center/cover')));
       if(all || grp === 'live' || grp === 'madinah' || grp === 'makkah'){
         if(all || grp === 'live') grid.append(tile('video', 'متحركة', 'background:url(img/bg/t9.jpg) center/cover', M.ic('play')));

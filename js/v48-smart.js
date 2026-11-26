@@ -15,8 +15,10 @@ const SAFE = (f, d)=>{ try{ return f(); }catch(e){ return d; } };
 M.smartNow = function(now){
   now = now || new Date();
   const t = M.prayerTimes(now), x = +now, min = 60000, fri = now.getDay() === 5;
-  if(fri && x < t.dhuhr) return {id:'kahf', ic:'s:mushaf', k:'يوم الجمعة', t:'سورة الكهف', s:'نورٌ لك بين الجمعتين', go:()=>M.openReader({sura:18, ayah:1})};
   if(x >= t.fajr && x < t.sunrise + 45 * min) return {id:'morning', ic:'s:sunrise', k:'بعد الفجر', t:'أذكار الصباح', s:'ابدأ يومك بذكر الله', go:()=>M.openAdhkarCategory && M.openAdhkarCategory('morning')};
+  if(fri && x < t.asr) return {id:'kahf', ic:'s:mushaf', k:'يوم الجمعة', t:'سورة الكهف', s:'نورٌ لك بين الجمعتين', go:()=>M.openReader({sura:18, ayah:1})};
+  if(x >= t.sunrise + 45 * min && x < t.dhuhr - 15 * min) return {id:'duha', ic:'s:sun', k:'وقت الضحى', t:'صلاة الضحى', s:'«ويُجزئ من ذلك ركعتان يركعهما من الضحى» — رواه مسلم', go:()=>M.openGuide && M.openGuide('duha')};
+  if(now.getDay() === 4 && x >= t.maghrib && x < t.isha) return {id:'salawat', ic:'s:beads', k:'ليلة الجمعة', t:'الصلاة على النبي ﷺ', s:'«أكثروا الصلاة عليّ يوم الجمعة وليلة الجمعة» — البيهقي، حسّنه الألباني', go:()=>M.openTasbih && M.openTasbih()};
   if(x >= t.asr && x < t.isha) return {id:'evening', ic:'s:sunset', k:'قبل الغروب وبعده', t:'أذكار المساء', s:'اختم نهارك بالذكر', go:()=>M.openAdhkarCategory && M.openAdhkarCategory('evening')};
   if(x >= t.isha || x < t.fajr) return {id:'qiyam', ic:'s:moon', k:'الليل', t:'قيام الليل والوتر', s:'ركعات خفيفة قبل النوم أو في آخر الليل', go:()=>M.openGuide && M.openGuide('qiyam')};
   return null;
@@ -55,16 +57,21 @@ setInterval(()=>{ if(M.curTab === 'home' && !M.views.length && !document.hidden 
 const PL = 'v48place';
 const place = ()=>M.store.get(PL, {}) || {};
 const setPlace = o=>M.store.set(PL, Object.assign(place(), o, {t:Date.now()}));
+const saved = place();   // read before the app boots: its first M.setTab('home') records «home» over it
 M.on('tab', id=>{ if(on('rememberPlace', true)) setPlace({tab:id, sec:null}); });
 if(M.sectionOpen){ const so = M.sectionOpen; M.sectionOpen = function(id){ if(on('rememberPlace', true)) SAFE(()=>setPlace({sec:id})); return so.apply(this, arguments); }; }
 M.on('viewclose', ()=>{ setTimeout(()=>{ if(!M.views.length && on('rememberPlace', true)) setPlace({sec:null}); }, 50); });
+let deep = false;
+if(M.openDeep){ const od = M.openDeep; M.openDeep = function(){ deep = true; return od.apply(this, arguments); }; }
 function restore(){
-  if(!on('rememberPlace', true) || M.cfg.startRandom) return;
-  const p = place(); if(!p.tab || p.tab === 'home' || !M.screens[p.tab]) return;
+  // a widget, a notification or a shortcut asked for a place: that wins; so does anything the user already opened
+  if(deep || !on('rememberPlace', true) || M.cfg.startRandom || M.curTab !== 'home' || M.views.length) return;
+  const p = saved; if(!p.tab || p.tab === 'home' || !M.screens[p.tab]) return;
   M.setTab(p.tab);
-  if(p.sec && Date.now() - (p.t || 0) < 30 * 60000 && M.SECTIONS && M.SECTIONS.some(s=>s[0] === p.sec)) setTimeout(()=>SAFE(()=>M.sectionOpen(p.sec)), 350);
+  if(p.sec && Date.now() - (p.t || 0) < 30 * 60000 && M.SECTIONS && M.SECTIONS.some(s=>s[0] === p.sec)) setTimeout(()=>{ if(!deep && !M.views.length) SAFE(()=>M.sectionOpen(p.sec)); }, 300);
 }
-setTimeout(restore, 400);
+/* right after the app has drawn its first screen (main.js boots on DOMContentLoaded), before a deep link can arrive */
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ()=>setTimeout(restore, 0)); else setTimeout(restore, 0);
 
 /* ---------- 4. calm reading ---------- */
 /* how strong the calm is now: 0 by day; from isha it grows to 1 around midnight and stays until fajr */
@@ -92,8 +99,8 @@ const mo = new MutationObserver(()=>{
   const iv = setInterval(()=>{ if(!r.isConnected){ clearInterval(iv); M._calm = false; return; } paintCalm(r); }, 60000);
 });
 mo.observe(document.getElementById('app') || document.body, {childList:true, subtree:true});
-/* in the calm mode the app stays quiet while reading: no toasts */
-if(M.toast){ const t0 = M.toast; M.toast = function(){ if(M._calm && document.querySelector('.reader')) return; return t0.apply(this, arguments); }; }
+/* in the calm mode the app stays quiet while reading: the dhikr and wird pop-ups wait (the small confirmations stay, they answer a tap) */
+M.calmQuiet = ()=>!!(M._calm && document.querySelector('.reader'));
 
 /* ---------- 5. widgets that follow the time (Android) ---------- */
 M.syncTimedWidget = function(){
@@ -116,12 +123,12 @@ function addToggles(){
     b0.apply(this, arguments);
     b.append(h('div.section-h', 'تتبّع يومك'),
       h('div.list.card',
-        row('بطاقة الوقت', 'تبرز على الرئيسية ما يناسب الساعة: الأذكار بعد الفجر، الكهف يوم الجمعة، قيام الليل', sw('smartHome', true)),
+        row('بطاقة الوقت', 'تبرز على الرئيسية ما يناسب الساعة: أذكار الصباح، الضحى، الكهف يوم الجمعة، أذكار المساء، قيام الليل', sw('smartHome', true)),
         row('حلقة الختمة', 'نسبة ما قرأته من المصحف، ولمسة واحدة للمتابعة', sw('khatmaRing', true)),
         row('تذكّر آخر مكان', 'يفتح التطبيق على التبويب الذي كنت فيه، والقسم إن كان قبل أقل من نصف ساعة', sw('rememberPlace', true)),
         row('ودجت يتبع الوقت (أندرويد)', 'فاتح بالنهار وداكن من المغرب إلى الفجر', sw('wdgTimed', false))),
       h('div.section-h', 'وضع القراءة الهادئ'),
-      h('div.small.muted', {style:'margin:0 4px 8px'}, 'ضوء دافئ وتعتيم تدريجي في المصحف مع الليل، وتُحجب رسائل التطبيق أثناء القراءة. إشعارات الجهاز نفسها تُضبط من إعدادات الهاتف.'),
+      h('div.small.muted', {style:'margin:0 4px 8px'}, 'ضوء دافئ وتعتيم تدريجي في المصحف مع الليل، ولا تظهر نوافذ الأذكار المنبثقة داخل التطبيق أثناء القراءة. إشعارات الجهاز نفسها تُضبط من إعدادات الهاتف.'),
       M.seg([['night', 'بالليل'], ['on', 'دائمًا'], ['off', 'متوقف']], M.cfg.calmRead || 'night', v=>M.save('calmRead', v)));
   };
 }

@@ -203,7 +203,7 @@ M.openRamadan = function(){
   const endR = M.addDays(r1, len - 1);
   if(today > endR) y++;
   const start = M.hijriToGreg(y, 9, 1), mlen = M.hijriMonthLen(y, 9);
-  const S = {tab:'imsak'};
+  const S = {tab:M.tabMem('ramadan', 'imsak')};
   const content = h('div');
   M.openView({title:'رمضان', id:'ramadan', build:b=>{ b.append(content); }});
   function paint(){
@@ -213,7 +213,7 @@ M.openRamadan = function(){
     content.append(h('div.card.accent.pad.ram-hero', h('div.title-font.bold', 'رمضان '+M.n(y)+' هـ'),
       h('div.small', inR ? 'اليوم '+M.n(-diff + 1)+' من رمضان' : 'يبدأ تقريبًا '+M.WEEKDAYS[start.getDay()]+' '+M.n(start.getDate())+' '+M.GMONTHS[start.getMonth()]+' — بعد '+M.cnt(diff, 'يوم', true, 'يومًا')),
       h('div.tiny.muted', 'التواريخ فلكية تقريبية؛ يُعمل برؤية الهلال في بلدك.')));
-    content.append(h('div', {style:'margin:12px 0'}, M.seg([['imsak','الإمساكية'],['khatma','ختمة القرآن'],['dua','أدعية وأعمال']], S.tab, v=>{ S.tab = v; paint(); })));
+    content.append(h('div', {style:'margin:12px 0'}, M.seg([['imsak','الإمساكية'],['khatma','ختمة القرآن'],['dua','أدعية وأعمال']], S.tab, v=>{ S.tab = M.tabMem('ramadan', null, v); paint(); })));
     (S.tab === 'imsak' ? imsak : S.tab === 'khatma' ? khatma : duas)(content, inR ? -diff : -1);
   }
   function imsak(el, todayIdx){
@@ -270,7 +270,7 @@ M.openRamadan = function(){
 
 /* ---------------- Hajj & Umrah ---------------- */
 M.openHajj = function(){
-  const S = {tab:'umrah'}; const content = h('div');
+  const S = {tab:M.tabMem('hajj', 'umrah')}; const content = h('div');
   M.openView({title:'الحج والعمرة', id:'hajj', build:b=>{ b.append(content); }});
   const steps = (arr, el)=>{ const card = h('div.card'); arr.forEach((x, i)=>card.append(h('div.hj-step', h('span.hj-n.num', M.n(i + 1)), h('div.grow', h('div.bold', x[0]), h('div.small.muted.hj-d', x[1]))))); el.append(card); };
   function counter(kind, label){
@@ -285,7 +285,7 @@ M.openHajj = function(){
   }
   function paint(){
     content.innerHTML = '';
-    content.append(h('div', {style:'margin:4px 0 12px'}, M.seg([['umrah','العمرة'],['hajj','الحج'],['count','العدّاد'],['mist','أخطاء شائعة'],['dua','أدعية']], S.tab, v=>{ S.tab = v; paint(); })));
+    content.append(h('div', {style:'margin:4px 0 12px'}, M.seg([['umrah','العمرة'],['hajj','الحج'],['count','العدّاد'],['mist','أخطاء شائعة'],['dua','أدعية']], S.tab, v=>{ S.tab = M.tabMem('hajj', null, v); paint(); })));
     if(S.tab === 'umrah') steps(M.HAJJ.umrah, content);
     else if(S.tab === 'hajj') steps(M.HAJJ.hajj, content);
     else if(S.tab === 'count'){ content.append(counter('tawaf', 'عدّاد الطواف'), h('div', {style:'height:12px'}), counter('sai', 'عدّاد السعي'),
@@ -299,7 +299,7 @@ M.openHajj = function(){
 
 /* ---------------- Kids ---------------- */
 M.openKids = function(){
-  const S = {tab:'wudu'}; const content = h('div');
+  const S = {tab:M.tabMem('kids', 'wudu')}; const content = h('div');
   const stars = ()=>M.store.get('kidStars', 0);
   const starEl = h('span.badge.gold', '★ '+M.n(stars()));
   const view = M.openView({title:'ركن الأطفال', id:'kids', actions:[starEl], build:b=>{ b.append(content); }});
@@ -330,7 +330,7 @@ M.openKids = function(){
   }
   function paint(){
     content.innerHTML = '';
-    content.append(h('div', {style:'margin:4px 0 12px'}, M.seg([['wudu','الوضوء'],['salah','الصلاة'],['stories','قصص'],['adhkar','أذكار'],['quiz','مسابقة']], S.tab, v=>{ S.tab = v; paint(); })));
+    content.append(h('div', {style:'margin:4px 0 12px'}, M.seg([['wudu','الوضوء'],['salah','الصلاة'],['stories','قصص'],['adhkar','أذكار'],['quiz','مسابقة']], S.tab, v=>{ S.tab = M.tabMem('kids', null, v); paint(); })));
     if(S.tab === 'wudu') steps(M.KIDS.wudu, content);
     else if(S.tab === 'salah') steps(M.KIDS.salah, content);
     else if(S.tab === 'stories') M.KIDS.stories.forEach(([t, d])=>content.append(h('div.card.pad', h('div.bold.title-font', t), h('div.small', {style:'margin-top:6px;line-height:1.9'}, d))));

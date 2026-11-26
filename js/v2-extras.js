@@ -107,11 +107,11 @@ M.openSecuritySettings = function(){
       });
       rows.push(h('div.item.static', h('div.grow', h('div.t', 'قفل التطبيق'), h('div.s', window.isIOSApp ? 'بـ Face ID أو Touch ID أو رمز قفل الآيفون عند فتح التطبيق' : call('bioAvail') ? 'بالبصمة أو رمز قفل الهاتف عند فتح التطبيق' : 'برمز قفل الهاتف أو كلمة سر التطبيق عند فتحه')), lockSw));
       // the iPhone app locks with Face ID / Touch ID / the passcode only; the app password, flipping and the volume keys are Android's
-      if(native('setLockPass')) rows.push(M.item({icon:'t:lock', title:'كلمة سر التطبيق', sub:call('hasLockPass') ? 'مفعّلة — تُطلب عند فتح التطبيق مع البصمة' : 'اختيارية — بديل عن رمز قفل الهاتف', onClick:()=>passSheet(), trail:M.ic('fwd')}));
+      if(native('setLockPass')) rows.push(M.item({icon:'lock', title:'كلمة سر التطبيق', sub:call('hasLockPass') ? 'مفعّلة — تُطلب عند فتح التطبيق مع البصمة' : 'اختيارية — بديل عن رمز قفل الهاتف', onClick:()=>passSheet(), trail:M.ic('fwd')}));
       if(M.can('flipStop')) rows.push(sw('flipStop', 'قلب الهاتف لكتم الأذان', 'ضع الهاتف على وجهه ليتوقف صوت الأذان فورًا'));
       if(M.can('volKeys')) rows.push(sw('volTasbih', 'التسبيح بأزرار الصوت', 'داخل شاشة المسبحة: رفع الصوت يزيد العدّاد وخفضه يتراجع'));
     }
-    if(!native('setAppLock') && M.openWebLock) rows.splice(1, 0, M.item({icon:'t:lock', title:'قفل التطبيق', sub:'بصمة الوجه أو الإصبع (Face ID / Touch ID) أو كلمة سر', onClick:()=>M.openWebLock(), trail:M.ic('fwd')}));
+    if(!native('setAppLock') && M.openWebLock) rows.splice(1, 0, M.item({icon:'lock', title:'قفل التطبيق', sub:'بصمة الوجه أو الإصبع (Face ID / Touch ID) أو كلمة سر', onClick:()=>M.openWebLock(), trail:M.ic('fwd')}));
     b.append(h('div.list.card', ...rows), h('div.tiny.muted', {style:'margin:10px 4px;line-height:1.9'}, window.isIOSApp ? 'قلب الهاتف لكتم الأذان والتسبيح بأزرار الصوت في تطبيق أندرويد فقط؛ الآيفون لا يسمح للتطبيقات بهما.' : native('setAppLock') ? 'قفل التطبيق وقلب الهاتف وأزرار الصوت تعمل في تطبيق أندرويد فقط.' : 'بعض الخيارات (القفل وقلب الهاتف وأزرار الصوت) تظهر في تطبيق أندرويد فقط.'));
   }});
 };

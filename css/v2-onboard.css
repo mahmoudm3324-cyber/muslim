@@ -215,3 +215,17 @@ html[data-theme=dark] .ob-nt-bar i,html[data-theme=amoled] .ob-nt-bar i{backgrou
 .ob-w2 .ob-w2-top{margin-top:18px}
 .ob-w2 .ob-w2-icon{box-shadow:0 14px 34px -14px rgba(0,0,0,.45)}
 .ob-w2 .ob-w2-list{margin-top:10px}
+
+/* 4.9 polish (found by looking at every step at 320/393 px, light and dark)
+   · segmented choices: the unpicked ones took the app's grey (v47 §5) and nearly vanished on the welcome's own colours */
+html[data-skin] .ob .seg button:not(.on){color:var(--ob-fg);opacity:.82}
+/* · the live-sky step: its words sit low, where the sky turns peach at sunrise and maghrib — a soft shadow keeps them readable */
+.ob3-tl .ob3-tx{position:relative;z-index:2}
+.ob3-tl .ob3-tx .ob-h,.ob3-tl .ob3-tx .ob-p{text-shadow:0 1px 3px rgba(0,0,0,.35),0 2px 18px rgba(0,0,0,.35)}
+.ob3-tl .ob3-tx .ob-p{color:rgba(255,255,255,.94)}
+/* · titles and paragraphs break evenly (no lone last word) */
+.ob-h{line-height:1.35;text-wrap:balance}
+.ob-p{text-wrap:pretty}
+/* · the tick of a chosen option sat on its label on narrow screens: the label keeps clear of it */
+.ob-opt{padding-inline-end:32px}
+.ob-skins .ob-opt b{white-space:nowrap;font-size:clamp(.84rem,4.2vw,1rem)}
